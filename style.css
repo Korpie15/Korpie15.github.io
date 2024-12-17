@@ -99,8 +99,63 @@ ul {
     padding-left: 20px;
 }
 
+/* Project Categories */
+.project-category {
+    margin-bottom: 30px;
+}
+
+.project-category h3 {
+    color: #3498db;
+    font-size: 1.8em;
+    margin-bottom: 10px;
+}
+
 .project {
     margin-bottom: 20px;
+    padding: 15px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.project h4 {
+    color: #2c3e50;
+    font-size: 1.3em;
+    margin-bottom: 5px;
+}
+
+.project p {
+    font-size: 1em;
+    color: #555;
+}
+
+/* Leadership Subsections */
+.leadership-category {
+    margin-bottom: 20px;
+}
+
+.leadership-category h3 {
+    font-size: 1.5em;
+    color: #3498db;
+    margin-bottom: 10px;
+}
+
+.leadership-category p {
+    font-size: 1em;
+    color: #555;
+}
+
+/* Teamwork Section */
+#teamwork ul {
+    list-style: square;
+    margin-top: 10px;
+    padding-left: 20px;
+}
+
+#teamwork ul li {
+    margin-bottom: 10px;
+    font-size: 1em;
+    color: #555;
 }
 
 /* Buttons */
