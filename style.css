@@ -72,6 +72,25 @@ header h2 {
     margin-top: 10px;
 }
 
+/* Video Styling */
+.video-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    width: 100%;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.video-container iframe {
+    width: 100%;
+    max-width: 854px; /* Original width of video */
+    aspect-ratio: 16 / 9; /* Ensures the video scales proportionally */
+    border: none;
+}
+
 /* Section Styling */
 .section {
     padding: 40px 20px;
@@ -184,3 +203,4 @@ footer {
 footer p {
     margin: 0;
 }
+
