@@ -158,17 +158,20 @@
             <div class="acedemic-project">
                 <h3>SPOT search and resuce</h3>
                 <p>
-                    This was a group project which invloced using the Boston Dynamics SPOT robot as a search and resuce device for humans in unknown and possibly dangerous environments. For this project we created a ROS1 package which can be installed by anyone. 
-                    We used the onboard video feed to scan to see if a person could be seen. To differentiate between objects we used Yolo V3 with a confidence ratio of 80%. We also didnt need to train our own model as the preinstalled human model was found to be satisfactory enough. For exploration we used a greedy frontier based algorithm
+                    This group project involved leveraging the Boston Dynamics SPOT robot for search-and-rescue operations in challenging and potentially hazardous environments. We developed a ROS1 package to facilitate autonomous exploration and human detection, making the system accessible for anyone to install and use. The onboard video feed from SPOT was integrated with YOLOv3 for human identification, achieving a confidence threshold of 80%. Since the pre-trained human detection model met our needs, no additional model training was required. When a human was detected, a marker was placed on a global map, allowing rescuers to pinpoint their exact locations.
                     <br>
-                    If you'd like to explore the source code or install the model, visit the GitHub repository here: 
+                    Exploration of the environment utilized a greedy frontier-based algorithm, ensuring complete area coverage. Once SPOT finished exploring, the total number of markers on the map provided the rescue team with a clear overview of all detected individuals and their locations.
+                    <br>
+                    This project was also a significant learning experience for me. It marked my first exposure to ROS, Linux, and Git repositories, helping me build confidence in installing and integrating different packages into robotic projects. These new skills have expanded my technical capabilities and prepared me for future projects requiring advanced robotics systems
+                    <br>
+                    If you'd like to explore the source code or install our package, visit the GitHub repository here: 
                     <a href="https://github.com/imJohly/JJCAR-Rescuebot" target="_blank" class="project-link">SPOT Search and resuce GitHub Repository</a>.
                 </p>
             </div>
             <div class="acedemic-project">
                 <h3>THOR Robotic Build</h3>
                 <p>
-                    As apart of the Mechsoc Society a society build project that I was the events director and oragniser for was the THOR robot build. This is an open source robot build that we thought would be a great inititive for our members. The project would allow our society to own a robot that we could show off at open days but through the process of building it weekly, we could meet and interact with more of our members and create a greater sense of community.
+                    As apart of the Mechanical and Mechatronic Society, a society build project that I was the events director and oragniser for was the THOR robot build. This is an open source robot build that we thought would be a great inititive for our members. The project would allow our society to own a robot that we could show off at open days but through the process of building it weekly, we could meet and interact with more of our members and create a greater sense of community.
                 </p>
             </div>         
         </div>
