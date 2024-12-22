@@ -81,7 +81,7 @@ nav {
 }
 
 /* Media Query for Responsive Design */
-@media screen and (max-width: 3000px) {
+@media screen and (max-width: 2000px) {
     .nav-links {
         display: none; /* Hide navigation links by default */
         flex-direction: column;
