@@ -54,7 +54,47 @@ nav {
 .nav-links a:hover {
     color: #3498db;
 }
+/* Responsive Navigation */
+.nav-links.responsive {
+    display: flex;
+    flex-direction: column;
+    position: absolute;
+    top: 60px; /* Adjust to match the height of your nav bar */
+    left: 0;
+    width: 100%;
+    background-color: #2c3e50;
+    z-index: 999;
+}
 
+.nav-links.responsive li {
+    margin: 10px 0; /* Add spacing between links in the dropdown */
+    text-align: center;
+}
+
+/* Hamburger Icon */
+.icon {
+    display: none;
+    font-size: 24px;
+    cursor: pointer;
+    color: #fff;
+    padding: 10px;
+}
+
+/* Media Query for Responsive Design */
+@media screen and (max-width: 768px) {
+    .nav-links {
+        display: none; /* Hide navigation links by default */
+        flex-direction: column;
+    }
+
+    .icon {
+        display: block; /* Show the hamburger icon */
+    }
+
+    .nav-container {
+        justify-content: space-between;
+    }
+}
 /* Header */
 header {
     background: #2c3e50;
