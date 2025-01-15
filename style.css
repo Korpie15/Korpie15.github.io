@@ -112,6 +112,13 @@ header h2 {
     margin-top: 10px;
 }
 
+/* Image Styling */
+.image-container {
+    display: block;
+    margin: 0 auto;
+    width: 95%;
+    height: auto; /* Maintain aspect ratio */
+}
 /* Video Styling */
 .video-container {
     display: flex;
