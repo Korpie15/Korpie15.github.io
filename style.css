@@ -149,7 +149,7 @@ header h2 {
 
 .about-me-container {
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     gap: 20px; /* Space between the image and text */
 }
 
