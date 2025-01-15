@@ -94,6 +94,15 @@ nav {
     .nav-container {
         justify-content: space-between;
     }
+    
+       .about-me-container {
+        flex-direction: column; /* Stack image and text vertically */
+        align-items: center; /* Center both the image and text */
+    }
+
+    .about-me-photo {
+        width: 80%; /* Make the image larger for better visibility */
+    }
 }
 /* Header */
 header {
