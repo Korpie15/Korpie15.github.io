@@ -138,6 +138,19 @@ header h2 {
     border: none;
 }
 
+.about-me-container {
+    display: flex;
+    align-items: center;
+    gap: 20px; /* Space between the image and text */
+}
+
+.about-me-photo {
+    width: 30%; /* Adjust the width as needed */
+    height: auto; /* Maintain aspect ratio */
+    border-radius: 10px; /* Optional: Add rounded corners */
+    object-fit: cover; /* Ensure the image looks good */
+}
+
 /* Section Styling */
 .section {
     padding: 40px 20px;
