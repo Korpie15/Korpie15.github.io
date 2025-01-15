@@ -154,7 +154,7 @@ header h2 {
 }
 
 .about-me-photo {
-    width: 30%; /* Adjust the width as needed */
+    width: 20%; /* Adjust the width as needed */
     height: auto; /* Maintain aspect ratio */
     border-radius: 10px; /* Optional: Add rounded corners */
     object-fit: cover; /* Ensure the image looks good */
