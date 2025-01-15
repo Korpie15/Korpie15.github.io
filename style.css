@@ -245,6 +245,30 @@ ul {
     font-size: 1em;
     color: #555;
 }
+/* Button Group Styling */
+.button-group {
+    margin-top: 20px; /* Add spacing above buttons */
+    display: flex; /* Align buttons horizontally */
+    gap: 10px; /* Space between buttons */
+}
+
+.btn2 {
+    display: inline-block;
+    padding: 10px 20px;
+    background-color: #0073e6; /* Button background color */
+    color: white; /* Text color */
+    text-decoration: none; /* Remove underline */
+    border-radius: 5px; /* Rounded corners */
+    font-size: 16px; /* Button font size */
+    font-weight: bold;
+    text-align: center;
+    transition: background-color 0.3s; /* Add hover effect */
+}
+
+.btn2:hover {
+    background-color: #005bb5; /* Darker blue on hover */
+}
+
 
 /* Buttons */
 .btn {
