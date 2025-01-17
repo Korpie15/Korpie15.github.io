@@ -259,7 +259,7 @@ ul {
     justify-content: center;
     width: 50px; /* Button size */
     height: 50px;
-    background-color: #3498db; /* Button background color */
+    background-color: #2874A6; /* Button background color */
     color: white; /* Icon color */
     text-decoration: none;
     border-radius: 5px;
@@ -267,7 +267,7 @@ ul {
 }
 
 .btn2:hover {
-    background-color: #2980b9; /* Darker blue on hover */
+    background-color: #1A5276; /* Darker blue on hover */
 }
 
 .btn2 svg {
