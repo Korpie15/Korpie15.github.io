@@ -255,7 +255,7 @@ ul {
 .btn2 {
     display: inline-block;
     padding: 10px 20px;
-    background-color: #0073e6; /* Button background color */
+    background-color: #3498db; /* Button background color */
     color: white; /* Text color */
     text-decoration: none; /* Remove underline */
     border-radius: 5px; /* Rounded corners */
@@ -266,7 +266,7 @@ ul {
 }
 
 .btn2:hover {
-    background-color: #005bb5; /* Darker blue on hover */
+    background-color: #2980b9; /* Darker blue on hover */
 }
 
 
