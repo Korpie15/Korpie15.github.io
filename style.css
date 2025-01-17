@@ -280,7 +280,7 @@ ul {
 /* Buttons */
 .btn {
     display: inline-block;
-    background-color: #3498db;
+    background-color: #2874A6;
     color: #fff;
     padding: 10px 20px;
     text-decoration: none;
@@ -289,7 +289,7 @@ ul {
 }
 
 .btn:hover {
-    background-color: #2980b9;
+    background-color: #1A5276;
 }
 
 /* Footer */
