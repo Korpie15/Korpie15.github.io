@@ -1,306 +1,139 @@
-/* General Reset */
-* {
+/* ---------- Global Styles ---------- */
+body {
+    font-family: "Inter", Arial, sans-serif;
     margin: 0;
     padding: 0;
-    box-sizing: border-box;
-}
-
-body {
-    font-family: Arial, sans-serif;
     line-height: 1.6;
-    color: #333;
-    background-color: #f4f4f4;
+    background-color: #fafafa;
+    color: #222;
 }
 
-/* Navigation Bar */
-nav {
-    background-color: #2c3e50;
-    color: #fff;
-    position: sticky;
-    top: 0;
-    width: 100%;
-    z-index: 1000;
+.container {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 2rem 1rem;
 }
 
-.nav-container {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 10px 20px;
+/* ---------- Section Headers ---------- */
+.section {
+    padding: 3rem 0;
 }
 
-.logo {
-    font-size: 1.8em;
-    font-weight: bold;
-    color: #fff;
-}
-
-.nav-links {
-    list-style: none;
-    display: flex;
-}
-
-.nav-links li {
-    margin: 0 15px;
-}
-
-.nav-links a {
-    color: #fff;
-    text-decoration: none;
-    font-size: 1em;
-    transition: color 0.3s;
-}
-
-.nav-links a:hover {
-    color: #3498db;
-}
-/* Responsive Navigation */
-.nav-links.responsive {
-    display: flex;
-    flex-direction: column;
-    position: absolute;
-    top: 60px; /* Adjust to match the height of your nav bar */
-    left: 0;
-    width: 100%;
-    background-color: #2c3e50;
-    z-index: 999;
-}
-
-.nav-links.responsive li {
-    margin: 10px 0; /* Add spacing between links in the dropdown */
+.section h2 {
     text-align: center;
+    color: #003366;
+    font-size: 2rem;
+    margin-bottom: 2rem;
 }
 
-/* Hamburger Icon */
-.icon {
-    display: none;
-    font-size: 24px;
+/* ---------- Project Grid ---------- */
+.project-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1.5rem;
+}
+
+/* ---------- Project Cards ---------- */
+.project-card {
+    background: #ffffff;
+    border-radius: 12px;
+    padding: 1.5rem;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
     cursor: pointer;
-    color: #fff;
-    padding: 10px;
+    transition: all 0.3s ease;
+    overflow: hidden;
+    position: relative;
 }
 
-/* Media Query for Responsive Design */
-@media screen and (max-width: 1200px) {
-    .nav-links {
-        display: none; /* Hide navigation links by default */
-        flex-direction: column;
-    }
-
-    .icon {
-        display: block; /* Show the hamburger icon */
-    }
-
-    .nav-container {
-        justify-content: space-between;
-    }
-    
-       .about-me-container {
-        flex-direction: column; /* Stack image and text vertically */
-        align-items: center; /* Center both the image and text */
-    }
-
-    .about-me-photo {
-        width: 95%; /* Make the image larger for better visibility */
-    }
-}
-/* Header */
-header {
-    background: #2c3e50;
-    color: #fff;
-    padding: 40px 0;
-    text-align: center;
+.project-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+    background-color: #f5f8ff;
 }
 
-header h1 {
-    font-size: 2.5em;
+.project-card h3 {
+    margin: 0;
+    font-size: 1.3rem;
+    color: #003366;
 }
 
-header h2 {
-    font-size: 1.5em;
-    margin-top: 10px;
+.project-card .summary {
+    margin-top: 0.4rem;
+    font-weight: 500;
+    color: #444;
 }
 
-/* Image Styling */
-.image-container {
+/* ---------- Project Details (Expandable Content) ---------- */
+.project-details {
+    display: none;
+    margin-top: 1rem;
+    animation: fadeIn 0.3s ease;
+}
+
+.project-card.active .project-details {
     display: block;
-    margin: 0 auto;
-    width: 95%;
-    height: auto; /* Maintain aspect ratio */
 }
-/* Video Styling */
+
+/* ---------- Video and Images ---------- */
 .video-container {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    text-align: center;
-    width: 100%;
-    margin: 0 auto;
-    padding: 20px;
+    margin-top: 1rem;
 }
 
 .video-container iframe {
     width: 100%;
-    max-width: 854px; /* Original width of video */
-    aspect-ratio: 16 / 9; /* Ensures the video scales proportionally */
+    height: 250px;
     border: none;
+    border-radius: 8px;
+    margin-top: 0.5rem;
 }
 
-.about-me-container {
-    display: flex;
-    align-items: flex-start;
-    gap: 20px; /* Space between the image and text */
+.image-container {
+    width: 100%;
+    border-radius: 8px;
+    margin-top: 1rem;
 }
 
-.about-me-photo {
-    width: 20%; /* Adjust the width as needed */
-    height: auto; /* Maintain aspect ratio */
-    border-radius: 10px; /* Optional: Add rounded corners */
-    object-fit: cover; /* Ensure the image looks good */
-}
-
-/* Section Styling */
-.section {
-    padding: 40px 20px;
-    background: #fff;
-    margin: 20px auto;
-    width: 80%;
-    max-width: 1000px;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-    border-radius: 5px;
-}
-
-.section h2 {
-    margin-bottom: 20px;
-    color: #2c3e50;
-    border-bottom: 2px solid #2c3e50;
-    padding-bottom: 10px;
-}
-
-.section p, .section ul {
-    margin-bottom: 20px;
-}
-
-ul {
-    list-style: disc;
-    padding-left: 20px;
-}
-
-/* Project Categories */
-.project-category {
-    margin-bottom: 30px;
-}
-
-.project-category h3 {
-    color: #3498db;
-    font-size: 1.8em;
-    margin-bottom: 10px;
-}
-
-.project {
-    margin-bottom: 20px;
-    padding: 15px;
-    border: 1px solid #ddd;
-    border-radius: 5px;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-}
-
-.project h4 {
-    color: #2c3e50;
-    font-size: 1.3em;
-    margin-bottom: 5px;
-}
-
-.project p {
-    font-size: 1em;
-    color: #555;
-}
-
-/* Leadership Subsections */
-.leadership-category {
-    margin-bottom: 20px;
-}
-/*
-.leadership-category h3 {
-    font-size: 1.5em;
-    color: #3498db;
-    margin-bottom: 10px;
-}
-
-.leadership-category p {
-    font-size: 1em;
-    color: #555;
-}
-*/
-/* Teamwork Section */
-#teamwork ul {
-    list-style: square;
-    margin-top: 10px;
-    padding-left: 20px;
-}
-
-#teamwork ul li {
-    margin-bottom: 10px;
-    font-size: 1em;
-    color: #555;
-}
-/* Button Group Styling */
-.button-group {
-    margin-top: 20px;
-    display: flex;
-    gap: 10px;
-    justify-content: center;
-}
-
-.btn2 {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 50px; /* Button size */
-    height: 50px;
-    background-color: #2874A6; /* Button background color */
-    color: white; /* Icon color */
-    text-decoration: none;
-    border-radius: 5px;
-    transition: background-color 0.3s;
-}
-
-.btn2:hover {
-    background-color: #1A5276; /* Darker blue on hover */
-}
-
-.btn2 svg {
-    width: 24px; /* Adjust SVG size */
-    height: 24px;
-    fill: white; /* SVG color */
-}
-
-
-/* Buttons */
-.btn {
+/* ---------- Project Links ---------- */
+.project-link {
     display: inline-block;
-    background-color: #2874A6;
-    color: #fff;
-    padding: 10px 20px;
+    margin-top: 0.5rem;
+    color: #0066cc;
     text-decoration: none;
-    border-radius: 5px;
-    transition: background 0.3s;
+    font-weight: 500;
+    transition: color 0.2s ease;
 }
 
-.btn:hover {
-    background-color: #1A5276;
+.project-link:hover {
+    color: #004b99;
+    text-decoration: underline;
 }
 
-/* Footer */
-footer {
-    background: #2c3e50;
-    color: #fff;
-    text-align: center;
-    padding: 20px 0;
+/* ---------- Typography ---------- */
+h4.video-title {
+    margin-top: 1rem;
+    margin-bottom: 0.3rem;
+    color: #222;
+    font-size: 1rem;
+    font-weight: 600;
 }
 
-footer p {
-    margin: 0;
+/* ---------- Animations ---------- */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-5px); }
+    to { opacity: 1; transform: translateY(0); }
 }
 
+/* ---------- Responsive Adjustments ---------- */
+@media (max-width: 768px) {
+    .container {
+        padding: 1.5rem 1rem;
+    }
+
+    .section h2 {
+        font-size: 1.7rem;
+    }
+
+    .project-card {
+        padding: 1.2rem;
+    }
+}
