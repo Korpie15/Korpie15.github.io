@@ -303,3 +303,83 @@ footer {
 footer p {
     margin: 0;
 }
+
+/* Academic Projects Grid */
+.academic-projects-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 20px;
+    margin-top: 20px;
+}
+
+.academic-project-tile {
+    background: #f9f9f9;
+    border: 2px solid #ddd;
+    border-radius: 8px;
+    padding: 20px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.academic-project-tile:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    border-color: #3498db;
+}
+
+.academic-project-tile.expanded {
+    grid-column: 1 / -1;
+    background: #fff;
+    border-color: #3498db;
+}
+
+.tile-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.tile-header h3 {
+    color: #2c3e50;
+    font-size: 1.4em;
+    margin: 0;
+}
+
+.expand-icon {
+    font-size: 1.5em;
+    color: #3498db;
+    transition: transform 0.3s ease;
+}
+
+.academic-project-tile.expanded .expand-icon {
+    transform: rotate(180deg);
+}
+
+.tile-preview {
+    color: #666;
+    font-size: 0.95em;
+    line-height: 1.4;
+    margin: 10px 0 0 0;
+}
+
+.tile-content {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.5s ease;
+}
+
+.academic-project-tile.expanded .tile-content {
+    max-height: 5000px;
+    margin-top: 20px;
+}
+
+.academic-project-tile.expanded .tile-preview {
+    display: none;
+}
+
+/* Adjust intro project styling */
+.academic-intro {
+    margin-bottom: 30px;
+}
