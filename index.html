@@ -157,107 +157,153 @@
     <section id="academic-experience" class="section">
         <div class="container">
             <h2>Academic Experience and Projects</h2>
-            <div class="acedemic-project">
+            <div class="academic-intro">
                 <h3>University Of Technology Sydney </h3>
                 <p>
                     I am in my fifth and final year of my Mechatronics Undergraduate degree. Throughout my degree, I have had the pleasure of working on varying projects. Some of my most proud ones are listed below.
                     These projects have grown my technical ability as well as my interpersonal, leadership and organisational skills as all involved significant group collaboration.
                 </p>
             </div>
-            <div class="academic-project">
-                <h3>Turtle Bot Warehousing system</h3>
-                <p>
-                    The Turtlebot warehousing robot autonomis item picking and delivery in warehouses using a scalable system of robots. Initially, a single robot maps the warehouse, creating a static map while avoiding dynamic obstacles like people or forklifts. The system assigns tasks to robots based on proximity and payload capacity, coordinating item retrieval and delivery to a drop-off zone. Using lidar, the robots dynamically avoid obstacles, including each other, to maintain efficiency.
-                </p>
-                <p>
-                    My focus was on the payload delivery system, a 3D-printed mechanism with a servo-driven trap door. Mounted on the top of the robot, it securely carries and dispenses items from the pick-up to the drop-off zone. Controlled by an Arduino Nano that listens for a signal from the Raspberry Pi the turtle bot is running on. By being mounted above the Lidar the system minimises interference with the lidar for smooth operation.
-                    See the below project video for more information.
-                <div class="video-container">
-                        <h4 class="video-title">Turtle bot warehousing Project Video</h4>
-                        <iframe src="https://www.youtube.com/embed/PykMOBxtqDs?si=Vog3GEVmjzvJvmNK" 
-                        title="Turtle bot Warehousing System" 
-                        frameborder="0" 
-                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
-                        referrerpolicy="strict-origin-when-cross-origin" 
-                        allowfullscreen>
-                        </iframe>
+            
+            <div class="academic-projects-grid">
+                <div class="academic-project-tile" onclick="toggleProject(this)">
+                    <div class="tile-header">
+                        <h3>Turtle Bot Warehousing system</h3>
+                        <span class="expand-icon">▼</span>
                     </div>
-                    You can view the project file at the following link:
-                    <a href="https://github.com/imJohly/warehouse_tasker/tree/Payload" target="_blank" class="project-link">Turtle Bot Git Repositiry</a>.
-                    <br>
-                </p>
-                
-            </div>
-            <div class="academic-project">
-                <h3>Robotics Control Project</h3>
-                <p>
-                    This project involved simulating a robotic system with two robots, one of which required designing both its physical and kinematic models. The system was tasked with performing a pick, place, and sorting operation to organise blocks by colour. This included a GUI, obstacle detection, and a physical emergency stop button that worked in both simulation and on real hardware. A RealSense camera was used for vision, providing both colour and depth data.
-                </p>
-                <p>
-                    Through this project, I gained a deeper understanding of robotics mathematics, including kinematics and singularity errors. This insight connected theory to my practical experience as a control systems engineer, where I had recently encountered similar challenges with Fanuc robots. Learning the theory behind why robot joints cannot align straight, to avoid singularity errors, was particularly valuable as it directly addressed a real-world problem I had faced.
-                    See the below Project Video for more details and video examples.
-                    <div class="video-container">
-                        <h4 class="video-title">Robotic Control Project Video</h4>
-                        <iframe src="https://www.youtube.com/embed/mtV6qu-1_xM?si=5ocI-sWwbQ1oIWb6" 
-                        title="Robotic Control Project Video" 
-                        frameborder="0" 
-                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
-                        referrerpolicy="strict-origin-when-cross-origin" 
-                        allowfullscreen>
-                        </iframe>
+                    <p class="tile-preview">
+                        Autonomous warehousing robot using ROS, lidar navigation, and a custom 3D-printed payload delivery system...
+                    </p>
+                    <div class="tile-content">
+                        <p>
+                            The Turtlebot warehousing robot autonomis item picking and delivery in warehouses using a scalable system of robots. Initially, a single robot maps the warehouse, creating a static map while avoiding dynamic obstacles like people or forklifts. The system assigns tasks to robots based on proximity and payload capacity, coordinating item retrieval and delivery to a drop-off zone. Using lidar, the robots dynamically avoid obstacles, including each other, to maintain efficiency.
+                        </p>
+                        <p>
+                            My focus was on the payload delivery system, a 3D-printed mechanism with a servo-driven trap door. Mounted on the top of the robot, it securely carries and dispenses items from the pick-up to the drop-off zone. Controlled by an Arduino Nano that listens for a signal from the Raspberry Pi the turtle bot is running on. By being mounted above the Lidar the system minimises interference with the lidar for smooth operation.
+                            See the below project video for more information.
+                        </p>
+                        <div class="video-container">
+                            <h4 class="video-title">Turtle bot warehousing Project Video</h4>
+                            <iframe src="https://www.youtube.com/embed/PykMOBxtqDs?si=Vog3GEVmjzvJvmNK" 
+                            title="Turtle bot Warehousing System" 
+                            frameborder="0" 
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+                            referrerpolicy="strict-origin-when-cross-origin" 
+                            allowfullscreen>
+                            </iframe>
+                        </div>
+                        <p>
+                            You can view the project file at the following link:
+                            <a href="https://github.com/imJohly/warehouse_tasker/tree/Payload" target="_blank" class="project-link">Turtle Bot Git Repositiry</a>.
+                        </p>
                     </div>
-                </p>
-            </div>
-            <div class="academic-project">
-                <h3>AI Tetris</h3>
-                <p>
-                    In AI in Robotics, my group project was to program an AI model that could play Tetris. We successfully achieved this goal. 
-                    The Tetris AI project uses Deep Q-Networks (DQN) and reinforcement learning to optimise gameplay. The AI evaluates the best moves based on board metadata, enabling it to plan for combos like "Tetris clears" while minimizing gaps and towers. It generalises well across board sizes, such as a 30x20 grid, despite training exclusively on a standard 10x20 grid. By analyzing final states instead of individual moves, the model achieves efficient, adaptable, and high-performing gameplay.
-                    <div class="video-container">
-                        <h4 class="video-title">Our Tetris AI Project Video</h4>
-                        <iframe src="https://www.youtube.com/embed/jo5F_d3a7GM" 
-                        title="Tetris Project Video" 
-                        frameborder="0" 
-                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
-                        referrerpolicy="strict-origin-when-cross-origin" 
-                        allowfullscreen>
-                        </iframe>
-                    </div>
+                </div>
 
-                    You can view the project live on the following link:
-                    <a href="https://topey2x.github.io/TetrisAI/" target="_blank" class="project-link">Tetris AI Project Website</a>.
-                    <br>
-                    If you'd like to explore the source code or install the model, visit the GitHub repository here: 
-                    <a href="https://github.com/Topey2X/TetrisAI" target="_blank" class="project-link">Tetris AI GitHub Repository</a>.
-                </p>
-            </div>
-            <div class="academic-project">
-                <h3>SPOT search and resuce</h3>
-                <p>
-                    This group project involved leveraging the Boston Dynamics SPOT robot for search-and-rescue operations in challenging and potentially hazardous environments. We developed a ROS1 package to facilitate autonomous exploration and human detection, making the system accessible for anyone to install and use. The onboard video feed from SPOT was integrated with YOLOv3 for human identification, achieving a confidence threshold of 80%. Since the pre-trained human detection model met our needs, no additional model training was required. When a human was detected, a marker was placed on a global map, allowing rescuers to pinpoint their exact locations.
-                </p>
-                <p>
-                    Exploration of the environment utilised a greedy frontier-based algorithm, ensuring complete area coverage. Once SPOT finished exploring, the total number of markers on the map provided the rescue team with a clear overview of all detected individuals and their locations.
-                </p>
-                <p>
-                    This project was also a significant learning experience for me. It marked my first exposure to ROS, Linux, and Git repositories, helping me build confidence in installing and integrating different packages into robotic projects. These new skills have expanded my technical capabilities and prepared me for future projects. 
-                    <br>
-                    Check out my project portfolio which covers everything in more detail.
-                    <!-- <a href="Robo1 Portfolio.pdf" class="btn" download>Download Project Portfolio</a>\ -->
-                    <a href="Robo1 Portfolio.pdf" target="_blank" class="project-link">Download Project Portfolio</a>.
-                </p>
-                <p>
-                    If you'd like to explore the source code or install our age, visit the GitHub repository here: 
-                    <a href="https://github.com/imJohly/JJCAR-Rescuebot" target="_blank" class="project-link">SPOT Search and resuce GitHub Repository</a>.
-                    
-                </p>
-            </div>
-            <div class="academic-project">
-                <h3>THOR Robotic Build</h3>
-                <p>
-                    As a part of the Mechanical and Mechatronic Society, a society build project that I was the events director and organiser for was the THOR robot build. This is an open-source robot build that we thought would be a great initiative for our members. The project would allow our society to own a robot that we could show off at open days but through the process of building it weekly, we could meet and interact with more of our members and create a greater sense of community.
-                </p>
-                <img src="Thor_Robot1.jpeg" alt="THOR Robot" class="image-container">
+                <div class="academic-project-tile" onclick="toggleProject(this)">
+                    <div class="tile-header">
+                        <h3>Robotics Control Project</h3>
+                        <span class="expand-icon">▼</span>
+                    </div>
+                    <p class="tile-preview">
+                        Robotic pick, place, and sorting system with custom kinematics, GUI, and RealSense camera integration...
+                    </p>
+                    <div class="tile-content">
+                        <p>
+                            This project involved simulating a robotic system with two robots, one of which required designing both its physical and kinematic models. The system was tasked with performing a pick, place, and sorting operation to organise blocks by colour. This included a GUI, obstacle detection, and a physical emergency stop button that worked in both simulation and on real hardware. A RealSense camera was used for vision, providing both colour and depth data.
+                        </p>
+                        <p>
+                            Through this project, I gained a deeper understanding of robotics mathematics, including kinematics and singularity errors. This insight connected theory to my practical experience as a control systems engineer, where I had recently encountered similar challenges with Fanuc robots. Learning the theory behind why robot joints cannot align straight, to avoid singularity errors, was particularly valuable as it directly addressed a real-world problem I had faced.
+                            See the below Project Video for more details and video examples.
+                        </p>
+                        <div class="video-container">
+                            <h4 class="video-title">Robotic Control Project Video</h4>
+                            <iframe src="https://www.youtube.com/embed/mtV6qu-1_xM?si=5ocI-sWwbQ1oIWb6" 
+                            title="Robotic Control Project Video" 
+                            frameborder="0" 
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+                            referrerpolicy="strict-origin-when-cross-origin" 
+                            allowfullscreen>
+                            </iframe>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="academic-project-tile" onclick="toggleProject(this)">
+                    <div class="tile-header">
+                        <h3>AI Tetris</h3>
+                        <span class="expand-icon">▼</span>
+                    </div>
+                    <p class="tile-preview">
+                        Deep Q-Network (DQN) AI that plays Tetris using reinforcement learning and strategic combo planning...
+                    </p>
+                    <div class="tile-content">
+                        <p>
+                            In AI in Robotics, my group project was to program an AI model that could play Tetris. We successfully achieved this goal. 
+                            The Tetris AI project uses Deep Q-Networks (DQN) and reinforcement learning to optimise gameplay. The AI evaluates the best moves based on board metadata, enabling it to plan for combos like "Tetris clears" while minimizing gaps and towers. It generalises well across board sizes, such as a 30x20 grid, despite training exclusively on a standard 10x20 grid. By analyzing final states instead of individual moves, the model achieves efficient, adaptable, and high-performing gameplay.
+                        </p>
+                        <div class="video-container">
+                            <h4 class="video-title">Our Tetris AI Project Video</h4>
+                            <iframe src="https://www.youtube.com/embed/jo5F_d3a7GM" 
+                            title="Tetris Project Video" 
+                            frameborder="0" 
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+                            referrerpolicy="strict-origin-when-cross-origin" 
+                            allowfullscreen>
+                            </iframe>
+                        </div>
+                        <p>
+                            You can view the project live on the following link:
+                            <a href="https://topey2x.github.io/TetrisAI/" target="_blank" class="project-link">Tetris AI Project Website</a>.
+                            <br>
+                            If you'd like to explore the source code or install the model, visit the GitHub repository here: 
+                            <a href="https://github.com/Topey2X/TetrisAI" target="_blank" class="project-link">Tetris AI GitHub Repository</a>.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="academic-project-tile" onclick="toggleProject(this)">
+                    <div class="tile-header">
+                        <h3>SPOT search and rescue</h3>
+                        <span class="expand-icon">▼</span>
+                    </div>
+                    <p class="tile-preview">
+                        Boston Dynamics SPOT robot with autonomous exploration and YOLOv3 human detection for search-and-rescue...
+                    </p>
+                    <div class="tile-content">
+                        <p>
+                            This group project involved leveraging the Boston Dynamics SPOT robot for search-and-rescue operations in challenging and potentially hazardous environments. We developed a ROS1 package to facilitate autonomous exploration and human detection, making the system accessible for anyone to install and use. The onboard video feed from SPOT was integrated with YOLOv3 for human identification, achieving a confidence threshold of 80%. Since the pre-trained human detection model met our needs, no additional model training was required. When a human was detected, a marker was placed on a global map, allowing rescuers to pinpoint their exact locations.
+                        </p>
+                        <p>
+                            Exploration of the environment utilised a greedy frontier-based algorithm, ensuring complete area coverage. Once SPOT finished exploring, the total number of markers on the map provided the rescue team with a clear overview of all detected individuals and their locations.
+                        </p>
+                        <p>
+                            This project was also a significant learning experience for me. It marked my first exposure to ROS, Linux, and Git repositories, helping me build confidence in installing and integrating different packages into robotic projects. These new skills have expanded my technical capabilities and prepared me for future projects. 
+                            <br>
+                            Check out my project portfolio which covers everything in more detail.
+                            <a href="Robo1 Portfolio.pdf" target="_blank" class="project-link">Download Project Portfolio</a>.
+                        </p>
+                        <p>
+                            If you'd like to explore the source code or install our age, visit the GitHub repository here: 
+                            <a href="https://github.com/imJohly/JJCAR-Rescuebot" target="_blank" class="project-link">SPOT Search and resuce GitHub Repository</a>.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="academic-project-tile" onclick="toggleProject(this)">
+                    <div class="tile-header">
+                        <h3>THOR Robotic Build</h3>
+                        <span class="expand-icon">▼</span>
+                    </div>
+                    <p class="tile-preview">
+                        Open-source humanoid robot build project for UTSMechSoc to engage members and showcase at open days...
+                    </p>
+                    <div class="tile-content">
+                        <p>
+                            As a part of the Mechanical and Mechatronic Society, a society build project that I was the events director and organiser for was the THOR robot build. This is an open-source robot build that we thought would be a great initiative for our members. The project would allow our society to own a robot that we could show off at open days but through the process of building it weekly, we could meet and interact with more of our members and create a greater sense of community.
+                        </p>
+                        <img src="Thor_Robot1.jpeg" alt="THOR Robot" class="image-container">
+                    </div>
+                </div>
             </div>         
         </div>
     </section>
@@ -334,6 +380,19 @@
       } else {
         x.className = "nav-links";
       }
+    }
+    
+    function toggleProject(element) {
+      // Close all other tiles
+      const allTiles = document.querySelectorAll('.academic-project-tile');
+      allTiles.forEach(tile => {
+        if (tile !== element && tile.classList.contains('expanded')) {
+          tile.classList.remove('expanded');
+        }
+      });
+      
+      // Toggle the clicked tile
+      element.classList.toggle('expanded');
     }
   </script>
     
