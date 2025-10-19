@@ -371,7 +371,7 @@ footer p {
 }
 
 .academic-project-tile.expanded .tile-content {
-    max-height: 5000px;
+    max-height: none;
     margin-top: 20px;
 }
 
