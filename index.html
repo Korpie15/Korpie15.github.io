@@ -20,7 +20,7 @@
         <li><a href="#academic-experience">Academic Experience</a></li>          
         <li><a href="#teamwork">Teamwork</a></li>
         <li><a href="#capabilities">Capabilities</a></li>
-        <li><a href="Aidan Korpar Resume.pdf" download>My Resume</a></li>
+        <li><a href="pdfs/Aidan Korpar Resume.pdf" download>My Resume</a></li>
       </ul>
     </div>
   </nav>
@@ -62,9 +62,9 @@
                 <br><br>
                     Beyond my technical capabilities, I have taken on leadership roles as a youth development instructor with the Army Cadets and as the founder, events director, and president of a university engineering society. These experiences have sharpened my ability to guide teams, foster collaboration, and communicate effectively. I am a resourceful and innovative professional eager to contribute to impactful engineering projects.
                 </p>
-                <img src="Headshot.jpeg" alt="Profile Photo" class="about-me-photo">
+                <img src="images/Headshot.jpeg" alt="Profile Photo" class="about-me-photo">
             </div>
-            <a href="Aidan Korpar Resume.pdf" class="btn" download>Download My Resume</a>
+            <a href="pdfs/Aidan Korpar Resume.pdf" class="btn" download>Download My Resume</a>
         </div>
     </section>
 
@@ -173,7 +173,23 @@
                   <p>
                     The role refined my skills in strategic planning, stakeholder engagement, team leadership, and data driven decision making. I prioritised member retention and deeper engagement while scaling reach across the faculty.
                   </p>
-                <img src="bae-mechsoc3.jpg" alt="Mechsoc Execs" class="image-container">
+                
+                <!-- Image Slideshow Gallery -->
+                <div class="slideshow-container" role="region" aria-label="Image slideshow">
+                    <div class="slideshow-slide fade">
+                        <img src="images/bae-mechsoc3.jpg" alt="MechSoc Executives">
+                    </div>
+                    <div class="slideshow-slide fade">
+                        <img src="images/mechsoc_group_photo.JPG" alt="MechSoc Group Photo">
+                    </div>
+                    <div class="slideshow-slide fade">
+                        <img src="images/industry_night.JPG" alt="Engineering Industry Night">
+                    </div>
+                    
+                    <!-- Navigation arrows -->
+                    <a class="slideshow-prev" onclick="changeSlide(-1)" role="button" aria-label="Previous image" tabindex="0">❮</a>
+                    <a class="slideshow-next" onclick="changeSlide(1)" role="button" aria-label="Next image" tabindex="0">❯</a>
+                </div>
             </div>
             
             <!-- Army Cadets Subsection -->
@@ -313,7 +329,7 @@
                             This project was also a significant learning experience for me. It marked my first exposure to ROS, Linux, and Git repositories, helping me build confidence in installing and integrating different packages into robotic projects. These new skills have expanded my technical capabilities and prepared me for future projects. 
                             <br>
                             Check out my project portfolio which covers everything in more detail.
-                            <a href="Robo1 Portfolio.pdf" target="_blank" class="project-link">Download Project Portfolio</a>.
+                            <a href="pdfs/Robo1 Portfolio.pdf" target="_blank" class="project-link">Download Project Portfolio</a>.
                         </p>
                         <p>
                             If you'd like to explore the source code or install our age, visit the GitHub repository here: 
@@ -334,7 +350,7 @@
                         <p>
                             As a part of the Mechanical and Mechatronic Society, a society build project that I was the events director and organiser for was the THOR robot build. This is an open-source robot build that we thought would be a great initiative for our members. The project would allow our society to own a robot that we could show off at open days but through the process of building it weekly, we could meet and interact with more of our members and create a greater sense of community.
                         </p>
-                        <img src="Thor_Robot1.jpeg" alt="THOR Robot" class="image-container">
+                        <img src="images/Thor_Robot1.jpeg" alt="THOR Robot" class="image-container">
                     </div>
                 </div>
             </div>         
@@ -427,6 +443,61 @@
       // Toggle the clicked tile
       element.classList.toggle('expanded');
     }
+    
+    // Slideshow functionality
+    (function() {
+      let currentSlide = 0;
+      
+      function showSlide(n) {
+        const slides = document.querySelectorAll('.slideshow-slide');
+        if (slides.length === 0) return;
+        
+        if (n >= slides.length) {
+          currentSlide = 0;
+        } else if (n < 0) {
+          currentSlide = slides.length - 1;
+        } else {
+          currentSlide = n;
+        }
+        
+        slides.forEach((slide, index) => {
+          slide.style.display = 'none';
+        });
+        
+        slides[currentSlide].style.display = 'block';
+      }
+      
+      window.changeSlide = function(direction) {
+        showSlide(currentSlide + direction);
+      };
+      
+      // Initialize slideshow on page load
+      document.addEventListener('DOMContentLoaded', function() {
+        showSlide(0);
+        
+        // Add keyboard support for navigation arrows
+        const prevBtn = document.querySelector('.slideshow-prev');
+        const nextBtn = document.querySelector('.slideshow-next');
+        
+        if (prevBtn) {
+          prevBtn.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+              changeSlide(-1);
+            }
+          });
+        }
+        
+        if (nextBtn) {
+          nextBtn.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+              changeSlide(1);
+            }
+          });
+        }
+      });
+    })();
   </script>
     
 </body>
