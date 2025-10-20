@@ -175,7 +175,7 @@
                   </p>
                 
                 <!-- Image Slideshow Gallery -->
-                <div class="slideshow-container">
+                <div class="slideshow-container" role="region" aria-label="Image slideshow">
                     <div class="slideshow-slide fade">
                         <img src="images/bae-mechsoc3.jpg" alt="MechSoc Executives">
                     </div>
@@ -187,8 +187,8 @@
                     </div>
                     
                     <!-- Navigation arrows -->
-                    <a class="slideshow-prev" onclick="changeSlide(-1)">❮</a>
-                    <a class="slideshow-next" onclick="changeSlide(1)">❯</a>
+                    <a class="slideshow-prev" onclick="changeSlide(-1)" role="button" aria-label="Previous image" tabindex="0">❮</a>
+                    <a class="slideshow-next" onclick="changeSlide(1)" role="button" aria-label="Next image" tabindex="0">❯</a>
                 </div>
             </div>
             
@@ -445,35 +445,59 @@
     }
     
     // Slideshow functionality
-    let currentSlide = 0;
-    
-    function showSlide(n) {
-      const slides = document.querySelectorAll('.slideshow-slide');
-      if (slides.length === 0) return;
+    (function() {
+      let currentSlide = 0;
       
-      if (n >= slides.length) {
-        currentSlide = 0;
-      } else if (n < 0) {
-        currentSlide = slides.length - 1;
-      } else {
-        currentSlide = n;
+      function showSlide(n) {
+        const slides = document.querySelectorAll('.slideshow-slide');
+        if (slides.length === 0) return;
+        
+        if (n >= slides.length) {
+          currentSlide = 0;
+        } else if (n < 0) {
+          currentSlide = slides.length - 1;
+        } else {
+          currentSlide = n;
+        }
+        
+        slides.forEach((slide, index) => {
+          slide.style.display = 'none';
+        });
+        
+        slides[currentSlide].style.display = 'block';
       }
       
-      slides.forEach((slide, index) => {
-        slide.style.display = 'none';
-      });
+      window.changeSlide = function(direction) {
+        showSlide(currentSlide + direction);
+      };
       
-      slides[currentSlide].style.display = 'block';
-    }
-    
-    function changeSlide(direction) {
-      showSlide(currentSlide + direction);
-    }
-    
-    // Initialize slideshow on page load
-    document.addEventListener('DOMContentLoaded', function() {
-      showSlide(0);
-    });
+      // Initialize slideshow on page load
+      document.addEventListener('DOMContentLoaded', function() {
+        showSlide(0);
+        
+        // Add keyboard support for navigation arrows
+        const prevBtn = document.querySelector('.slideshow-prev');
+        const nextBtn = document.querySelector('.slideshow-next');
+        
+        if (prevBtn) {
+          prevBtn.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+              changeSlide(-1);
+            }
+          });
+        }
+        
+        if (nextBtn) {
+          nextBtn.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+              changeSlide(1);
+            }
+          });
+        }
+      });
+    })();
   </script>
     
 </body>
