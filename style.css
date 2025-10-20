@@ -94,17 +94,21 @@ nav {
     .nav-container {
         justify-content: space-between;
     }
-    
+}
+
+/* Mobile layout for About Me section */
+@media screen and (max-width: 768px) {
     .about-me-container {
         flex-direction: column; /* Stack image and text vertically */
-        align-items: stretch; /* Stretch to full width */
-        gap: 0; /* Remove gap for mobile */
+        align-items: center; /* Center items */
+        gap: 20px; /* Add spacing between elements */
     }
 
     .about-me-photo {
         width: 100%; /* Make the image take up full width */
-        max-width: none; /* Remove max-width constraint */
-        margin-top: 20px; /* Add spacing above the photo */
+        max-width: 400px; /* Limit maximum width on mobile */
+        min-width: auto; /* Remove minimum width constraint */
+        margin-top: 0; /* Remove extra margin */
         order: 2; /* Ensure photo comes after text */
     }
     
@@ -118,7 +122,7 @@ nav {
         text-align: center;
         margin: 20px auto 0; /* Center the button with spacing above */
         width: 100%; /* Full width button */
-        max-width: none; /* Remove max-width constraint */
+        max-width: 300px; /* Limit button width on mobile */
     }
 }
 /* Header */
@@ -171,10 +175,12 @@ header h2 {
 }
 
 .about-me-photo {
-    width: 20%; /* Adjust the width as needed */
+    width: 250px; /* Fixed width instead of percentage */
+    min-width: 250px; /* Prevent shrinking below this width */
     height: auto; /* Maintain aspect ratio */
     border-radius: 10px; /* Optional: Add rounded corners */
     object-fit: cover; /* Ensure the image looks good */
+    flex-shrink: 0; /* Prevent flexbox from shrinking the image */
 }
 
 /* Section Styling */
