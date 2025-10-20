@@ -127,10 +127,39 @@ nav {
         max-width: 300px; /* Limit button width on mobile */
     }
     
-    /* Center project tiles content on mobile */
+    /* Fix project grid layout for mobile - use flexbox instead of grid */
+    .professional-projects-grid,
+    .academic-projects-grid {
+        display: flex;
+        flex-direction: column;
+        align-items: center; /* center children horizontally */
+        justify-content: flex-start;
+        gap: 20px;
+        width: 100%;
+        box-sizing: border-box;
+        padding-left: 0;
+        padding-right: 0;
+    }
+
+    /* Center project tiles on mobile with responsive width */
     .academic-project-tile,
     .professional-project-tile {
+        width: calc(100% - 40px); /* 20px side padding each side */
+        max-width: 720px;
+        margin: 0 auto;
+        box-sizing: border-box;
+        left: auto !important;
+        right: auto !important;
+        transform: none !important;
         text-align: center;
+    }
+
+    /* Ensure expanded tiles also follow mobile rules */
+    .academic-project-tile.expanded,
+    .professional-project-tile.expanded {
+        width: calc(100% - 40px);
+        max-width: 720px;
+        margin: 0 auto;
     }
     
     .tile-header {
@@ -148,11 +177,29 @@ nav {
         width: 100%;
         margin-top: 10px;
     }
+
+    /* Ensure inner tile content uses full width and aligns with tile edges */
+    .professional-project-tile .tile-header,
+    .academic-project-tile .tile-header,
+    .professional-project-tile .tile-preview,
+    .academic-project-tile .tile-preview,
+    .professional-project-tile .tile-content,
+    .academic-project-tile .tile-content {
+        width: 100%;
+        box-sizing: border-box;
+    }
     
     .tile-preview,
     .tile-content,
     .tile-content p {
         text-align: center;
+    }
+
+    /* Ensure word wrapping to prevent overflow */
+    .professional-project-tile,
+    .academic-project-tile {
+        word-wrap: break-word;
+        hyphens: auto;
     }
     
     .professional-intro,
