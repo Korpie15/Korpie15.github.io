@@ -560,3 +560,122 @@ footer p {
         opacity: 1;
     }
 }
+
+/* Print button styling */
+.print-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.print-btn svg {
+    vertical-align: middle;
+}
+
+/* Print-specific styles */
+@media print {
+    /* Hide navigation, buttons, and interactive elements */
+    nav,
+    .button-group,
+    .btn,
+    .btn2,
+    .print-btn,
+    .icon,
+    .expand-icon,
+    .slideshow-prev,
+    .slideshow-next {
+        display: none !important;
+    }
+    
+    /* Expand all project tiles */
+    .academic-project-tile,
+    .professional-project-tile {
+        border: 1px solid #ddd;
+        page-break-inside: avoid;
+        margin-bottom: 20px;
+    }
+    
+    .tile-preview {
+        display: none !important;
+    }
+    
+    .tile-content {
+        max-height: none !important;
+        display: block !important;
+        overflow: visible !important;
+    }
+    
+    /* Remove box shadows and transitions for print */
+    .section,
+    .academic-project-tile,
+    .professional-project-tile {
+        box-shadow: none;
+        page-break-inside: avoid;
+    }
+    
+    /* Ensure proper spacing */
+    .section {
+        width: 100%;
+        max-width: none;
+        margin: 10px 0;
+        padding: 20px;
+    }
+    
+    /* Make sure images print properly */
+    img {
+        max-width: 100%;
+        page-break-inside: avoid;
+    }
+    
+    /* Show all slideshow images */
+    .slideshow-slide {
+        display: block !important;
+        page-break-inside: avoid;
+        margin-bottom: 10px;
+    }
+    
+    /* Adjust video containers for print */
+    .video-container {
+        display: none; /* Videos can't be printed, hide them */
+    }
+    
+    /* Better print formatting for lists */
+    ul, ol {
+        page-break-inside: avoid;
+    }
+    
+    /* Avoid breaking headings from content */
+    h1, h2, h3, h4, h5, h6 {
+        page-break-after: avoid;
+        page-break-inside: avoid;
+    }
+    
+    /* Adjust header for print */
+    header {
+        padding: 20px 0;
+    }
+    
+    /* Remove background colors for better print quality */
+    body {
+        background-color: white;
+    }
+    
+    header,
+    nav,
+    footer {
+        background-color: white;
+        color: black;
+    }
+    
+    /* Ensure links show URLs in print */
+    a[href^="http"]:after {
+        content: " (" attr(href) ")";
+        font-size: 0.8em;
+        color: #666;
+    }
+    
+    /* Don't show URLs for internal links */
+    a[href^="#"]:after {
+        content: "";
+    }
+}
