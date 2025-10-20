@@ -74,7 +74,7 @@
     <div class="container">
         <h2>Professional Experience</h2>
 
-        <div class="professional-project">
+        <div class="professional-intro">
             <h3>Control Systems Engineer (3.5 Years)</h3>
             <p>
                 Over the past three and a half years, I have worked as a Control Systems Engineer, gaining hands-on experience across multiple industrial automation projects. My work has involved <strong>PLC programming using Siemens TIA Portal</strong>, <strong>Factory Acceptance Testing (FAT)</strong>, and the <strong>integration and programming of Fanuc industrial robots</strong>. I have contributed to the design, programming, troubleshooting, and commissioning of automated warehousing systems and manufacturing lines, with a focus on improving reliability and efficiency.
@@ -84,45 +84,64 @@
             </p>
         </div>
 
-        <div class="professional-project">
-            <h3>Industrial Robot Programming and Integration</h3>
-            <p>
-                My most recent work involved programming a <strong>Fanuc robot</strong> for use as a glut-handling robot on a strapping line at a new factory. The robot was designed to pick gluts from a stillage and place them into a stripper channel for reuse in packaging operations. 
-            </p>
-            <p>
-                I was responsible for programming the robot’s pick, place, and scanning sequences to detect glut locations within the stillage, as well as configuring <strong>communication between the robot and the Siemens PLC via Profinet</strong>. I performed <strong>Factory Acceptance Testing (FAT)</strong> within the factory, verified motion sequences, and troubleshot integration issues between the robot, PLC, and line control systems.
-            </p>
-            <p>
-                This project strengthened my understanding of <strong>industrial robotics, vision-based detection, and robot–PLC communication protocols</strong>. It also reinforced the importance of structured testing, clear fault diagnosis, and collaboration across engineering disciplines during commissioning.
-            </p>
+        <div class="professional-projects-grid">
+            <div class="professional-project-tile" onclick="toggleProject(this)">
+                <div class="tile-header">
+                    <h3>Industrial Robot Programming and Integration</h3>
+                    <span class="expand-icon">▼</span>
+                </div>
+                <p class="tile-preview">
+                    Fanuc robot programming for glut-handling on strapping line with vision-based detection and PLC integration...
+                </p>
+                <div class="tile-content">
+                    <p>
+                        My most recent work involved programming a <strong>Fanuc robot</strong> for use as a glut-handling robot on a strapping line at a new factory. The robot was designed to pick gluts from a stillage and place them into a stripper channel for reuse in packaging operations. 
+                    </p>
+                    <p>
+                        I was responsible for programming the robot's pick, place, and scanning sequences to detect glut locations within the stillage, as well as configuring <strong>communication between the robot and the Siemens PLC via Profinet</strong>. I performed <strong>Factory Acceptance Testing (FAT)</strong> within the factory, verified motion sequences, and troubleshot integration issues between the robot, PLC, and line control systems.
+                    </p>
+                    <p>
+                        This project strengthened my understanding of <strong>industrial robotics, vision-based detection, and robot–PLC communication protocols</strong>. It also reinforced the importance of structured testing, clear fault diagnosis, and collaboration across engineering disciplines during commissioning.
+                    </p>
+                </div>
+            </div>
+
+            <div class="professional-project-tile" onclick="toggleProject(this)">
+                <div class="tile-header">
+                    <h3>Pack Turning Cell</h3>
+                    <span class="expand-icon">▼</span>
+                </div>
+                <p class="tile-preview">
+                    Automated manufacturing cell for flipping laminated boards with complete control system responsibility...
+                </p>
+                <div class="tile-content">
+                    <p>
+                        One of the projects I completed from initial programming through to commissioning and customer handover was the Pack Turning Cell. This automation cell was added onto an existing manufacturing line to automatically flip one-sided laminated boards to prevent bowing during storage and transport. This was the first project where I was solely responsible for the control system.
+                    </p>
+                    <p>
+                        During this project, I gained extensive experience with <strong>drives, motors, and sensors</strong>, as well as practical understanding of <strong>machine safety standards</strong> including the implementation of light curtains and emergency stop systems. I also worked on <strong>multi-PLC communication</strong> to safely coordinate between production lines.
+                    </p>
+                    <p>
+                        Commissioning presented several challenges that required patience and problem-solving. From debugging minor logic errors to recovering sensor calibration losses caused by PLC memory faults, each issue provided valuable lessons in troubleshooting under pressure. Despite an incident that resulted in damage to a safety fence and light curtain, corrective actions and collaboration with on-site teams ensured the line was restored without impacting production. The experience emphasised the value of perseverance, strong documentation, and clear communication during live commissioning.
+                    </p>
+                    <p>
+                        The below video shows the line in operation
+                        
+                        <div class="video-container">
+                            <h4 class="video-title">Pack Turner In Operation</h4>
+                            <iframe src="https://www.youtube.com/embed/6BP48if7j2s?si=kgW1jnw_UqcvFx53"
+                            title="Pack Turner In Operation" 
+                            frameborder="0" 
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+                            referrerpolicy="strict-origin-when-cross-origin" 
+                            allowfullscreen>
+                            </iframe>
+                        </div>
+                    </p>
+                </div>
+            </div>
         </div>
 
-        <div class="professional-project">
-            <h3>Pack Turning Cell</h3>
-            <p>
-                One of the projects I completed from initial programming through to commissioning and customer handover was the Pack Turning Cell. This automation cell was added onto an existing manufacturing line to automatically flip one-sided laminated boards to prevent bowing during storage and transport. This was the first project where I was solely responsible for the control system.
-            </p>
-            <p>
-                During this project, I gained extensive experience with <strong>drives, motors, and sensors</strong>, as well as practical understanding of <strong>machine safety standards</strong> including the implementation of light curtains and emergency stop systems. I also worked on <strong>multi-PLC communication</strong> to safely coordinate between production lines.
-            </p>
-            <p>
-                Commissioning presented several challenges that required patience and problem-solving. From debugging minor logic errors to recovering sensor calibration losses caused by PLC memory faults, each issue provided valuable lessons in troubleshooting under pressure. Despite an incident that resulted in damage to a safety fence and light curtain, corrective actions and collaboration with on-site teams ensured the line was restored without impacting production. The experience emphasised the value of perseverance, strong documentation, and clear communication during live commissioning.
-            </p>
-            <p>
-                The below video shows the line in operation
-                   
-                    <div class="video-container">
-                        <h4 class="video-title">Pack Turner In Operation</h4>
-                        <iframe src="https://www.youtube.com/embed/6BP48if7j2s?si=kgW1jnw_UqcvFx53"
-                        title="Pack Turner In Operation" 
-                        frameborder="0" 
-                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
-                        referrerpolicy="strict-origin-when-cross-origin" 
-                        allowfullscreen>
-                        </iframe>
-                    </div>
-                </p>
-            </div>
         </div>
     </section>
 

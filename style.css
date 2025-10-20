@@ -383,3 +383,50 @@ footer p {
 .academic-intro {
     margin-bottom: 30px;
 }
+
+/* Professional Projects Grid - uses same styles as Academic */
+.professional-projects-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 20px;
+    margin-top: 20px;
+}
+
+.professional-project-tile {
+    background: #f9f9f9;
+    border: 2px solid #ddd;
+    border-radius: 8px;
+    padding: 20px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.professional-project-tile:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    border-color: #3498db;
+}
+
+.professional-project-tile.expanded {
+    grid-column: 1 / -1;
+    background: #fff;
+    border-color: #3498db;
+}
+
+.professional-project-tile.expanded .expand-icon {
+    transform: rotate(180deg);
+}
+
+.professional-project-tile.expanded .tile-content {
+    max-height: none;
+    margin-top: 20px;
+}
+
+.professional-project-tile.expanded .tile-preview {
+    display: none;
+}
+
+.professional-intro {
+    margin-bottom: 30px;
+}
