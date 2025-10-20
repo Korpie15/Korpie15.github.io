@@ -430,3 +430,71 @@ footer p {
 .professional-intro {
     margin-bottom: 30px;
 }
+
+/* Slideshow Gallery Styles */
+.slideshow-container {
+    position: relative;
+    width: 95%;
+    margin: 20px auto;
+    overflow: hidden;
+}
+
+.slideshow-slide {
+    display: none;
+    position: relative;
+}
+
+.slideshow-slide img {
+    width: 100%;
+    height: auto;
+    display: block;
+    border-radius: 8px;
+}
+
+/* Navigation arrows */
+.slideshow-prev,
+.slideshow-next {
+    cursor: pointer;
+    position: absolute;
+    top: 50%;
+    width: auto;
+    margin-top: -22px;
+    padding: 16px;
+    color: white;
+    background-color: rgba(0, 0, 0, 0.5);
+    font-weight: bold;
+    font-size: 18px;
+    transition: 0.3s ease;
+    border-radius: 0 3px 3px 0;
+    user-select: none;
+    text-decoration: none;
+}
+
+.slideshow-next {
+    right: 0;
+    border-radius: 3px 0 0 3px;
+}
+
+.slideshow-prev {
+    left: 0;
+}
+
+.slideshow-prev:hover,
+.slideshow-next:hover {
+    background-color: rgba(0, 0, 0, 0.8);
+}
+
+/* Fade animation */
+.fade {
+    animation-name: fade;
+    animation-duration: 0.5s;
+}
+
+@keyframes fade {
+    from {
+        opacity: 0.4;
+    }
+    to {
+        opacity: 1;
+    }
+}
