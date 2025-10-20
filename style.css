@@ -126,6 +126,39 @@ nav {
         width: 100%; /* Full width button */
         max-width: 300px; /* Limit button width on mobile */
     }
+    
+    /* Center project tiles content on mobile */
+    .academic-project-tile,
+    .professional-project-tile {
+        text-align: center;
+    }
+    
+    .tile-header {
+        justify-content: center;
+        flex-wrap: wrap;
+        text-align: center;
+    }
+    
+    .tile-header h3 {
+        text-align: center;
+        width: 100%;
+    }
+    
+    .expand-icon {
+        width: 100%;
+        margin-top: 10px;
+    }
+    
+    .tile-preview,
+    .tile-content,
+    .tile-content p {
+        text-align: center;
+    }
+    
+    .professional-intro,
+    .academic-intro {
+        text-align: center;
+    }
 }
 /* Header */
 header {
