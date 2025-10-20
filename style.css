@@ -727,23 +727,52 @@ footer p {
     }
 }
 
-/* Mobile centering fix for project tiles — stronger enforcement */
+/* Mobile final centering fix for project tiles — remove debug styles and enforce symmetric layout */
 @media (max-width: 768px) {
+  /* Remove any temporary outlines */
+  .container, header, nav, footer, .professional-projects-grid, .academic-projects-grid, .professional-project-tile, .academic-project-tile {
+    outline: none !important;
+    background: transparent !important;
+  }
+
+  /* Symmetric page container so content is truly centered */
+  .container {
+    width: 100% !important;
+    max-width: 980px !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+    padding-left: 20px !important;
+    padding-right: 20px !important;
+    box-sizing: border-box !important;
+  }
+
+  /* Ensure nav/header/footer don't push content */
+  nav, header, footer {
+    position: relative !important;
+    left: auto !important;
+    right: auto !important;
+    transform: none !important;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+  }
+
+  /* Stack and center project grids */
   .professional-projects-grid,
   .academic-projects-grid {
     display: flex !important;
     flex-direction: column !important;
     align-items: center !important;
-    justify-content: flex-start !important;
     gap: 20px !important;
     width: 100% !important;
     padding-left: 0 !important;
     padding-right: 0 !important;
-    margin-left: 0 !important;
-    margin-right: 0 !important;
+    margin: 0 auto !important;
     box-sizing: border-box !important;
   }
 
+  /* Force tiles to be block and centered */
   .professional-project-tile,
   .academic-project-tile {
     display: block !important;
@@ -753,13 +782,12 @@ footer p {
     transform: none !important;
     width: calc(100% - 40px) !important;
     max-width: 720px !important;
-    margin: 0 auto !important;
+    margin: 0 auto 24px !important;
     padding: 18px !important;
     box-sizing: border-box !important;
-    overflow: visible !important;
-    word-wrap: break-word !important;
   }
 
+  /* Make sure inner content doesn't add extra width */
   .professional-project-tile .tile-header,
   .academic-project-tile .tile-header,
   .professional-project-tile .tile-preview,
@@ -772,13 +800,15 @@ footer p {
     padding-right: 8px !important;
     box-sizing: border-box !important;
     overflow-wrap: break-word !important;
-    hyphens: auto !important;
   }
 
-  body {
+  /* Avoid accidental horizontal scroll while preserving natural vertical scroll */
+  html, body {
+    margin: 0 !important;
+    padding: 0 !important;
     overflow-x: hidden !important;
   }
 }
 
-/* Global safety */
+/* Ensure consistent box-sizing */
 *, *::before, *::after { box-sizing: border-box; }
