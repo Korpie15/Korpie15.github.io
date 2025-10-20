@@ -102,19 +102,21 @@ nav {
         flex-direction: column; /* Stack image and text vertically */
         align-items: center; /* Center items */
         gap: 20px; /* Add spacing between elements */
+        text-align: center; /* Center text content */
     }
 
     .about-me-photo {
         width: 100%; /* Make the image take up full width */
         max-width: 400px; /* Limit maximum width on mobile */
         min-width: auto; /* Remove minimum width constraint */
-        margin-top: 0; /* Remove extra margin */
+        margin: 0 auto; /* Center the image */
         order: 2; /* Ensure photo comes after text */
     }
     
     .about-me-container p {
         order: 1; /* Ensure text comes first */
         width: 100%; /* Ensure text takes full width */
+        text-align: center; /* Center the paragraph text */
     }
     
     #about .btn {
