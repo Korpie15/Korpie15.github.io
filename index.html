@@ -403,7 +403,7 @@
     
     function toggleProject(element) {
       // Close all other tiles
-      const allTiles = document.querySelectorAll('.academic-project-tile');
+      const allTiles = document.querySelectorAll('.academic-project-tile, .professional-project-tile');
       allTiles.forEach(tile => {
         if (tile !== element && tile.classList.contains('expanded')) {
           tile.classList.remove('expanded');
