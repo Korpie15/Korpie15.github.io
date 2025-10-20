@@ -726,3 +726,59 @@ footer p {
         content: "";
     }
 }
+
+/* Mobile centering fix for project tiles — stronger enforcement */
+@media (max-width: 768px) {
+  .professional-projects-grid,
+  .academic-projects-grid {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: flex-start !important;
+    gap: 20px !important;
+    width: 100% !important;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+    box-sizing: border-box !important;
+  }
+
+  .professional-project-tile,
+  .academic-project-tile {
+    display: block !important;
+    position: static !important;
+    left: auto !important;
+    right: auto !important;
+    transform: none !important;
+    width: calc(100% - 40px) !important;
+    max-width: 720px !important;
+    margin: 0 auto !important;
+    padding: 18px !important;
+    box-sizing: border-box !important;
+    overflow: visible !important;
+    word-wrap: break-word !important;
+  }
+
+  .professional-project-tile .tile-header,
+  .academic-project-tile .tile-header,
+  .professional-project-tile .tile-preview,
+  .academic-project-tile .tile-preview,
+  .professional-project-tile .tile-content,
+  .academic-project-tile .tile-content {
+    width: 100% !important;
+    max-width: 100% !important;
+    padding-left: 8px !important;
+    padding-right: 8px !important;
+    box-sizing: border-box !important;
+    overflow-wrap: break-word !important;
+    hyphens: auto !important;
+  }
+
+  body {
+    overflow-x: hidden !important;
+  }
+}
+
+/* Global safety */
+*, *::before, *::after { box-sizing: border-box; }
