@@ -676,17 +676,17 @@ footer p {
     transform: translateY(-50%) !important;
   }
 
-  /* HERO: remove overlays and force full opacity for headings/text */
+  /* HERO: keep dark background for contrast and force full opacity for headings/text */
   header {
     padding-top: 14px !important;
     padding-bottom: 14px !important;
-    background: transparent !important;
+    background: #2c3e50 !important;
     color: #fff !important;
   }
 
   header h1, header h2, header p {
     opacity: 1 !important; /* ensure fully visible */
-    color: rgba(255,255,255,0.95) !important;
+    color: #fff !important;
     text-shadow: none !important;
   }
 
