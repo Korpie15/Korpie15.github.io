@@ -102,7 +102,6 @@ nav {
         flex-direction: column; /* Stack image and text vertically */
         align-items: center; /* Center items */
         gap: 20px; /* Add spacing between elements */
-        text-align: center; /* Center text content */
     }
 
     .about-me-photo {
@@ -111,12 +110,13 @@ nav {
         min-width: auto; /* Remove minimum width constraint */
         margin: 0 auto; /* Center the image */
         order: 2; /* Ensure photo comes after text */
+        display: block; /* Ensure block display for centering */
     }
     
     .about-me-container p {
         order: 1; /* Ensure text comes first */
         width: 100%; /* Ensure text takes full width */
-        text-align: center; /* Center the paragraph text */
+        text-align: left; /* Left align the paragraph text */
     }
     
     #about .btn {
@@ -127,39 +127,69 @@ nav {
         max-width: 300px; /* Limit button width on mobile */
     }
     
-    /* Center project tiles content on mobile */
+    /* Left align text in project tiles on mobile, keep images centered */
     .academic-project-tile,
     .professional-project-tile {
-        text-align: center;
         padding: 15px;
         width: 100%;
         max-width: 100%;
     }
     
     .tile-header {
-        justify-content: center;
-        flex-wrap: wrap;
-        text-align: center;
+        justify-content: space-between;
+        flex-wrap: nowrap;
+        text-align: left;
     }
     
     .tile-header h3 {
-        text-align: center;
-        width: 100%;
+        text-align: left;
+        width: auto;
     }
     
     .expand-icon {
-        width: 100%;
-        margin-top: 10px;
+        width: auto;
+        margin-top: 0;
     }
     
     .tile-preview,
     .tile-content,
-    .tile-content p {
-        text-align: center;
+    .tile-content p,
+    .tile-content ul,
+    .tile-content li {
+        text-align: left;
+    }
+    
+    /* Keep images and videos centered */
+    .tile-content img,
+    .tile-content .image-container,
+    .tile-content .video-container {
+        margin: 0 auto;
+        display: block;
     }
     
     .professional-intro,
-    .academic-intro {
+    .professional-intro p,
+    .academic-intro,
+    .academic-intro p {
+        text-align: left;
+    }
+    
+    /* Left align section text content */
+    .section p,
+    .section ul,
+    .section li {
+        text-align: left;
+    }
+    
+    /* Keep section headings and buttons centered */
+    .section h2,
+    .section h3 {
+        text-align: center;
+    }
+    
+    .section .btn {
+        margin: 20px auto 0;
+        display: block;
         text-align: center;
     }
 }
@@ -169,6 +199,19 @@ header {
     color: #fff;
     padding: 40px 0;
     text-align: center;
+}
+
+/* Keep header centered on mobile */
+@media screen and (max-width: 768px) {
+    header h1,
+    header h2,
+    header p {
+        text-align: center;
+    }
+    
+    header .button-group {
+        justify-content: center;
+    }
 }
 
 header h1 {
