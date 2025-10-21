@@ -732,3 +732,81 @@ footer p {
 
 /* Ensure consistent box-sizing */
 *, *::before, *::after { box-sizing: border-box; }
+
+/* Mobile header and gutter improvements */
+@media (max-width: 768px) {
+  /* Header/nav: reduce height and ensure solid readable text */
+  nav {
+    background: #253744 !important; /* keep dark nav but ensure solid background */
+    height: auto !important;
+  }
+
+  .nav-container {
+    padding: 8px 12px !important; /* reduce top/bottom padding */
+    align-items: center !important;
+  }
+
+  .nav-container .logo {
+    font-size: 28px !important;
+    color: #ffffff !important;
+    opacity: 1 !important; /* ensure text isn't faded */
+    line-height: 1 !important;
+  }
+
+  .nav-container .icon {
+    font-size: 22px !important;
+    right: 12px !important;
+    top: 50% !important;
+    transform: translateY(-50%) !important;
+  }
+
+  /* Hero/header section: remove any low-opacity overlay and tighten spacing */
+  header {
+    padding-top: 18px !important;
+    padding-bottom: 18px !important;
+    background: transparent !important;
+    color: #fff !important;
+  }
+
+  header h1, header h2, header p {
+    opacity: 1 !important; /* force full opacity */
+    color: rgba(255,255,255,0.95) !important;
+  }
+
+  header::before, header::after {
+    display: none !important; /* remove decorative overlays if present */
+    content: none !important;
+  }
+
+  /* Reduce left/right gutters so content uses more width */
+  .container {
+    padding-left: 12px !important;
+    padding-right: 12px !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+  }
+
+  /* Make the project tiles use more horizontal space while staying centered */
+  .professional-projects-grid,
+  .academic-projects-grid {
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+    width: 100% !important;
+    align-items: center !important;
+  }
+
+  .professional-project-tile,
+  .academic-project-tile {
+    width: calc(100% - 24px) !important; /* smaller side gaps */
+    max-width: 720px !important;
+    margin: 0 auto 20px !important;
+    padding: 14px !important;
+    box-sizing: border-box !important;
+  }
+
+  /* Slightly smaller About/section card margins to show more content above fold */
+  .section .container {
+    padding-top: 8px !important;
+    padding-bottom: 8px !important;
+  }
+}
