@@ -38,6 +38,19 @@ body {
     font-weight: 500;
 }
 
+.print-banner-link {
+    color: white;
+    text-decoration: underline;
+    cursor: pointer;
+    font-weight: 600;
+}
+
+.print-banner-link:hover,
+.print-banner-link:focus {
+    color: rgba(255, 255, 255, 0.85);
+    text-decoration: none;
+}
+
 .dismiss-banner-btn {
     background: transparent;
     border: none;
