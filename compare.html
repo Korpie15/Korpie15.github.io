@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portfolio Comparison - Old vs New</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: #1a1a1a;
+            color: #fff;
+        }
+
+        .header {
+            background: #0f172a;
+            padding: 1.5rem 2rem;
+            text-align: center;
+            border-bottom: 2px solid #2563eb;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+        }
+
+        .header h1 {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .header p {
+            color: #94a3b8;
+            font-size: 1rem;
+        }
+
+        .controls {
+            background: #1e293b;
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            flex-wrap: wrap;
+            border-bottom: 1px solid #334155;
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: #334155;
+        }
+
+        .btn-secondary:hover {
+            background: #475569;
+        }
+
+        .comparison-container {
+            display: flex;
+            height: calc(100vh - 180px);
+            position: relative;
+        }
+
+        .iframe-container {
+            flex: 1;
+            position: relative;
+            border-right: 2px solid #334155;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .iframe-container:last-child {
+            border-right: none;
+        }
+
+        .iframe-label {
+            background: #1e293b;
+            padding: 0.75rem 1rem;
+            font-weight: 600;
+            text-align: center;
+            border-bottom: 1px solid #334155;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .label-badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 12px;
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+
+        .badge-old {
+            background: #dc2626;
+            color: white;
+        }
+
+        .badge-new {
+            background: #16a34a;
+            color: white;
+        }
+
+        iframe {
+            flex: 1;
+            border: none;
+            width: 100%;
+            background: white;
+        }
+
+        .divider {
+            width: 4px;
+            background: linear-gradient(180deg, #667eea 0%, #764ba2 100%);
+            cursor: col-resize;
+            position: relative;
+            z-index: 10;
+        }
+
+        .divider:hover {
+            background: linear-gradient(180deg, #7c8ff1 0%, #8b5bb3 100%);
+        }
+
+        .sync-indicator {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            background: #1e293b;
+            padding: 1rem 1.5rem;
+            border-radius: 12px;
+            border: 2px solid #2563eb;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+            display: none;
+            align-items: center;
+            gap: 0.75rem;
+            z-index: 1000;
+        }
+
+        .sync-indicator.active {
+            display: flex;
+        }
+
+        .sync-dot {
+            width: 12px;
+            height: 12px;
+            background: #16a34a;
+            border-radius: 50%;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0.5;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .comparison-container {
+                flex-direction: column;
+                height: auto;
+            }
+
+            .iframe-container {
+                height: 50vh;
+                border-right: none;
+                border-bottom: 2px solid #334155;
+            }
+
+            .iframe-container:last-child {
+                border-bottom: none;
+            }
+
+            .divider {
+                display: none;
+            }
+
+            .header h1 {
+                font-size: 1.5rem;
+            }
+
+            .controls {
+                padding: 0.75rem 1rem;
+            }
+
+            .btn {
+                padding: 0.5rem 1rem;
+                font-size: 0.9rem;
+            }
+        }
+
+        .loading {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: #64748b;
+            font-size: 1.2rem;
+            display: none;
+        }
+
+        .loading.active {
+            display: block;
+        }
+
+        .spinner {
+            border: 3px solid #334155;
+            border-top: 3px solid #2563eb;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1rem;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Portfolio Website Comparison</h1>
+        <p>Side-by-side view of original vs. redesigned portfolio</p>
+    </div>
+
+    <div class="controls">
+        <button class="btn" onclick="syncScrolling()">
+            <span id="sync-text">Enable Scroll Sync</span>
+        </button>
+        <button class="btn btn-secondary" onclick="resetView()">Reset View</button>
+        <a href="index.html" class="btn btn-secondary">View Original</a>
+        <a href="index-new.html" class="btn btn-secondary">View New</a>
+    </div>
+
+    <div class="comparison-container">
+        <div class="iframe-container">
+            <div class="iframe-label">
+                Original Portfolio
+                <span class="label-badge badge-old">Old</span>
+            </div>
+            <div class="loading active">
+                <div class="spinner"></div>
+                Loading original portfolio...
+            </div>
+            <iframe id="original-iframe" src="index.html"></iframe>
+        </div>
+        
+        <div class="divider"></div>
+        
+        <div class="iframe-container">
+            <div class="iframe-label">
+                Redesigned Portfolio
+                <span class="label-badge badge-new">New</span>
+            </div>
+            <div class="loading active">
+                <div class="spinner"></div>
+                Loading new portfolio...
+            </div>
+            <iframe id="new-iframe" src="index-new.html"></iframe>
+        </div>
+    </div>
+
+    <div class="sync-indicator" id="sync-indicator">
+        <div class="sync-dot"></div>
+        <span>Scroll Sync Active</span>
+    </div>
+
+    <script>
+        let scrollSyncEnabled = false;
+        let isScrolling = false;
+        let iframesLoaded = { original: false, new: false };
+
+        const originalIframe = document.getElementById('original-iframe');
+        const newIframe = document.getElementById('new-iframe');
+        const syncIndicator = document.getElementById('sync-indicator');
+        const syncText = document.getElementById('sync-text');
+
+        // Hide loading indicators when iframes load
+        originalIframe.addEventListener('load', function() {
+            this.previousElementSibling.classList.remove('active');
+            iframesLoaded.original = true;
+            if (iframesLoaded.new) {
+                setupScrollSync();
+            }
+        });
+
+        newIframe.addEventListener('load', function() {
+            this.previousElementSibling.classList.remove('active');
+            iframesLoaded.new = true;
+            if (iframesLoaded.original) {
+                setupScrollSync();
+            }
+        });
+
+        function setupScrollSync() {
+            try {
+                // Add scroll listeners to both iframe documents
+                const originalDoc = originalIframe.contentDocument || originalIframe.contentWindow.document;
+                const newDoc = newIframe.contentDocument || newIframe.contentWindow.document;
+
+                originalDoc.addEventListener('scroll', function(e) {
+                    if (!isScrolling && scrollSyncEnabled) {
+                        isScrolling = true;
+                        const sourceWin = originalIframe.contentWindow;
+                        const targetWin = newIframe.contentWindow;
+                        const sourceDoc = sourceWin.document.documentElement;
+                        const targetDoc = targetWin.document.documentElement;
+                        
+                        const scrollPercentage = sourceWin.pageYOffset / (sourceDoc.scrollHeight - sourceWin.innerHeight);
+                        const targetScroll = scrollPercentage * (targetDoc.scrollHeight - targetWin.innerHeight);
+                        
+                        targetWin.scrollTo(0, targetScroll);
+                        setTimeout(() => { isScrolling = false; }, 100);
+                    }
+                });
+
+                newDoc.addEventListener('scroll', function(e) {
+                    if (!isScrolling && scrollSyncEnabled) {
+                        isScrolling = true;
+                        const sourceWin = newIframe.contentWindow;
+                        const targetWin = originalIframe.contentWindow;
+                        const sourceDoc = sourceWin.document.documentElement;
+                        const targetDoc = targetWin.document.documentElement;
+                        
+                        const scrollPercentage = sourceWin.pageYOffset / (sourceDoc.scrollHeight - sourceWin.innerHeight);
+                        const targetScroll = scrollPercentage * (targetDoc.scrollHeight - targetWin.innerHeight);
+                        
+                        targetWin.scrollTo(0, targetScroll);
+                        setTimeout(() => { isScrolling = false; }, 100);
+                    }
+                });
+
+                console.log('Scroll sync initialized successfully');
+            } catch (e) {
+                console.error('Scroll sync setup failed:', e);
+                alert('Scroll sync may not work due to browser security restrictions. Make sure you are viewing this page through a local server (e.g., http://localhost:8000)');
+            }
+        }
+
+        function syncScrolling() {
+            scrollSyncEnabled = !scrollSyncEnabled;
+            
+            if (scrollSyncEnabled) {
+                syncText.textContent = 'Disable Scroll Sync';
+                syncIndicator.classList.add('active');
+            } else {
+                syncText.textContent = 'Enable Scroll Sync';
+                syncIndicator.classList.remove('active');
+            }
+        }
+
+        function resetView() {
+            try {
+                originalIframe.contentWindow.scrollTo(0, 0);
+                newIframe.contentWindow.scrollTo(0, 0);
+            } catch (e) {
+                // Reload iframes if scrolling fails
+                originalIframe.src = originalIframe.src;
+                newIframe.src = newIframe.src;
+            }
+        }
+
+        // Resizable divider
+        const divider = document.querySelector('.divider');
+        const container = document.querySelector('.comparison-container');
+        let isDragging = false;
+
+        divider.addEventListener('mousedown', function(e) {
+            isDragging = true;
+            document.body.style.cursor = 'col-resize';
+            e.preventDefault();
+        });
+
+        document.addEventListener('mousemove', function(e) {
+            if (!isDragging) return;
+            
+            const containerRect = container.getBoundingClientRect();
+            const leftPercent = ((e.clientX - containerRect.left) / containerRect.width) * 100;
+            
+            if (leftPercent > 20 && leftPercent < 80) {
+                const iframes = document.querySelectorAll('.iframe-container');
+                iframes[0].style.flex = `0 0 ${leftPercent}%`;
+                iframes[1].style.flex = `0 0 ${100 - leftPercent}%`;
+            }
+        });
+
+        document.addEventListener('mouseup', function() {
+            isDragging = false;
+            document.body.style.cursor = 'default';
+        });
+    </script>
+</body>
+</html>
