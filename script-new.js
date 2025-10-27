@@ -106,9 +106,9 @@ function animateCounters(container) {
     });
 }
 
-// Calculate years of experience since July 2022
+// Calculate years of experience since June 2022
 function calculateYearsExperience() {
-    const startDate = new Date(2022, 6, 1); // July 1, 2022 (month is 0-indexed)
+    const startDate = new Date(2022, 5, 1); // June 1, 2022 (month is 0-indexed)
     const now = new Date();
     const diffTime = Math.abs(now - startDate);
     const diffYears = diffTime / (1000 * 60 * 60 * 24 * 365.25);
@@ -299,7 +299,7 @@ function openModal(videoId) {
     if (videoId === 'pack-turner-video') {
         videoEmbed = `
             <iframe width="100%" height="500" 
-                src="https://www.youtube.com/embed/6BP48if7j2s?si=kgW1jnw_UqcvFx53&autoplay=1" 
+               
                 title="Pack Turner In Operation" 
                 frameborder="0" 
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
