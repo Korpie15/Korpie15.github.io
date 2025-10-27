@@ -1,0 +1,621 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Engineering ePortfolio</title>
+    <link rel="stylesheet" href="style-old.css">
+    <link rel="icon" href="favicon.png" type="image/png">
+</head>
+<body>
+    <!-- Dismissible Print Banner -->
+    <div id="print-banner" class="print-banner" role="banner" aria-label="Print-friendly version notification">
+        <div class="print-banner-content">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16" aria-hidden="true">
+                <path d="M2.5 8a.5.5 0 1 0 0-1 .5.5 0 0 0 0 1"/>
+                <path d="M5 1a2 2 0 0 0-2 2v2H2a2 2 0 0 0-2 2v3a2 2 0 0 0 2 2h1v1a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2v-1h1a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-1V3a2 2 0 0 0-2-2zM4 3a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2H4zm1 5a2 2 0 0 0-2 2v1H2a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h12a1 1 0 0 1 1 1v3a1 1 0 0 1-1 1h-1v-1a2 2 0 0 0-2-2zm7 2v3a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1v-3a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1"/>
+            </svg>
+            <span class="print-banner-text">Print-friendly version available here <a href="javascript:void(0);" id="print-banner-link" class="print-banner-link">here</a></span>
+        </div>
+        <button id="dismiss-banner" class="dismiss-banner-btn" aria-label="Dismiss print banner" title="Dismiss">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" viewBox="0 0 16 16" aria-hidden="true">
+                <path d="M2.146 2.854a.5.5 0 1 1 .708-.708L8 7.293l5.146-5.147a.5.5 0 0 1 .708.708L8.707 8l5.147 5.146a.5.5 0 0 1-.708.708L8 8.707l-5.146 5.147a.5.5 0 0 1-.708-.708L7.293 8z"/>
+            </svg>
+        </button>
+    </div>
+
+    <!-- Navigation Bar -->
+  <nav>
+    <div class="container nav-container">
+      <h1 class="logo">Aidan Korpar</h1>
+      <span class="icon" onclick="myFunction()">☰</span>
+      <ul class="nav-links" id="myTopnav">
+        <li><a href="#about">About</a></li>
+        <li><a href="#professional-experience">Professional Experience</a></li>
+        <li><a href="#leadership">Leadership</a></li>
+        <li><a href="#academic-experience">Academic Experience</a></li>          
+        <li><a href="#teamwork">Teamwork</a></li>
+        <li><a href="#capabilities">Capabilities</a></li>
+        <li><a href="pdfs/Aidan Korpar Resume.pdf" download>My Resume</a></li>
+        <li><a href="javascript:void(0);" onclick="printPage()" class="print-btn">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+            <path d="M2.5 8a.5.5 0 1 0 0-1 .5.5 0 0 0 0 1"/>
+            <path d="M5 1a2 2 0 0 0-2 2v2H2a2 2 0 0 0-2 2v3a2 2 0 0 0 2 2h1v1a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2v-1h1a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-1V3a2 2 0 0 0-2-2zM4 3a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2H4zm1 5a2 2 0 0 0-2 2v1H2a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h12a1 1 0 0 1 1 1v3a1 1 0 0 1-1 1h-1v-1a2 2 0 0 0-2-2zm7 2v3a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1v-3a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1"/>
+          </svg>
+          Print
+        </a></li>
+      </ul>
+    </div>
+  </nav>
+
+    <!-- Header Section -->
+    <header>
+    <div class="container">
+        <h1>Aidan Korpar</h1>
+        <div class="button-group">
+            <a href="https://www.linkedin.com/in/aidan-korpar" target="_blank" class="btn2">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-linkedin" viewBox="0 0 16 16">
+                    <path d="M0 1.146C0 .513.526 0 1.175 0h13.65C15.474 0 16 .513 16 1.146v13.708c0 .633-.526 1.146-1.175 1.146H1.175C.526 16 0 15.487 0 14.854zm4.943 12.248V6.169H2.542v7.225zm-1.2-8.212c.837 0 1.358-.554 1.358-1.248-.015-.709-.52-1.248-1.342-1.248S2.4 3.226 2.4 3.934c0 .694.521 1.248 1.327 1.248zm4.908 8.212V9.359c0-.216.016-.432.08-.586.173-.431.568-.878 1.232-.878.869 0 1.216.662 1.216 1.634v3.865h2.401V9.25c0-2.22-1.184-3.252-2.764-3.252-1.274 0-1.845.7-2.165 1.193v.025h-.016l.016-.025V6.169h-2.4c.03.678 0 7.225 0 7.225z"/>
+                </svg>
+            </a>
+            <a href="mailto:aidankorpar@gmail.com" class="btn2">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-envelope" viewBox="0 0 16 16">
+                    <path d="M0 4a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2zm2-1a1 1 0 0 0-1 1v.217l7 4.2 7-4.2V4a1 1 0 0 0-1-1zm13 2.383-4.708 2.825L15 11.105zm-.034 6.876-5.64-3.471L8 9.583l-1.326-.795-5.64 3.47A1 1 0 0 0 2 13h12a1 1 0 0 0 .966-.741M1 11.105l4.708-2.897L1 5.383z"/>
+                </svg>
+            </a>
+            <a href="tel:+61403736341" class="btn2">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-telephone" viewBox="0 0 16 16">
+                    <path d="M3.654 1.328a.678.678 0 0 0-1.015-.063L1.605 2.3c-.483.484-.661 1.169-.45 1.77a17.6 17.6 0 0 0 4.168 6.608 17.6 17.6 0 0 0 6.608 4.168c.601.211 1.286.033 1.77-.45l1.034-1.034a.678.678 0 0 0-.063-1.015l-2.307-1.794a.68.68 0 0 0-.58-.122l-2.19.547a1.75 1.75 0 0 1-1.657-.459L5.482 8.062a1.75 1.75 0 0 1-.46-1.657l.548-2.19a.68.68 0 0 0-.122-.58zM1.884.511a1.745 1.745 0 0 1 2.612.163L6.29 2.98c.329.423.445.974.315 1.494l-.547 2.19a.68.68 0 0 0 .178.643l2.457 2.457a.68.68 0 0 0 .644.178l2.189-.547a1.75 1.75 0 0 1 1.494.315l2.306 1.794c.829.645.905 1.87.163 2.611l-1.034 1.034c-.74.74-1.846 1.065-2.877.702a18.6 18.6 0 0 1-7.01-4.42 18.6 18.6 0 0 1-4.42-7.009c-.362-1.03-.037-2.137.703-2.877z"/>
+                </svg>
+            </a>
+        </div>
+        <h2>Control Systems Engineer | Engineering Professional</h2>
+        <p>Welcome to my curated professional ePortfolio showcasing my academic, professional, and leadership experiences.</p>
+    </div>
+</header>
+
+<!-- About Me Section -->
+<section id="about" class="section">
+    <div class="container">
+        <h2>About Me</h2>
+        <div class="about-me-container">
+            <p>
+                I am a Control Systems Engineer with a Bachelor's degree in Mechatronic Engineering. My professional expertise lies in PLC programming, robotics, CAD design, and automation solutions. I thrive on solving complex engineering challenges and leading teams to successful outcomes. My hands-on experience includes programming automated manufacturing lines, troubleshooting existing systems, and developing innovative solutions in warehousing and industrial automation. 
+            <br><br>
+                Beyond my technical capabilities, I have taken on leadership roles as a youth development instructor with the Army Cadets and as the founder, events director, and president of a university engineering society during my academic years. These experiences have sharpened my ability to guide teams, foster collaboration, and communicate effectively. I am a resourceful and innovative professional committed to delivering impactful engineering solutions.
+            </p>
+            <img src="images/Headshot.jpeg" alt="Profile Photo" class="about-me-photo">
+        </div>
+        <a href="pdfs/Aidan Korpar Resume.pdf" class="btn" download>Download My Resume</a>
+    </div>
+</section>
+
+
+ <!-- Professional Experience Section -->
+<section id="professional-experience" class="section">
+    <div class="container">
+        <h2>Professional Experience</h2>
+
+        <div class="professional-intro">
+            <h3>Control Systems Engineer (3.5 Years)</h3>
+            <p>
+                Over the past three and a half years, I have worked as a Control Systems Engineer, gaining hands-on experience across multiple industrial automation projects. My work has involved <strong>PLC programming using Siemens TIA Portal</strong>, <strong>Factory Acceptance Testing (FAT)</strong>, and the <strong>integration and programming of Fanuc industrial robots</strong>. I have contributed to the design, programming, troubleshooting, and commissioning of automated warehousing systems and manufacturing lines, with a focus on improving reliability and efficiency.
+            </p>
+            <p>
+                Through this role, I have developed both technical and professional competencies, particularly in managing multiple concurrent projects and maintaining structured documentation. Tracking tasks and documenting design decisions have allowed seamless transitions between projects and improved collaboration during handovers. Guidance from experienced colleagues has also helped refine my documentation and workflow practices, improving both technical clarity and project efficiency.
+            </p>
+        </div>
+
+        <div class="professional-projects-grid">
+            <div class="professional-project-tile" onclick="toggleProject(this)">
+                <div class="tile-header">
+                    <h3>Industrial Robot Programming and Integration</h3>
+                    <span class="expand-icon">▼</span>
+                </div>
+                <p class="tile-preview">
+                    Fanuc robot programming for glut-handling on strapping line with vision-based detection and PLC integration...
+                </p>
+                <div class="tile-content">
+                    <p>
+                        My most recent work involved programming a <strong>Fanuc robot</strong> for use as a glut-handling robot on a strapping line at a new factory. The robot was designed to pick gluts
+                    </p>
+                    <p>
+                        I was responsible for programming the robot's pick, place, and scanning sequences to detect glut locations within the stillage, as well as configuring <strong>communication between the robot and the Siemens PLC via Profinet</strong>. I performed <strong>Factory Acceptance Testing (FAT)</strong> within the factory, verified motion sequences, and troubleshot integration issues between the robot, PLC, and line control systems.
+                    </p>
+                    <p>
+                        This project strengthened my understanding of <strong>industrial robotics, vision-based detection, and robot–PLC communication protocols</strong>. It also reinforced the importance of structured testing, clear fault diagnosis, and collaboration across engineering disciplines during commissioning.
+                    </p>
+                </div>
+            </div>
+
+            <div class="professional-project-tile" onclick="toggleProject(this)">
+                <div class="tile-header">
+                    <h3>Pack Turning Cell</h3>
+                    <span class="expand-icon">▼</span>
+                </div>
+                <p class="tile-preview">
+                    Automated manufacturing cell for flipping laminated boards with complete control system responsibility...
+                </p>
+                <div class="tile-content">
+                    <p>
+                        One of the projects I completed from initial programming through to commissioning and customer handover was the Pack Turning Cell. This automation cell was added onto an existing manufacturing line to automatically flip one-sided laminated boards to prevent bowing during storage and transport. This was the first project where I was solely responsible for the control system.
+                    </p>
+                    <p>
+                        During this project, I gained extensive experience with <strong>drives, motors, and sensors</strong>, as well as practical understanding of <strong>machine safety standards</strong> including the implementation of light curtains and emergency stop systems. I also worked on <strong>multi-PLC communication</strong> to safely coordinate between production lines.
+                    </p>
+                    <p>
+                        Commissioning presented several challenges that required patience and problem-solving. From debugging minor logic errors to recovering sensor calibration losses caused by PLC memory faults, each issue provided valuable lessons in troubleshooting under pressure. Despite an incident that resulted in damage to a safety fence and light curtain, corrective actions and collaboration with on-site teams ensured the line was restored without impacting production. The experience emphasised the value of perseverance, strong documentation, and clear communication during live commissioning.
+                    </p>
+                    <p>
+                        The below video shows the line in operation
+                        
+                        <div class="video-container">
+                            <h4 class="video-title">Pack Turner In Operation</h4>
+                            <iframe src="https://www.youtube.com/embed/6BP48if7j2s?si=kgW1jnw_UqcvFx53"
+                            title="Pack Turner In Operation" 
+                            frameborder="0" 
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+                            referrerpolicy="strict-origin-when-cross-origin" 
+                            allowfullscreen>
+                            </iframe>
+                        </div>
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        </div>
+    </section>
+
+    <!-- Leadership Section -->
+    <section id="leadership" class="section">
+        <div class="container">
+            <h2>Leadership</h2>
+            
+            <!-- UTSMechSoc Subsection -->
+            <div class="leadership-category">
+                <h3>Founder, Events Director, and President of UTSMechSoc</h3>
+              <p>
+                During my time at university, I founded UTS MechSoc after identifying a gap in student engagement within mechanical engineering. The society attracted over 400 members in its first year. I led the creation of major initiatives such as an industry networking night with over 300 attendees, strengthening relationships between students and industry professionals.
+              </p>
+          
+              <p>
+                As the President, I led a 20-member executive team focused on sustainable growth and deeper engagement. Under my leadership, membership grew by <strong>42%</strong> from 418 to <strong>595</strong>, with a healthy <strong>22%</strong> retention rate. We ran <strong>62 events</strong> with a combined reach of over <strong>500 unique registrants</strong> and an average of <strong>51 attendees per event</strong>, maintaining a strong <strong>97%</strong> UTS student participation rate.
+              </p>
+          
+              <p>
+                I emphasised collaboration, strategic planning, and member development, ensuring every executive had defined responsibilities aligned with their strengths. These efforts built a culture of accountability and innovation, reflected in consistently high event attendance, balanced engagement across activities, and long-term member loyalty.
+              </p>
+          
+              <p>
+                This role refined my leadership, stakeholder engagement, and data-driven decision-making skills, which have proven essential in guiding teams toward measurable impact in my professional career.
+              </p>
+                
+                <!-- Image Slideshow Gallery -->
+                <div class="slideshow-container" role="region" aria-label="Image slideshow">
+                    <div class="slideshow-slide fade">
+                        <img src="images/bae-mechsoc3.jpg" alt="MechSoc Executives">
+                    </div>
+                    <div class="slideshow-slide fade">
+                        <img src="images/mechsoc_group_photo.JPG" alt="MechSoc Group Photo">
+                    </div>
+                    <div class="slideshow-slide fade">
+                        <img src="images/industry_night.JPG" alt="Engineering Industry Night">
+                    </div>
+                    
+                    <!-- Navigation arrows -->
+                    <a class="slideshow-prev" onclick="changeSlide(-1)" role="button" aria-label="Previous image" tabindex="0">❮</a>
+                    <a class="slideshow-next" onclick="changeSlide(1)" role="button" aria-label="Next image" tabindex="0">❯</a>
+                </div>
+            </div>
+            
+            <!-- Army Cadets Subsection -->
+            <div class="leadership-category">
+                <h3>Youth Development Instructor - Army Cadets</h3>
+                <p>
+                    As a 2nd Lieutenant and Company Directing Staff, I lead and mentor over 100 cadets and 3 staff members, ensuring their safety and fostering a supportive environment for their development. My role involves teaching leadership, teamwork, and technical skills, while guiding cadets through challenging environments to build confidence and practical abilities. I design engaging lessons, supervise activities and camps, and uphold high standards of discipline and professionalism, preparing cadets for future success.
+                </p>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Academic Experience Section -->
+    <section id="academic-experience" class="section">
+        <div class="container">
+            <h2>Personal Projects and Academic Experience</h2>
+            <div class="academic-intro">
+                <h3>University Of Technology Sydney</h3>
+                <p>
+                    During my Mechatronics undergraduate degree at UTS, I had the opportunity to work on diverse engineering projects that developed both my technical capabilities and collaborative skills. Some of my most notable academic projects are highlighted below.
+                    These projects strengthened my technical abilities as well as my interpersonal, leadership, and organisational skills through significant group collaboration.
+                </p>
+            </div>
+            
+            <div class="academic-projects-grid">
+                <div class="academic-project-tile" onclick="toggleProject(this)">
+                    <div class="tile-header">
+                        <h3>Professional ePortfolio Website</h3>
+                        <span class="expand-icon">▼</span>
+                    </div>
+                    <p class="tile-preview">
+                        AI-assisted web development project leveraging LLMs and GitHub Copilot for collaborative design and implementation...
+                    </p>
+                    <div class="tile-content">
+                        <p>
+                            This professional ePortfolio website represents a modern approach to web development, combining traditional programming skills with cutting edge AI collaboration tools. The project showcases my ability to effectively leverage Large Language Models (LLMs) and AI-assisted development workflows to create a polished, responsive web presence.
+                        </p>
+                        <p>
+                            Throughout the development process, I utilised multiple AI platforms including <strong>ChatGPT, Google Gemini, and Claude</strong> to explore different design approaches, troubleshoot issues, and refine the user experience. Each LLM brought unique strengths to the project. From generating initial HTML/CSS structures to optimising responsive layouts and suggesting best practices for web accessibility.
+                        </p>
+                        <p>
+                            A key aspect of this project was my experience with <strong>GitHub Copilot's agent-based workflow</strong>. Rather than simply accepting code suggestions, I approached the development process as a project manager, assigning specific tasks and roles to AI agents, reviewing their proposed changes, and iteratively refining the output. This workflow involved:
+                        </p>
+                        <ul>
+                            <li><strong>Task Delegation:</strong> Breaking down complex features into specific, well-defined tasks for AI agents</li>
+                            <li><strong>Code Review:</strong> Critically evaluating AI-generated code for quality, maintainability, and alignment with project goals</li>
+                            <li><strong>Iterative Refinement:</strong> Providing feedback and requesting modifications to achieve the desired outcome</li>
+                            <li><strong>Version Control:</strong> Managing changes through Git to maintain a clear development history</li>
+                        </ul>
+                        <p>
+                            The project also enhanced my skills in <strong>web technologies (HTML5, CSS3, JavaScript)</strong>, <strong>responsive design principles</strong>, <strong>UI/UX considerations</strong>, and <strong>Git version control</strong>. By treating AI as a collaborative tool rather than a replacement for critical thinking, I developed a workflow that maximises productivity while maintaining high code quality and design standards.
+                        </p>
+                        <p>
+                            This experience has prepared me for the evolving landscape of software development, where the ability to effectively collaborate with AI tools is becoming as important as traditional programming skills. It demonstrates my adaptability, project management capabilities, and understanding of how to leverage emerging technologies to deliver professional results.
+                        </p>
+                        <p>
+                            I place strong emphasis on attention to detail throughout design and implementation. The site follows a mobile-first approach and has been tested across major mobile browsers (Chrome, Safari, Firefox, Edge) to ensure responsive layouts, readable typography, accessible navigation (ARIA attributes and keyboard support), and correct image handling on small screens.
+                        </p>
+                        <p>
+                            For users who prefer a paper copy, the site's Print controls (the Print link in the top navigation and the print-friendly banner) automatically expand all project tiles and ensure photos are included when printing. This provides an easy way to produce a complete, print optimised version of the portfolio that preserves expanded content and images for offline review.
+                        </p>
+                        <p>
+                            You can view this portfolio live at:
+                            <a href="https://korpie15.github.io/" target="_blank" class="project-link">korpie15.github.io</a>
+                            <br>
+                            The source code is available on GitHub:
+                            <a href="https://github.com/Korpie15/Korpie15.github.io" target="_blank" class="project-link">GitHub Repository</a>
+                        </p>
+                    </div>
+                </div>
+
+                <div class="academic-project-tile" onclick="toggleProject(this)">
+                    <div class="tile-header">
+                        <h3>Turtle Bot Warehousing system</h3>
+                        <span class="expand-icon">▼</span>
+                    </div>
+                    <p class="tile-preview">
+                        Autonomous warehousing robot using ROS, lidar navigation, and a custom 3D-printed payload delivery system...
+                    </p>
+                    <div class="tile-content">
+                        <p>
+                            The Turtlebot warehousing robot autonomis item picking and delivery in warehouses using a scalable system of robots. Initially, a single robot maps the warehouse, creating a static map while avoiding dynamic obstacles like people or forklifts. The system assigns tasks to robots based on proximity and payload capacity, coordinating item retrieval and delivery to a drop-off zone. Using lidar, the robots dynamically avoid obstacles, including each other, to maintain efficiency.
+                        </p>
+                        <p>
+                            My focus was on the payload delivery system, a 3D-printed mechanism with a servo-driven trap door. Mounted on the top of the robot, it securely carries and dispenses items from the pick-up to the drop-off zone. Controlled by an Arduino Nano that listens for a signal from the Raspberry Pi the turtle bot is running on. By being mounted above the Lidar the system minimises interference with the lidar for smooth operation.
+                            See the below project video for more information.
+                        </p>
+                        <div class="video-container">
+                            <h4 class="video-title">Turtle bot warehousing Project Video</h4>
+                            <iframe src="https://www.youtube.com/embed/PykMOBxtqDs?si=Vog3GEVmjzvJvmNK" 
+                            title="Turtle bot Warehousing System" 
+                            frameborder="0" 
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+                            referrerpolicy="strict-origin-when-cross-origin" 
+                            allowfullscreen>
+                            </iframe>
+                        </div>
+                        <p>
+                            You can view the project file at the following link:
+                            <a href="https://github.com/imJohly/warehouse_tasker/tree/Payload" target="_blank" class="project-link">Turtle Bot Git Repositiry</a>.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="academic-project-tile" onclick="toggleProject(this)">
+                    <div class="tile-header">
+                        <h3>Robotics Control Project</h3>
+                        <span class="expand-icon">▼</span>
+                    </div>
+                    <p class="tile-preview">
+                        Robotic pick, place, and sorting system with custom kinematics, GUI, and RealSense camera integration...
+                    </p>
+                    <div class="tile-content">
+                        <p>
+                            This project involved simulating a robotic system with two robots, one of which required designing both its physical and kinematic models. The system was tasked with performing a pick, place, and sorting operation to organise blocks by colour. This included a GUI, obstacle detection, and a physical emergency stop button that worked in both simulation and on real hardware. A RealSense camera was used for vision, providing both colour and depth data.
+                        </p>
+                        <p>
+                            Through this project, I gained a deeper understanding of robotics mathematics, including kinematics and singularity errors. This insight connected theory to my practical experience as a control systems engineer, where I had recently encountered similar challenges with Fanuc robots. Learning the theory behind why robot joints cannot align straight, to avoid singularity errors, was particularly valuable as it directly addressed a real-world problem I had faced.
+                            See the below Project Video for more details and video examples.
+                        </p>
+                        <div class="video-container">
+                            <h4 class="video-title">Robotic Control Project Video</h4>
+                            <iframe src="https://www.youtube.com/embed/mtV6qu-1_xM?si=5ocI-sWwbQ1oIWb6" 
+                            title="Robotic Control Project Video" 
+                            frameborder="0" 
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+                            referrerpolicy="strict-origin-when-cross-origin" 
+                            allowfullscreen>
+                            </iframe>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="academic-project-tile" onclick="toggleProject(this)">
+                    <div class="tile-header">
+                        <h3>AI Tetris</h3>
+                        <span class="expand-icon">▼</span>
+                    </div>
+                    <p class="tile-preview">
+                        Deep Q-Network (DQN) AI that plays Tetris using reinforcement learning and strategic combo planning...
+                    </p>
+                    <div class="tile-content">
+                        <p>
+                            In AI in Robotics, my group project was to program an AI model that could play Tetris. We successfully achieved this goal. 
+                            The Tetris AI project uses Deep Q-Networks (DQN) and reinforcement learning to optimise gameplay. The AI evaluates the best moves based on board metadata, enabling it to plan for combos like "Tetris clears" while minimising gaps and towers. It generalises well across board sizes, such as a 30x20 grid, despite training exclusively on a standard 10x20 grid. By analysing final states instead of individual moves, the model achieves efficient, adaptable, and high-performing gameplay.
+                        </p>
+                        <div class="video-container">
+                            <h4 class="video-title">Our Tetris AI Project Video</h4>
+                            <iframe src="https://www.youtube.com/embed/jo5F_d3a7GM" 
+                            title="Tetris Project Video" 
+                            frameborder="0" 
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+                            referrerpolicy="strict-origin-when-cross-origin" 
+                            allowfullscreen>
+                            </iframe>
+                        </div>
+                        <p>
+                            You can view the project live on the following link:
+                            <a href="https://topey2x.github.io/TetrisAI/" target="_blank" class="project-link">Tetris AI Project Website</a>.
+                            <br>
+                            If you'd like to explore the source code or install the model, visit the GitHub repository here: 
+                            <a href="https://github.com/Topey2X/TetrisAI" target="_blank" class="project-link">Tetris AI GitHub Repository</a>.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="academic-project-tile" onclick="toggleProject(this)">
+                    <div class="tile-header">
+                        <h3>SPOT search and rescue</h3>
+                        <span class="expand-icon">▼</span>
+                    </div>
+                    <p class="tile-preview">
+                        Boston Dynamics SPOT robot with autonomous exploration and YOLOv3 human detection for search-and-rescue...
+                    </p>
+                    <div class="tile-content">
+                        <p>
+                            This group project involved leveraging the Boston Dynamics SPOT robot for search-and-rescue operations in challenging and potentially hazardous environments. We developed a ROS1 package to facilitate autonomous exploration and human detection, making the system accessible for anyone to install and use. The onboard video feed from SPOT was integrated with YOLOv3 for human identification, achieving a confidence threshold of 80%. Since the pre-trained human detection model met our needs, no additional model training was required. When a human was detected, a marker was placed on a global map, allowing rescuers to pinpoint their exact locations.
+                        </p>
+                        <p>
+                            Exploration of the environment utilised a greedy frontier-based algorithm, ensuring complete area coverage. Once SPOT finished exploring, the total number of markers on the map provided the rescue team with a clear overview of all detected individuals and their locations.
+                        </p>
+                        <p>
+                            This project was also a significant learning experience for me. It marked my first exposure to ROS, Linux, and Git repositories, helping me build confidence in installing and integrating different packages into robotic projects. These new skills have expanded my technical capabilities and prepared me for future projects. 
+                            <br>
+                            Check out my project portfolio which covers everything in more detail.
+                            <a href="pdfs/Robo1 Portfolio.pdf" target="_blank" class="project-link">Download Project Portfolio</a>.
+                        </p>
+                        <p>
+                            If you'd like to explore the source code or install our age, visit the GitHub repository here: 
+                            <a href="https://github.com/imJohly/JJCAR-Rescuebot" target="_blank" class="project-link">SPOT Search and resuce GitHub Repository</a>.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="academic-project-tile" onclick="toggleProject(this)">
+                    <div class="tile-header">
+                        <h3>THOR Robotic Build</h3>
+                        <span class="expand-icon">▼</span>
+                    </div>
+                    <p class="tile-preview">
+                        Open-source humanoid robot build project for UTSMechSoc to engage members and showcase at open days...
+                    </p>
+                    <div class="tile-content">
+                        <p>
+                            As a part of the Mechanical and Mechatronic Society, a society build project that I was the events director and organiser for was the THOR robot build. This is an open-source robot build that we thought would be a great initiative for our members. The project would allow our society to own a robot that we could show off at open days but through the process of building it weekly, we could meet and interact with more of our members and create a greater sense of community.
+                        </p>
+                        <img src="images/Thor_Robot1.jpeg" alt="THOR Robot" class="image-container">
+                    </div>
+                </div>
+            </div>         
+        </div>
+    </section>
+
+   
+
+    <!-- Teamwork Section -->
+    <section id="teamwork" class="section">
+        <div class="container">
+            <h2>Teamwork and Service</h2>
+            <p>
+                Collaboration has been fundamental to my success in academic, professional, and leadership capacities. Across various roles, I have demonstrated exceptional interpersonal and organisational skills to achieve team objectives. Key aspects of my teamwork experience include:   
+            </p>
+            <ul>
+                <li>Coordinating Multidisciplinary Teams: Successfully leading diverse teams to achieve shared goals by leveraging individual strengths and fostering collaboration</li>
+                <li>Encouraging Open Communication: Promoting a culture of transparency and problem-solving to address complex challenges effectively.</li>
+                <li>Mentoring Team Members: Sharing knowledge and guiding peers in leadership and technical skills.</li>
+                <li>Fostering Continuous Learning: Creating an environment where team members feel supported and motivated to grow.</li>
+            </ul>
+            <p>
+            In my role as the founder and president of UTSMechSoc, teamwork was the backbone of our success. I managed work distribution based on individual strengths, resolved conflicts, and collaborated with other societies to organise impactful events that benefit the student experience. I also led a small team as SUO2 of Training in the cadets, where we oversaw the execution of a comprehensive training program for the over 300 person unit.
+            </p>
+            <p>
+            In my professional career, teamwork has been pivotal in the successful completion of projects. Whether initiating projects for others to deliver, collaborating with multiple individuals on overlapping tasks, or ensuring seamless integration across sections of a manufacturing line, I consistently emphasised effective communication and equitable work distribution to achieve results.    
+            </p>
+        </div>
+    </section>
+
+    <!-- Professional Capabilities -->
+<section id="capabilities" class="section">
+    <div class="container">
+        <h2>Professional Capabilities</h2>
+        
+        <!-- Technical Skills Subsection -->
+        <div class="technical-skills">
+            <h3>Technical Skills</h3>
+            <ul>
+                <li>Control Systems Design and Programming</li>
+                <li>PLC Programming (Siemens, Ladder Logic)</li>
+                <li>Experience with Siemens and SEW Drives</li>
+                <li>Robotics Programming (Fanuc, Roboguide)</li>
+                <li>CAD Design and Development</li>
+                <li>Experience in Factory Acceptance Testing (FAT) and Commissioning</li>
+            </ul>
+        </div>
+        
+        <!-- Soft Skills Subsection -->
+        <div class="soft-skills">
+            <h3>Soft Skills</h3>
+            <ul>
+                <li>Leadership, Team Management, and Communication</li>
+                <li>Collaboration and Interpersonal Skills</li>
+                <li>Project Management and Organisational Skills</li>
+                <li>Technical Problem-Solving and Innovation</li>
+                <li>Adaptability in Dynamic Environments</li>
+            </ul>
+        </div>
+    </div>
+</section>
+
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <p>&copy; 2024 Aidan Korpar | Contact: aidankorpar@gmail.com</p>
+        </div>
+    </footer>
+
+<script>
+    // Print banner functionality
+    (function() {
+      const banner = document.getElementById('print-banner');
+      const dismissBtn = document.getElementById('dismiss-banner');
+      const printLink = document.getElementById('print-banner-link');
+      const BANNER_DISMISSED_KEY = 'printBannerDismissed';
+      
+      // Check if banner was previously dismissed
+      if (localStorage.getItem(BANNER_DISMISSED_KEY) === 'true') {
+        banner.classList.add('hidden');
+      }
+      
+      // Handle print link click
+      printLink.addEventListener('click', function(e) {
+        e.preventDefault();
+        printPage();
+      });
+      
+      // Handle dismiss button click
+      dismissBtn.addEventListener('click', function() {
+        banner.classList.add('hidden');
+        localStorage.setItem(BANNER_DISMISSED_KEY, 'true');
+      });
+      
+      // Add keyboard support for dismiss button (Enter and Space)
+      dismissBtn.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          banner.classList.add('hidden');
+          localStorage.setItem(BANNER_DISMISSED_KEY, 'true');
+        }
+      });
+    })();
+    
+    function myFunction() {
+      var x = document.getElementById("myTopnav");
+      if (x.className === "nav-links") {
+        x.className += " responsive";
+      } else {
+        x.className = "nav-links";
+      }
+    }
+    
+    function toggleProject(element) {
+      // Close all other tiles
+      const allTiles = document.querySelectorAll('.academic-project-tile, .professional-project-tile');
+      allTiles.forEach(tile => {
+        if (tile !== element && tile.classList.contains('expanded')) {
+          tile.classList.remove('expanded');
+        }
+      });
+      
+      // Toggle the clicked tile
+      element.classList.toggle('expanded');
+    }
+    
+    // Slideshow functionality
+    (function() {
+      let currentSlide = 0;
+      
+      function showSlide(n) {
+        const slides = document.querySelectorAll('.slideshow-slide');
+        if (slides.length === 0) return;
+        
+        if (n >= slides.length) {
+          currentSlide = 0;
+        } else if (n < 0) {
+          currentSlide = slides.length - 1;
+        } else {
+          currentSlide = n;
+        }
+        
+        slides.forEach((slide, index) => {
+          slide.style.display = 'none';
+        });
+        
+        slides[currentSlide].style.display = 'block';
+      }
+      
+      window.changeSlide = function(direction) {
+        showSlide(currentSlide + direction);
+      };
+      
+      // Initialise slideshow on page load
+      document.addEventListener('DOMContentLoaded', function() {
+        showSlide(0);
+        
+        // Add keyboard support for navigation arrows
+        const prevBtn = document.querySelector('.slideshow-prev');
+        const nextBtn = document.querySelector('.slideshow-next');
+        
+        if (prevBtn) {
+          prevBtn.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+              changeSlide(-1);
+            }
+          });
+        }
+        
+        if (nextBtn) {
+          nextBtn.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+              changeSlide(1);
+            }
+          });
+        }
+      });
+    })();
+    
+    // Print functionality
+    function printPage() {
+      // Expand all project tiles before printing
+      const allTiles = document.querySelectorAll('.academic-project-tile, .professional-project-tile');
+      allTiles.forEach(tile => {
+        tile.classList.add('expanded');
+      });
+      
+      // Trigger the print dialog
+      window.print();
+      
+      // Optional: Collapse tiles after printing (if user cancels)
+      // Uncomment the following lines if you want tiles to collapse after print dialog closes
+      // setTimeout(() => {
+      //   allTiles.forEach(tile => {
+      //     tile.classList.remove('expanded');
+      //   });
+      // }, 1000);
+    }
+  </script>
+    
+</body>
+</html>
