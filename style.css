@@ -1644,7 +1644,6 @@ body {
     .desktop-gallery,
     .mobile-slideshow,
     .professional-projects-grid,
-    .experience-intro,
     .projects-grid .project-image,
     iframe {
         display: none !important;
