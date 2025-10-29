@@ -769,22 +769,24 @@ body {
 .prev, .next {
     cursor: pointer;
     position: absolute;
-    top: 50%;
+    top: 0;
+    height: 100%;
     width: auto;
-    margin-top: -22px;
     padding: 16px;
     color: white;
     font-weight: bold;
     font-size: 24px;
     transition: 0.3s ease;
-    border-radius: 0 3px 3px 0;
+    border-radius: 0;
     user-select: none;
-    background-color: rgba(0,0,0,0.5);
+    background-color: rgba(0,0,0,0.3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .next {
     right: 0;
-    border-radius: 3px 0 0 3px;
 }
 
 .prev:hover, .next:hover {
