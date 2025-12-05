@@ -274,15 +274,17 @@ function startAutoSlide() {
 // ============================================
 
 function toggleProject(element) {
-    // Close all other tiles
-    const allTiles = document.querySelectorAll('.professional-project-tile, .academic-project-tile');
-    allTiles.forEach(tile => {
-        if (tile !== element && tile.classList.contains('expanded')) {
-            tile.classList.remove('expanded');
-        }
-    });
+    // Check if user is selecting text
+    const selection = window.getSelection();
+    if (selection.toString().length > 0) {
+        return; // Don't toggle if text is selected
+    }
     
-    // Toggle the clicked tile
+    // Prevent toggle if clicking on links
+    if (event && event.target.tagName === 'A') {
+        return;
+    }
+    
     element.classList.toggle('expanded');
 }
 
