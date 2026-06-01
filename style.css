@@ -525,6 +525,13 @@ body {
     color: var(--primary-light);
 }
 
+.experience-intro h4 {
+    font-size: 1.25rem;
+    margin-bottom: 1.25rem;
+    color: var(--text-light);
+    font-weight: 600;
+}
+
 .experience-intro p {
     color: var(--text-gray);
     font-size: 1.1rem;
@@ -642,6 +649,165 @@ body {
     height: 100%;
 }
 
+/* Embedded iframe container for Streamlit demos */
+.tile-iframe-container {
+    margin: 1.25rem 0;
+    border-radius: 12px;
+    overflow: hidden;
+    background: var(--bg-dark);
+}
+.tile-iframe-container iframe {
+    display: block;
+    width: 100%;
+    height: 720px;
+    border: 0;
+}
+
+/* Make iframe container visually dark and remove outer chrome */
+.tile-iframe-container {
+    padding: 0;
+    border: 0 !important;
+    box-shadow: none !important;
+    background: var(--bg-dark);
+}
+.tile-iframe-container iframe {
+    background: transparent !important;
+}
+
+/* Live demo link styled as a prominent button */
+.tile-demo-link {
+    display: inline-block;
+    background: var(--primary-color);
+    color: #fff;
+    padding: 0.5rem 0.85rem;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: 600;
+}
+.tile-demo-link:hover {
+    filter: brightness(0.95);
+}
+.youtube-carousel {
+    margin-top: 1.5rem;
+    padding: 1.5rem;
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 12px;
+    background: rgba(255,255,255,0.03);
+}
+
+.youtube-carousel-slide {
+    display: none;
+}
+
+.youtube-carousel-slide.active {
+    display: block;
+}
+
+.video-placeholder-card {
+    min-height: 260px;
+    border-radius: 10px;
+    border: 2px dashed rgba(59,130,246,0.7);
+    background: rgba(15, 23, 42, 0.8);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.6rem;
+}
+
+.video-slot-label {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--text-light);
+}
+
+.video-slot-note {
+    color: var(--text-gray);
+    font-size: 0.95rem;
+}
+
+.video-description-input {
+    width: 100%;
+    margin-top: 0.9rem;
+    min-height: 90px;
+    resize: vertical;
+    border-radius: 10px;
+    border: 1px solid rgba(255,255,255,0.2);
+    background: rgba(15, 23, 42, 0.75);
+    color: var(--text-light);
+    padding: 0.8rem 0.9rem;
+    font-family: inherit;
+    font-size: 0.95rem;
+    line-height: 1.5;
+}
+
+.video-description-input::placeholder {
+    color: var(--text-gray);
+}
+
+.video-description-input:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.2);
+}
+
+.video-description-text {
+    margin-top: 0.9rem;
+    color: var(--text-gray);
+    font-size: 0.95rem;
+    line-height: 1.7;
+    background: rgba(15, 23, 42, 0.45);
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 10px;
+    padding: 0.8rem 0.9rem;
+}
+
+.youtube-carousel-controls {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.youtube-carousel-btn {
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    border: 1px solid rgba(255,255,255,0.2);
+    background: rgba(255,255,255,0.08);
+    color: var(--text-light);
+    cursor: pointer;
+    font-size: 1.1rem;
+    transition: var(--transition);
+}
+
+.youtube-carousel-btn:hover {
+    background: var(--primary-color);
+    border-color: var(--primary-color);
+}
+
+.youtube-carousel-dots {
+    display: flex;
+    justify-content: center;
+    gap: 0.6rem;
+    margin-top: 0.9rem;
+}
+
+.youtube-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    border: 0;
+    background: rgba(255,255,255,0.4);
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.youtube-dot.active,
+.youtube-dot:hover {
+    background: var(--primary-light);
+}
+
 .tag {
     display: inline-block;
     padding: 0.4rem 1rem;
@@ -744,20 +910,25 @@ body {
 .slideshow-container {
     position: relative;
     max-width: 800px;
+    aspect-ratio: 16 / 9;
     margin: 3rem auto;
     border-radius: 15px;
     overflow: hidden;
+    background: rgba(255,255,255,0.04);
     box-shadow: var(--shadow-lg);
 }
 
 .slide {
     display: none;
     width: 100%;
+    height: 100%;
 }
 
 .slide img {
     width: 100%;
-    height: auto;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
     display: block;
 }
 
@@ -852,8 +1023,13 @@ body {
 }
 
 .project-card.expandable-card {
-    cursor: pointer;
+    cursor: default;
     grid-column: span 1;
+}
+
+.project-card.expandable-card .project-image,
+.project-card.expandable-card .project-info {
+    cursor: pointer;
 }
 
 .project-card.expandable-card.expanded {
@@ -898,6 +1074,7 @@ body {
 
 .project-card.expanded .project-expanded-content {
     max-height: 5000px;
+    border-top: 1px solid rgba(255,255,255,0.12);
 }
 
 .project-expanded-inner {
@@ -940,7 +1117,7 @@ body {
     overflow: hidden;
     box-shadow: var(--shadow-lg);
     transition: var(--transition);
-    cursor: pointer;
+    cursor: default;
     border: 1px solid rgba(255,255,255,0.1);
 }
 
@@ -1404,6 +1581,14 @@ body {
         padding: 0 1rem;
     }
 
+    .experience-intro h3 {
+        font-size: 1.5rem;
+    }
+
+    .experience-intro h4 {
+        font-size: 1.1rem;
+    }
+
     .skills-grid {
         grid-template-columns: 1fr;
     }
@@ -1564,6 +1749,10 @@ body {
     
     .gallery-grid:not(.leadership-gallery) {
         grid-template-columns: 1fr;
+    }
+
+    .video-placeholder-card {
+        min-height: 210px;
     }
 }
 

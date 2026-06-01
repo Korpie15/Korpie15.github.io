@@ -39,7 +39,7 @@
     <!-- Print-only Header -->
     <div class="print-header">
         <h1>Aidan Korpar</h1>
-        <h2>Control Systems Engineer</h2>
+        <h2>Automation Engineer</h2>
         <p>Email: aidankorpar@gmail.com | LinkedIn: linkedin.com/in/aidan-korpar</p>
     </div>
 
@@ -52,7 +52,7 @@
                     <span class="reveal-text">Aidan Korpar</span>
                 </h1>
                 <h2 class="hero-subtitle">
-                    <span class="typing-text">Control Systems Engineer</span>
+                    <span class="typing-text">Automation Engineer</span>
                 </h2>
                 <p class="hero-description">
                     Transforming complex engineering challenges into innovative automation solutions
@@ -145,9 +145,62 @@
         <div class="container">
             <h2 class="section-title" data-animate="fade-up">Professional Experience</h2>
             <div class="experience-intro" data-animate="fade-up">
-                <h3>Control Systems Engineer - <span id="years-professional">0</span> Years</h3>
+                <h3>Patrick Terminals - Process and Automation Engineer (<span id="patrick-duration">0 years and 0 months</span>)</h3>
+                    <p>
+                        As a Process and Automation Engineer, I deliver comprehensive technical support for our automated terminal, ensuring the seamless operation of Automated Rail Mounted Gantries (ARMG), AutoStrads, and auto cranes. My day-to-day focus involves managing these sophisticated systems to maintain peak performance and reliability. By overseeing the heart of our automated infrastructure, I ensure that every piece of machinery operates with precision to meet our rigorous operational demands.
+                    </p>
+                    <p>
+                        I am equally dedicated to the evolution of our systems through detailed analysis and strategic foresight. I spend a significant portion of my time identifying opportunities to improve efficiencies and streamline workflows across the terminal. This proactive approach extends to planning future upgrades, where I work to anticipate and mitigate potential challenges before they arise. My goal is to combine technical expertise with innovative planning to keep our automated operations at the cutting edge of the industry.
+                    </p>
+                    <div class="professional-projects-grid" style="margin-top: 1rem;">
+                    <div class="professional-project-tile" data-animate="fade-up">
+                        <div class="tile-header" onclick="toggleProject(this.closest('.professional-project-tile'), event)">
+                            <h3>Port Container Flow Visualisation</h3>
+                            <span class="expand-icon">▼</span>
+                        </div>
+                        <p class="tile-preview">
+                            Interactive Streamlit Sankey dashboard for tracing container movements through the terminal with live filtering and analytics...
+                        </p>
+                        <div class="tile-content">
+                            <div class="tile-content-inner">
+                                <p>
+                                    Port Container Flow Visualisation is an interactive web application built to analyse how shipping containers move through a port terminal from vessel discharge, through the yard, and out via truck or rail, as well as the reverse flow for outbound loads.
+                                </p>
+                                <p>
+                                    The live demo is published on <strong>Streamlit Community Cloud</strong> and uses entirely <strong>synthetic sample data</strong>, so it can be embedded publicly on a personal website without exposing any operational databases or company credentials.
+                                </p>
+                                <p>
+                                    The dashboard presents the container journey as a <strong>Sankey flow diagram</strong>, making it easy to see which berths, yard blocks, vessels, and transport modes drive the most volume, where re-handles occur, and where movement sequences contain data gaps.
+                                </p>
+
+                                <h4>Key Features</h4>
+                                <ul>
+                                    <li>Interactive Sankey diagram with click-to-highlight path tracing</li>
+                                    <li>Sidebar filters for date range, vessel, flow direction, cargo category, berth grouping, and minimum volume threshold</li>
+                                    <li>Analytics tab with summary statistics, top routes, vessel breakdowns, and origin/destination rankings</li>
+                                    <li>Data gap diagnostics that surface orphaned or broken movement sequences</li>
+                                    <li>Step volume cards that show how container counts change across the journey</li>
+                                </ul>
+
+                                <h4>Technology Stack</h4>
+                                <ul>
+                                    <li>Python and Streamlit for the application layer</li>
+                                    <li>Plotly for the Sankey visualisation</li>
+                                    <li>Pandas for filtering, grouping, and aggregation</li>
+                                    <li>Bespoke JavaScript for node and flow highlighting inside the chart</li>
+                                </ul>
+
+                                <div class="tile-iframe-container iframe-container">
+                                    <iframe src="https://container-flow-visualisation-demo.streamlit.app/?embed=true&theme=dark" loading="lazy" title="Port Container Flow Visualisation" style="width:100%; height:720px; border:none; border-radius:12px; background: #0b1220;"></iframe>
+                                </div>
+                                <p style="margin-top:0.75rem;"><a class="tile-demo-link" href="https://container-flow-visualisation-demo.streamlit.app/" target="_blank" rel="noopener">Open live demo</a></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <h3>Crossmuller - Control Systems Engineer (<span id="crossmuller-duration">0 years and 0 months</span>)</h3>
                 <p>
-                    Since June 2022, I have worked as a Control Systems Engineer, gaining hands-on experience across multiple industrial automation projects. My work has involved <strong>PLC programming using Siemens TIA Portal</strong>, <strong>Factory Acceptance Testing (FAT)</strong>, and the <strong>integration and programming of Fanuc industrial robots</strong>. I have contributed to the design, programming, troubleshooting, and commissioning of automated warehousing systems and manufacturing lines, with a focus on improving reliability and efficiency.
+                    From June 2022 to March 2026, I worked at Crossmuller as a Control Systems Engineer, gaining hands-on experience across multiple industrial automation projects. My work involved <strong>PLC programming using Siemens TIA Portal</strong>, <strong>Factory Acceptance Testing (FAT)</strong>, and the <strong>integration and programming of Fanuc industrial robots</strong>. I contributed to the design, programming, troubleshooting, and commissioning of automated warehousing systems and manufacturing lines, with a focus on improving reliability and efficiency.
                 </p>
                 <p>
                     Through this role, I have developed both technical and professional competencies, particularly in managing multiple concurrent projects and maintaining structured documentation. Tracking tasks and documenting design decisions have allowed seamless transitions between projects and improved collaboration during handovers. Guidance from experienced colleagues has also helped refine my documentation and workflow practices, improving both technical clarity and project efficiency.
@@ -155,8 +208,166 @@
             </div>
             
             <div class="professional-projects-grid">
-                <div class="professional-project-tile" onclick="toggleProject(this)" data-animate="fade-up">
-                    <div class="tile-header">
+                <div class="professional-project-tile" data-animate="fade-up">
+                    <div class="tile-header" onclick="toggleProject(this.closest('.professional-project-tile'), event)">
+                        <h3>Emulate3D Virtual Commissioning</h3>
+                        <span class="expand-icon">▼</span>
+                    </div>
+                    <p class="tile-preview">
+                        Full laminating line digital twin for FAT-ready PLC validation before hardware arrives on site...
+                    </p>
+                    <div class="tile-content">
+                        <div class="tile-content-inner">
+                            <p>
+                                This project delivered a full Emulate3D simulation of the Laminating Line at the Mount Gambier site, spanning approximately <strong>12 PLCs</strong> communicating with each other.
+                            </p>
+                            <p>
+                                The virtual twin was configured to spawn and despawn product with real-time timing and physics while running live PLC code, allowing complete <strong>Factory Acceptance Testing (FAT)</strong> before hardware arrived on site.
+                            </p>
+
+                            <h4 class="video-title" style="margin-bottom: 1rem; margin-top: 2rem; text-align: center;">Emulate3D Video Carousel (Links Coming Soon)</h4>
+                            <div class="youtube-carousel" data-carousel-index="0">
+                                <div class="youtube-carousel-slide active">
+                                    <div class="video-container">
+                                        <iframe
+                                            width="560"
+                                            height="315"
+                                            src="https://www.youtube.com/embed/3vIsMybK1aw?si=0Gf-q_PmN1Y3hrAC"
+                                            title="Emulate3D Double Shuttle Coordination"
+                                            frameborder="0"
+                                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                                            referrerpolicy="strict-origin-when-cross-origin"
+                                            allowfullscreen>
+                                        </iframe>
+                                    </div>
+                                    <p class="video-description-text">
+                                        <strong>Shuttle at 3x speed.</strong> Packs from two separate laminating lines are fed onto the double shuttle system, which coordinates transfer to the strapping lines. The system integrates with four distinct PLCs that communicate seamlessly with each other, including safety-critical coordination to ensure synchronized operation across the integrated production flow.
+                                    </p>
+                                </div>
+                                <div class="youtube-carousel-slide">
+                                    <div class="video-container">
+                                        <iframe
+                                            width="560"
+                                            height="315"
+                                            src="https://www.youtube.com/embed/yTpjTd1AxX4?si=7zoa-exB0gJqCiBG"
+                                            title="Emulate3D Pack Stacking"
+                                            frameborder="0"
+                                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                                            referrerpolicy="strict-origin-when-cross-origin"
+                                            allowfullscreen>
+                                        </iframe>
+                                    </div>
+                                    <p class="video-description-text">
+                                        <strong>Pack stacker at 4x speed.</strong> Each pack centers on the conveyor and aligns against the bollards. Two sensors verify that gluts are clear of the pack stacker tynes. Upon successful verification, the stacker lifts the pack into the air and waits for the next pack to enter, center, and align before placing the lifted pack on top of the incoming pack.
+                                    </p>
+                                </div>
+                                <div class="youtube-carousel-slide">
+                                    <div class="video-container">
+                                        <iframe
+                                            width="560"
+                                            height="315"
+                                            src="https://www.youtube.com/embed/M_UMe1Ije9M?si=JnulaCOZPBKNDdEE"
+                                            title="Emulate3D Pack Separation and Cross Transfer"
+                                            frameborder="0"
+                                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                                            referrerpolicy="strict-origin-when-cross-origin"
+                                            allowfullscreen>
+                                        </iframe>
+                                    </div>
+                                    <p class="video-description-text">
+                                        <strong>Pack separation and cross transfer at 2x speed.</strong> Two pack groups enter the cross transfer conveyor and are split into single pack groups. The conveyor raises the chains to cross transfer the pack and then centers it on the receiving conveyor.
+                                    </p>
+                                </div>
+                                <div class="youtube-carousel-slide">
+                                    <div class="video-container">
+                                        <iframe
+                                            width="560"
+                                            height="315"
+                                            src="https://www.youtube.com/embed/ESGexDVlYuY?si=_OQoSujTO1pMQKGT"
+                                            title="Emulate3D Pack Rotation and Separation"
+                                            frameborder="0"
+                                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                                            referrerpolicy="strict-origin-when-cross-origin"
+                                            allowfullscreen>
+                                        </iframe>
+                                    </div>
+                                    <p class="video-description-text">
+                                        <strong>Pack rotation and separation at 2x speed.</strong> The pack group of 3 smaller packs is transferred onto a rotator and then the pack group is separated into individual packs to prepare it for strapping.
+                                    </p>
+                                </div>
+                                <div class="youtube-carousel-slide">
+                                    <div class="video-container">
+                                        <iframe
+                                            width="560"
+                                            height="315"
+                                            src="https://www.youtube.com/embed/ZOvG1BhCBNU?si=NRgj0V1VivDTEUfT"
+                                            title="Emulate3D Pack Strapping"
+                                            frameborder="0"
+                                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                                            referrerpolicy="strict-origin-when-cross-origin"
+                                            allowfullscreen>
+                                        </iframe>
+                                    </div>
+                                    <p class="video-description-text">
+                                        <strong>Pack strapping at 4x speed.</strong> Each pack increments based on a glut recipe. This video contains significant dead time as the simulation represents the actual time required to physically strap a pack. This timing data was captured during FAT in the workshop during physical testing of the strapping machine.
+                                    </p>
+                                </div>
+                                <div class="youtube-carousel-slide">
+                                    <div class="video-container">
+                                        <iframe
+                                            width="560"
+                                            height="315"
+                                            src="https://www.youtube.com/embed/ToI1sI_htzk?si=YN5WwiN7qC0kGCv6"
+                                            title="Emulate3D Double Shuttle Grade Split"
+                                            frameborder="0"
+                                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                                            referrerpolicy="strict-origin-when-cross-origin"
+                                            allowfullscreen>
+                                        </iframe>
+                                    </div>
+                                    <p class="video-description-text">
+                                        <strong>Double shuttle grade split at 2x speed.</strong> This video shows the double shuttle outfeeding an A-grade pack to the strapping lines while routing a B-grade pack to the second double shuttle, which transfers that pack to the regrade line.
+                                    </p>
+                                </div>
+                                <div class="youtube-carousel-slide">
+                                    <div class="video-container">
+                                        <iframe
+                                            width="560"
+                                            height="315"
+                                            src="https://www.youtube.com/embed/Tozzi80ubZI?si=HNUEi1SxWCFdbZ_D"
+                                            title="Emulate3D Laminating Line Flow"
+                                            frameborder="0"
+                                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                                            referrerpolicy="strict-origin-when-cross-origin"
+                                            allowfullscreen>
+                                        </iframe>
+                                    </div>
+                                    <p class="video-description-text">
+                                        Full end-to-end run of product leaving the laminating line outfeed, transferring via shuttle to the strapping lines, then being progressively split from large packs into smaller groups and finally into single packs. Gluts are strapped to each pack, the packs are stacked by the pack stacker (forklift-style), and the final stacks are presented at outfeed ready for AGV pickup and warehouse storage.
+                                    </p>
+                                </div>
+
+                                <div class="youtube-carousel-controls">
+                                    <button class="youtube-carousel-btn" onclick="moveYoutubeCarousel(this, -1); event.stopPropagation();" aria-label="Previous video">❮</button>
+                                    <button class="youtube-carousel-btn" onclick="moveYoutubeCarousel(this, 1); event.stopPropagation();" aria-label="Next video">❯</button>
+                                </div>
+
+                                <div class="youtube-carousel-dots">
+                                    <button class="youtube-dot active" onclick="setYoutubeCarouselSlide(this, 0); event.stopPropagation();" aria-label="Go to video slot 1"></button>
+                                    <button class="youtube-dot" onclick="setYoutubeCarouselSlide(this, 1); event.stopPropagation();" aria-label="Go to video slot 2"></button>
+                                    <button class="youtube-dot" onclick="setYoutubeCarouselSlide(this, 2); event.stopPropagation();" aria-label="Go to video slot 3"></button>
+                                    <button class="youtube-dot" onclick="setYoutubeCarouselSlide(this, 3); event.stopPropagation();" aria-label="Go to video slot 4"></button>
+                                    <button class="youtube-dot" onclick="setYoutubeCarouselSlide(this, 4); event.stopPropagation();" aria-label="Go to video slot 5"></button>
+                                    <button class="youtube-dot" onclick="setYoutubeCarouselSlide(this, 5); event.stopPropagation();" aria-label="Go to video slot 6"></button>
+                                    <button class="youtube-dot" onclick="setYoutubeCarouselSlide(this, 6); event.stopPropagation();" aria-label="Go to video slot 7"></button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="professional-project-tile" data-animate="fade-up">
+                    <div class="tile-header" onclick="toggleProject(this.closest('.professional-project-tile'), event)">
                         <h3>Industrial Robot Programming and Integration</h3>
                         <span class="expand-icon">▼</span>
                     </div>
@@ -189,8 +400,8 @@
                     </div>
                 </div>
 
-                <div class="professional-project-tile" onclick="toggleProject(this)" data-animate="fade-up">
-                    <div class="tile-header">
+                <div class="professional-project-tile" data-animate="fade-up">
+                    <div class="tile-header" onclick="toggleProject(this.closest('.professional-project-tile'), event)">
                         <h3>Pack Turning Cell</h3>
                         <span class="expand-icon">▼</span>
                     </div>
@@ -222,11 +433,35 @@
                         </div>
                     </div>
                 </div>
+
             </div>
 
             <!-- Print-only version with full content -->
             <div class="print-only-experience">
                 <h3>Professional Experience - Control Systems Engineer</h3>
+                <div class="print-exp-item">
+                    <h4>Patrick Terminals - Process and Automation Engineer</h4>
+                    <p>
+                        Commencing April 2026.
+                    </p>
+                </div>
+
+                <div class="print-exp-item">
+                    <h4>Port Container Flow Visualisation</h4>
+                    <p>
+                        Interactive Streamlit dashboard for analysing container movement through a port terminal using a Sankey flow diagram, live filters, and analytics.
+                    </p>
+                    <p>
+                        The demo runs publicly on Streamlit Community Cloud with synthetic sample data, allowing the interface to be embedded on a personal website without any database dependency or operational credentials.
+                    </p>
+                </div>
+
+                <div class="print-exp-item">
+                    <h4>Crossmuller - Control Systems Engineer</h4>
+                    <p>
+                        June 2022 to March 2026.
+                    </p>
+                </div>
                 
                 <div class="print-exp-item">
                     <h4>Industrial Robot Programming and Integration</h4>
@@ -253,6 +488,16 @@
                         Commissioning presented several challenges that required patience and problem-solving. From debugging minor logic errors to recovering sensor calibration losses caused by PLC memory faults, each issue provided valuable lessons in troubleshooting under pressure. Despite an incident that resulted in damage to a safety fence and light curtain, corrective actions and collaboration with on-site teams ensured the line was restored without impacting production. The experience emphasised the value of perseverance, strong documentation, and clear communication during live commissioning.
                     </p>
                 </div>
+
+                <div class="print-exp-item">
+                    <h4>Emulate3D Virtual Commissioning</h4>
+                    <p>
+                        Full simulation of the Laminating Line at the Mount Gambier site, spanning approximately 12 PLCs communicating with each other.
+                    </p>
+                    <p>
+                        The virtual twin spawned and despawned product with real-time timing and physics while running live PLC code, allowing full FAT testing before hardware arrived on site.
+                    </p>
+                </div>
             </div>
         </div>
     </section>
@@ -261,6 +506,17 @@
     <section id="leadership" class="section leadership-section">
         <div class="container">
             <h2 class="section-title" data-animate="fade-up">Leadership</h2>
+
+            <!-- Army Cadets Section -->
+            <div class="leadership-content" data-animate="fade-up" style="margin-bottom: 3rem;">
+                <h3>Youth Development Instructor - Army Cadets</h3>
+                <p>
+                    As a 2nd Lieutenant and Company Directing Staff, I lead and mentor over 100 cadets and 3 staff members, ensuring their safety and fostering a supportive environment for their development. My role involves teaching leadership, teamwork, and technical skills, while guiding cadets through challenging environments to build confidence and practical abilities. I design engaging lessons, supervise activities and camps, and uphold high standards of discipline and professionalism, preparing cadets for future success.
+                </p>
+                <div style="margin-top: 1.5rem;">
+                    <img src="images/Cadets.jpeg" alt="Army Cadets activity" style="width: 100%; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.3);">
+                </div>
+            </div>
             
             <!-- MechSoc Section -->
             <div class="leadership-content" data-animate="fade-up">
@@ -354,14 +610,6 @@
                     </div>
                 </div>
             </div>
-
-            <!-- Army Cadets Section -->
-            <div class="leadership-content" data-animate="fade-up" style="margin-top: 3rem;">
-                <h3>Youth Development Instructor - Army Cadets</h3>
-                <p>
-                    As a 2nd Lieutenant and Company Directing Staff, I lead and mentor over 100 cadets and 3 staff members, ensuring their safety and fostering a supportive environment for their development. My role involves teaching leadership, teamwork, and technical skills, while guiding cadets through challenging environments to build confidence and practical abilities. I design engaging lessons, supervise activities and camps, and uphold high standards of discipline and professionalism, preparing cadets for future success.
-                </p>
-            </div>
         </div>
     </section>
 
@@ -371,12 +619,90 @@
             <h2 class="section-title" data-animate="fade-up">Personal Projects and Academic Experience</h2>
             
             <div class="projects-grid">
+                <!-- Foz Prints -->
+                <div class="project-card expandable-card" data-animate="fade-up">
+                    <div class="project-image" onclick="toggleProject(this.closest('.project-card'), event)">
+                        <img src="images/FozPrints.png" alt="Foz Prints website and product showcase" style="width: 100%; height: 100%; object-fit: cover;">
+                    </div>
+                    <div class="project-info" onclick="toggleProject(this.closest('.project-card'), event)">
+                        <h3>Foz Prints</h3>
+                        <p>Headless eCommerce platform and engineered 3D printed Subaru interior upgrades</p>
+                        <div class="project-tags">
+                            <span class="tag">Next.js</span>
+                            <span class="tag">Shopify</span>
+                            <span class="tag">Cloudflare</span>
+                            <span class="tag">3D Printing</span>
+                        </div>
+                    </div>
+                    <div class="project-expanded-content">
+                        <div class="project-expanded-inner">
+                            <p><strong>Live Website:</strong> <a href="https://fozprints.com.au" target="_blank">fozprints.com.au</a></p>
+
+                            <p><strong>The Background</strong><br>
+                            I started Foz Prints to solve a problem I had with my own Subaru Forester SG. The factory interior plastics become brittle over time. Original replacements are either discontinued or ridiculously expensive, and most aftermarket options look terrible. I decided to design, model, and manufacture my own 3d printed replacement parts in Sydney, printing them in heat resistant ASA plastic so they can actually survive an Australian summer.</p>
+
+                            <p><strong>The Tech Stack</strong><br>
+                            I wanted full control over the design and speed of the website, so I built a headless setup instead of using a standard template.</p>
+                            <ul>
+                                <li><strong>Frontend:</strong> A custom Next.js site hosted on Netlify.</li>
+                                <li><strong>Backend:</strong> Shopify to handle the secure checkout, inventory management, and payments.</li>
+                                <li><strong>DNS:</strong> Cloudflare to route traffic safely between the two systems.</li>
+                            </ul>
+
+                            <p><strong>The Build Process and Challenges</strong><br>
+                            Handling both the physical product engineering and the web development at the same time threw up some interesting roadblocks.</p>
+                            <ul>
+                                <li><strong>The Prototype Graveyard:</strong> Getting a 3D printed part to perfectly match a twenty year old dashboard is incredibly difficult. It took dozens of CAD iterations to get the curves, snap fits, and surface textures exactly right before the parts looked like they actually belonged in the car.</li>
+                                <li><strong>Headless Routing:</strong> Connecting a Next.js frontend to a Shopify checkout was a difficult task. I had to correctly map the root domain to Netlify while isolating the secure checkout on a Shopify subdomain without taking the whole site offline.</li>
+                                <li><strong>Working Around Locked Code:</strong> To keep running costs low, I used the basic Shopify Starter plan. This meant the backend code was completely locked down. When the headless setup caused the checkout logo to trap users on a dead end page, I could not use custom JavaScript or third party apps to fix it. I had to build native navigation workarounds to get customers back to the main site.</li>
+                                <li><strong>Australia Post API Limits:</strong> Getting live shipping rates to work at checkout was another massive headache. The Australia Post API is incredibly strict. If a single product weight, box dimension, or suburb spelling was slightly off, the whole checkout would crash. Figuring out exactly how to format the data to keep the API happy took a lot of trial and error.</li>
+                                <li><strong>Leveraging AI as a Technical Partner:</strong> Building a custom web platform alone is tough, so I heavily utilised AI tools throughout the project. I used AI to help write custom code, debug Next.js routing bugs, and translate confusing Shopify documentation. Having an AI to bounce ideas off drastically sped up the troubleshooting process, especially when fixing weird DNS and API connection issues.</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Personal Server -->
+                <div class="project-card expandable-card" data-animate="fade-up">
+                    <div class="project-image" onclick="toggleProject(this.closest('.project-card'), event)">
+                        <img src="images/MediaServer.png" alt="Personal server infrastructure dashboard" style="width: 100%; height: 100%; object-fit: cover;">
+                    </div>
+                    <div class="project-info" onclick="toggleProject(this.closest('.project-card'), event)">
+                        <h3>Personal Server</h3>
+                        <p>Self-hosted infrastructure for secure remote access, automation, documentation, and media streaming</p>
+                        <div class="project-tags">
+                            <span class="tag">Networking</span>
+                            <span class="tag">Automation</span>
+                            <span class="tag">CasaOS</span>
+                            <span class="tag">Jellyfin</span>
+                        </div>
+                    </div>
+                    <div class="project-expanded-content">
+                        <div class="project-expanded-inner">
+                            <p><strong>Infrastructure Overview</strong><br>
+                            Built on an HP EliteDesk 800 G5 featuring an Intel i7 processor, this home server operates as a robust, centralised hub for network management, smart home orchestration, technical authoring, and multimedia hosting. The environment is managed via CasaOS, providing a streamlined interface for deploying and maintaining enterprise level containerised applications.</p>
+
+                            <p><strong>Secure Remote Connectivity</strong><br>
+                            To ensure reliable access from anywhere in the world, the server utilises Tailscale. This implements a secure Zero Trust virtual private network overlay. It allows external devices to connect seamlessly to internal services without exposing any hardware to the public internet, guaranteeing strict security while maintaining complete remote accessibility.</p>
+
+                            <p><strong>Smart Home Orchestration</strong><br>
+                            The server functions as the primary controller for a comprehensive smart home ecosystem through Home Assistant and a dedicated Matter Server. This architecture integrates various IoT devices across different protocols into a single, unified interface. By processing automations locally on the hardware, it ensures rapid response times for environment controls while completely eliminating the reliance on external cloud services.</p>
+
+                            <p><strong>Technical Documentation Platform</strong><br>
+                            For academic and professional writing, the server hosts a local instance of Overleaf via the ShareLaTeX container. This provides a powerful, collaborative LaTeX authoring environment accessible directly through a web browser. It handles complex mathematical formatting and document compilation entirely on local hardware, ensuring complete data privacy and robust version control for all technical documents.</p>
+
+                            <p><strong>Personal Media Ecosystem</strong><br>
+                            The system serves as a highly capable personal media library powered by Jellyfin. This platform allows for the hosting and streaming of personal digital media to any screen on the network in high definition. The user experience is augmented by Jellyseerr, which acts as a clean portal for media discovery and internal library requests. In the background, a suite of automated library management tools handles the seamless curation of metadata, artwork, and subtitle synchronisation as new content is added to the private collection.</p>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Portfolio Website -->
-                <div class="project-card expandable-card" data-animate="fade-up" onclick="toggleProject(this)">
-                    <div class="project-image">
+                <div class="project-card expandable-card" data-animate="fade-up">
+                    <div class="project-image" onclick="toggleProject(this.closest('.project-card'), event)">
                         <img src="images/portfolio_preview.png" alt="Professional ePortfolio Website" style="width: 100%; height: 100%; object-fit: cover;">
                     </div>
-                    <div class="project-info">
+                    <div class="project-info" onclick="toggleProject(this.closest('.project-card'), event)">
                         <h3>Professional ePortfolio Website</h3>
                         <p>AI-assisted web development using LLMs and GitHub Copilot</p>
                         <div class="project-tags">
@@ -414,11 +740,11 @@
                 </div>
 
                 <!-- Turtle Bot -->
-                <div class="project-card expandable-card" data-animate="fade-up" onclick="toggleProject(this)">
-                    <div class="project-image">
+                <div class="project-card expandable-card" data-animate="fade-up">
+                    <div class="project-image" onclick="toggleProject(this.closest('.project-card'), event)">
                         <img src="https://img.youtube.com/vi/PykMOBxtqDs/maxresdefault.jpg" alt="Turtle Bot Warehousing System" style="width: 100%; height: 100%; object-fit: cover;">
                     </div>
-                    <div class="project-info">
+                    <div class="project-info" onclick="toggleProject(this.closest('.project-card'), event)">
                         <h3>Turtle Bot Warehousing System</h3>
                         <p>Autonomous warehousing robot using ROS and lidar navigation</p>
                         <div class="project-tags">
@@ -449,11 +775,11 @@
                 </div>
 
                 <!-- Robotics Control -->
-                <div class="project-card expandable-card" data-animate="fade-up" onclick="toggleProject(this)">
-                    <div class="project-image">
+                <div class="project-card expandable-card" data-animate="fade-up">
+                    <div class="project-image" onclick="toggleProject(this.closest('.project-card'), event)">
                         <img src="https://img.youtube.com/vi/mtV6qu-1_xM/maxresdefault.jpg" alt="Robotics Control Project" style="width: 100%; height: 100%; object-fit: cover;">
                     </div>
-                    <div class="project-info">
+                    <div class="project-info" onclick="toggleProject(this.closest('.project-card'), event)">
                         <h3>Robotics Control Project</h3>
                         <p>Pick, place, and sorting system with custom kinematics</p>
                         <div class="project-tags">
@@ -482,11 +808,11 @@
                 </div>
 
                 <!-- AI Tetris -->
-                <div class="project-card expandable-card" data-animate="fade-up" onclick="toggleProject(this)">
-                    <div class="project-image">
+                <div class="project-card expandable-card" data-animate="fade-up">
+                    <div class="project-image" onclick="toggleProject(this.closest('.project-card'), event)">
                         <img src="https://img.youtube.com/vi/jo5F_d3a7GM/maxresdefault.jpg" alt="AI Tetris" style="width: 100%; height: 100%; object-fit: cover;">
                     </div>
-                    <div class="project-info">
+                    <div class="project-info" onclick="toggleProject(this.closest('.project-card'), event)">
                         <h3>AI Tetris</h3>
                         <p>Deep Q-Network AI that plays Tetris using reinforcement learning</p>
                         <div class="project-tags">
@@ -518,11 +844,11 @@
                 </div>
 
                 <!-- SPOT Robot -->
-                <div class="project-card expandable-card" data-animate="fade-up" onclick="toggleProject(this)">
-                    <div class="project-image">
+                <div class="project-card expandable-card" data-animate="fade-up">
+                    <div class="project-image" onclick="toggleProject(this.closest('.project-card'), event)">
                         <img src="images/SPOT_Pathplanning.png" alt="SPOT Search and Rescue" style="width: 100%; height: 100%; object-fit: cover;">
                     </div>
-                    <div class="project-info">
+                    <div class="project-info" onclick="toggleProject(this.closest('.project-card'), event)">
                         <h3>SPOT Search and Rescue</h3>
                         <p>Boston Dynamics SPOT with autonomous exploration and YOLOv3</p>
                         <div class="project-tags">
@@ -543,11 +869,11 @@
                 </div>
 
                 <!-- THOR Robot -->
-                <div class="project-card expandable-card" data-animate="fade-up" onclick="toggleProject(this)">
-                    <div class="project-image">
+                <div class="project-card expandable-card" data-animate="fade-up">
+                    <div class="project-image" onclick="toggleProject(this.closest('.project-card'), event)">
                         <img src="images/Thor_Robot1.jpeg" alt="THOR Robot" style="width: 100%; height: 100%; object-fit: cover;">
                     </div>
-                    <div class="project-info">
+                    <div class="project-info" onclick="toggleProject(this.closest('.project-card'), event)">
                         <h3>THOR Robotic Build</h3>
                         <p>Open-source humanoid robot build for UTSMechSoc</p>
                         <div class="project-tags">
@@ -568,6 +894,7 @@
                         </div>
                     </div>
                 </div>
+
             </div>
         </div>
     </section>
@@ -655,7 +982,7 @@
     <!-- Footer -->
     <footer class="footer">
         <div class="container">
-            <p>&copy; 2024 Aidan Korpar | Control Systems Engineer</p>
+            <p>&copy; 2024 Aidan Korpar | Automation Engineer</p>
         </div>
     </footer>
 

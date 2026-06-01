@@ -115,10 +115,54 @@ function calculateYearsExperience() {
     return diffYears.toFixed(1);
 }
 
+function calculateYearsMonthsSince(startDate) {
+    const now = new Date();
+    if (now < startDate) {
+        return formatYearsMonths(0, 0);
+    }
+
+    const { years, months } = calculateYearsMonthsBetween(startDate, now);
+    return formatYearsMonths(years, months);
+}
+
+function calculateYearsMonthsBetween(startDate, endDate) {
+    let years = endDate.getFullYear() - startDate.getFullYear();
+    let months = endDate.getMonth() - startDate.getMonth();
+
+    if (months < 0) {
+        years -= 1;
+        months += 12;
+    }
+
+    return { years, months };
+}
+
+function formatYearsMonths(years, months) {
+    if (years < 0 || months < 0) {
+        years = 0;
+        months = 0;
+    }
+
+    if (years === 0) {
+        const monthLabel = months === 1 ? 'month' : 'months';
+        return `${months} ${monthLabel}`;
+    }
+
+    const yearLabel = years === 1 ? 'year' : 'years';
+    if (months === 0) {
+        return `${years} ${yearLabel}`;
+    }
+
+    const monthLabel = months === 1 ? 'month' : 'months';
+    return `${years} ${yearLabel} and ${months} ${monthLabel}`;
+}
+
 // Update years experience on page load
 document.addEventListener('DOMContentLoaded', () => {
     const yearsElement = document.getElementById('years-experience');
     const yearsProfessional = document.getElementById('years-professional');
+    const patrickDuration = document.getElementById('patrick-duration');
+    const crossmullerDuration = document.getElementById('crossmuller-duration');
     
     if (yearsElement) {
         const years = calculateYearsExperience();
@@ -128,6 +172,18 @@ document.addEventListener('DOMContentLoaded', () => {
     if (yearsProfessional) {
         const years = calculateYearsExperience();
         yearsProfessional.textContent = years;
+    }
+
+    if (patrickDuration) {
+        const patrickStart = new Date(2026, 3, 7); // April 7, 2026
+        patrickDuration.textContent = calculateYearsMonthsSince(patrickStart);
+    }
+
+    if (crossmullerDuration) {
+        const crossmullerStart = new Date(2022, 5, 1); // June 1, 2022
+        const crossmullerEnd = new Date(2026, 2, 1); // March 1, 2026
+        const { years, months } = calculateYearsMonthsBetween(crossmullerStart, crossmullerEnd);
+        crossmullerDuration.textContent = formatYearsMonths(years, months);
     }
 });
 
@@ -273,19 +329,105 @@ function startAutoSlide() {
 // PROJECT TILES TOGGLE
 // ============================================
 
-function toggleProject(element) {
+function toggleProject(element, event) {
     // Check if user is selecting text
     const selection = window.getSelection();
     if (selection.toString().length > 0) {
         return; // Don't toggle if text is selected
     }
-    
-    // Prevent toggle if clicking on links
-    if (event && event.target.tagName === 'A') {
+
+    // Prevent toggle when interacting with embedded controls/content.
+    if (event && event.target.closest('a, button, input, textarea, iframe')) {
         return;
     }
-    
+
+    const isExpanded = element.classList.contains('expanded');
+    if (isExpanded && event) {
+        let collapseZoneSelector = '';
+
+        if (element.classList.contains('professional-project-tile')) {
+            collapseZoneSelector = '.tile-header';
+        } else if (element.classList.contains('project-card')) {
+            collapseZoneSelector = '.project-image, .project-info';
+        }
+
+        if (collapseZoneSelector && !event.target.closest(collapseZoneSelector)) {
+            return;
+        }
+    }
+
+    // Save anchor position when opening so we can return to it on collapse.
+    if (!isExpanded) {
+        const openAnchor = element.getBoundingClientRect().top + window.pageYOffset;
+        element.dataset.openAnchorY = String(openAnchor);
+    }
+
     element.classList.toggle('expanded');
+
+    // After collapsing, scroll back to where this box sits on the page.
+    if (isExpanded) {
+        const navbar = document.getElementById('navbar');
+        const navOffset = navbar ? navbar.offsetHeight + 12 : 90;
+        const savedAnchor = Number(element.dataset.openAnchorY);
+
+        const scrollToElement = () => {
+            const fallbackAnchor = element.getBoundingClientRect().top + window.pageYOffset;
+            const targetY = Number.isFinite(savedAnchor) ? savedAnchor : fallbackAnchor;
+            window.scrollTo({
+                top: Math.max(0, targetY - navOffset),
+                behavior: 'smooth'
+            });
+        };
+
+        // Wait for collapse transition to finish before correcting viewport.
+        setTimeout(scrollToElement, 260);
+    }
+}
+
+function updateYoutubeCarousel(carousel, targetIndex) {
+    const slides = carousel.querySelectorAll('.youtube-carousel-slide');
+    const dots = carousel.querySelectorAll('.youtube-dot');
+
+    if (slides.length === 0) {
+        return;
+    }
+
+    let index = targetIndex;
+    if (index < 0) {
+        index = slides.length - 1;
+    }
+    if (index >= slides.length) {
+        index = 0;
+    }
+
+    carousel.dataset.carouselIndex = String(index);
+
+    slides.forEach((slide, i) => {
+        slide.classList.toggle('active', i === index);
+    });
+
+    dots.forEach((dot, i) => {
+        dot.classList.toggle('active', i === index);
+    });
+}
+
+function moveYoutubeCarousel(button, direction) {
+    const carousel = button.closest('.youtube-carousel');
+    if (!carousel) {
+        return;
+    }
+
+    const currentIndex = Number(carousel.dataset.carouselIndex || 0);
+    updateYoutubeCarousel(carousel, currentIndex + direction);
+}
+
+function setYoutubeCarouselSlide(dotButton, index) {
+    const carousel = dotButton.closest('.youtube-carousel');
+    if (!carousel) {
+        return;
+    }
+
+    updateYoutubeCarousel(carousel, index);
 }
 
 // ============================================
