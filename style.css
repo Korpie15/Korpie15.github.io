@@ -1060,23 +1060,149 @@ body {
 }
 
 .project-image {
-    height: 200px;
+    height: 220px;
     overflow: hidden;
     background: var(--bg-dark);
     display: flex;
     align-items: center;
     justify-content: center;
+    position: relative;
+    transition: height 0.4s ease;
 }
 
 .project-image img {
     width: 100%;
     height: 100%;
     object-fit: cover;
-    transition: var(--transition);
+    transition: transform 0.3s ease;
 }
 
 .project-card:not(.expanded):hover .project-image img {
-    transform: scale(1.1);
+    transform: scale(1.05);
+}
+
+/* Expanded Card - Full Image & Carousel Styling */
+.project-card.expanded .project-image {
+    height: clamp(380px, 48vw, 580px);
+    background: #080d18;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    padding: 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.project-card.expanded .project-image img {
+    object-fit: contain !important;
+    width: 100% !important;
+    height: 100% !important;
+    max-height: 100%;
+    border-radius: 10px;
+    filter: drop-shadow(0 8px 24px rgba(0, 0, 0, 0.6));
+}
+
+/* Multi-image Project Carousel */
+.project-carousel {
+    position: relative;
+    width: 100%;
+}
+
+.project-slide {
+    display: none;
+    width: 100%;
+    height: 100%;
+    align-items: center;
+    justify-content: center;
+}
+
+.project-slide.active {
+    display: flex;
+}
+
+.project-slide img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s ease;
+}
+
+.project-card.expanded .project-slide img {
+    object-fit: contain !important;
+    width: 100% !important;
+    height: 100% !important;
+    max-height: 100%;
+    border-radius: 10px;
+    filter: drop-shadow(0 8px 24px rgba(0, 0, 0, 0.6));
+}
+
+.project-carousel-btn {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    background: rgba(15, 23, 42, 0.75);
+    color: var(--text-light);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 1.2rem;
+    transition: var(--transition);
+    z-index: 10;
+    backdrop-filter: blur(8px);
+}
+
+.project-carousel-btn:hover {
+    background: var(--primary-color);
+    color: #fff;
+    transform: translateY(-50%) scale(1.1);
+    box-shadow: 0 4px 15px rgba(37, 99, 235, 0.4);
+}
+
+.project-carousel-btn.prev {
+    left: 1.25rem;
+}
+
+.project-carousel-btn.next {
+    right: 1.25rem;
+}
+
+.project-carousel-dots {
+    position: absolute;
+    bottom: 1rem;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 0.5rem;
+    z-index: 10;
+    background: rgba(15, 23, 42, 0.6);
+    padding: 0.35rem 0.75rem;
+    border-radius: 20px;
+    backdrop-filter: blur(6px);
+}
+
+.project-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.35);
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.project-dot.active,
+.project-dot:hover {
+    background: var(--primary-light);
+    transform: scale(1.2);
+}
+
+/* Hide carousel controls when collapsed */
+.project-card:not(.expanded) .project-carousel-btn,
+.project-card:not(.expanded) .project-carousel-dots {
+    display: none;
 }
 
 .project-expanded-content {
@@ -1124,53 +1250,12 @@ body {
     text-decoration: underline;
 }
 
-.project-card {
-    background: var(--bg-medium);
-    border-radius: 15px;
-    overflow: hidden;
-    box-shadow: var(--shadow-lg);
-    transition: var(--transition);
-    cursor: default;
-    border: 1px solid rgba(255,255,255,0.1);
-}
-
-.project-card:hover {
-    transform: translateY(-10px);
-    box-shadow: var(--shadow-xl);
-    border-color: var(--primary-color);
-}
-
-.project-image {
-    height: 200px;
-    overflow: hidden;
-    background: var(--bg-dark);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.project-image img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    transition: var(--transition);
-}
-
-.project-card:hover .project-image img {
-    transform: scale(1.1);
-}
-
-.project-placeholder {
-    color: var(--text-gray);
-    opacity: 0.3;
-}
-
 .project-info {
-    padding: 1.5rem;
+    padding: 1.5rem 2rem;
 }
 
 .project-info h3 {
-    font-size: 1.3rem;
+    font-size: 1.4rem;
     margin-bottom: 0.5rem;
     color: var(--text-light);
 }
@@ -1185,6 +1270,22 @@ body {
     display: flex;
     flex-wrap: wrap;
     gap: 0.5rem;
+}
+
+.tag {
+    background: rgba(37, 99, 235, 0.15);
+    color: var(--primary-light);
+    padding: 0.35rem 0.85rem;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    border: 1px solid rgba(37, 99, 235, 0.3);
+    transition: var(--transition);
+}
+
+.tag:hover {
+    background: var(--primary-color);
+    color: #fff;
 }
 
 /* ============================================

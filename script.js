@@ -337,7 +337,7 @@ function toggleProject(element, event) {
     }
 
     // Prevent toggle when interacting with embedded controls/content.
-    if (event && event.target.closest('a, button, input, textarea, iframe')) {
+    if (event && event.target.closest('a, button, input, textarea, iframe, .project-carousel-btn, .project-dot, .project-carousel-dots')) {
         return;
     }
 
@@ -428,6 +428,56 @@ function setYoutubeCarouselSlide(dotButton, index) {
     }
 
     updateYoutubeCarousel(carousel, index);
+}
+
+// ============================================
+// PROJECT IMAGE CAROUSEL
+// ============================================
+
+function updateProjectCarousel(carousel, targetIndex) {
+    const slides = carousel.querySelectorAll('.project-slide');
+    const dots = carousel.querySelectorAll('.project-dot');
+
+    if (slides.length === 0) {
+        return;
+    }
+
+    let index = targetIndex;
+    if (index < 0) {
+        index = slides.length - 1;
+    }
+    if (index >= slides.length) {
+        index = 0;
+    }
+
+    carousel.dataset.carouselIndex = String(index);
+
+    slides.forEach((slide, i) => {
+        slide.classList.toggle('active', i === index);
+    });
+
+    dots.forEach((dot, i) => {
+        dot.classList.toggle('active', i === index);
+    });
+}
+
+function moveProjectCarousel(button, direction) {
+    const carousel = button.closest('.project-carousel');
+    if (!carousel) {
+        return;
+    }
+
+    const currentIndex = Number(carousel.dataset.carouselIndex || 0);
+    updateProjectCarousel(carousel, currentIndex + direction);
+}
+
+function setProjectCarouselSlide(dotButton, index) {
+    const carousel = dotButton.closest('.project-carousel');
+    if (!carousel) {
+        return;
+    }
+
+    updateProjectCarousel(carousel, index);
 }
 
 // ============================================

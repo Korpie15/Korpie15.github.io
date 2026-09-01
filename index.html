@@ -629,8 +629,25 @@
             <div class="projects-grid">
                 <!-- Foz Prints -->
                 <div class="project-card expandable-card" data-animate="fade-up">
-                    <div class="project-image" onclick="toggleProject(this.closest('.project-card'), event)">
-                        <img src="images/FozPrints.png" alt="Foz Prints website and product showcase" style="width: 100%; height: 100%; object-fit: cover;">
+                    <div class="project-image project-carousel" data-carousel-index="0" onclick="toggleProject(this.closest('.project-card'), event)">
+                        <div class="project-slide active">
+                            <img src="images/FozPrints.png" alt="Foz Prints installed in vehicle dashboard">
+                        </div>
+                        <div class="project-slide">
+                            <img src="images/FozPrintsHomePage.png" alt="Foz Prints eCommerce website homepage">
+                        </div>
+                        <div class="project-slide">
+                            <img src="images/FozPrintsKit.jpg" alt="Foz Prints 3D printed kit and components">
+                        </div>
+
+                        <button class="project-carousel-btn prev" onclick="moveProjectCarousel(this, -1); event.stopPropagation();" aria-label="Previous photo">❮</button>
+                        <button class="project-carousel-btn next" onclick="moveProjectCarousel(this, 1); event.stopPropagation();" aria-label="Next photo">❯</button>
+
+                        <div class="project-carousel-dots">
+                            <span class="project-dot active" onclick="setProjectCarouselSlide(this, 0); event.stopPropagation();" aria-label="Go to photo 1"></span>
+                            <span class="project-dot" onclick="setProjectCarouselSlide(this, 1); event.stopPropagation();" aria-label="Go to photo 2"></span>
+                            <span class="project-dot" onclick="setProjectCarouselSlide(this, 2); event.stopPropagation();" aria-label="Go to photo 3"></span>
+                        </div>
                     </div>
                     <div class="project-info" onclick="toggleProject(this.closest('.project-card'), event)">
                         <h3>Foz Prints</h3>
@@ -673,7 +690,7 @@
                 <!-- Personal Server & Self Hosted Ecosystem -->
                 <div class="project-card expandable-card" data-animate="fade-up">
                     <div class="project-image" onclick="toggleProject(this.closest('.project-card'), event)">
-                        <img src="images/MediaServer.png" alt="Personal server infrastructure dashboard" style="width: 100%; height: 100%; object-fit: cover;">
+                        <img src="images/MediaServer.png" alt="Personal server infrastructure dashboard">
                     </div>
                     <div class="project-info" onclick="toggleProject(this.closest('.project-card'), event)">
                         <h3>Personal Server &amp; Custom Dashboards</h3>
@@ -744,7 +761,7 @@
                 <!-- Portfolio Website -->
                 <div class="project-card expandable-card" data-animate="fade-up">
                     <div class="project-image" onclick="toggleProject(this.closest('.project-card'), event)">
-                        <img src="images/portfolio_preview.png" alt="Professional ePortfolio Website" style="width: 100%; height: 100%; object-fit: cover;">
+                        <img src="images/portfolio_preview.png" alt="Professional ePortfolio Website">
                     </div>
                     <div class="project-info" onclick="toggleProject(this.closest('.project-card'), event)">
                         <h3>Professional ePortfolio Website</h3>
@@ -786,7 +803,7 @@
                 <!-- Turtle Bot -->
                 <div class="project-card expandable-card" data-animate="fade-up">
                     <div class="project-image" onclick="toggleProject(this.closest('.project-card'), event)">
-                        <img src="https://img.youtube.com/vi/PykMOBxtqDs/maxresdefault.jpg" alt="Turtle Bot Warehousing System" style="width: 100%; height: 100%; object-fit: cover;">
+                        <img src="https://img.youtube.com/vi/PykMOBxtqDs/maxresdefault.jpg" alt="Turtle Bot Warehousing System">
                     </div>
                     <div class="project-info" onclick="toggleProject(this.closest('.project-card'), event)">
                         <h3>Turtle Bot Warehousing System</h3>
@@ -821,7 +838,7 @@
                 <!-- Robotics Control -->
                 <div class="project-card expandable-card" data-animate="fade-up">
                     <div class="project-image" onclick="toggleProject(this.closest('.project-card'), event)">
-                        <img src="https://img.youtube.com/vi/mtV6qu-1_xM/maxresdefault.jpg" alt="Robotics Control Project" style="width: 100%; height: 100%; object-fit: cover;">
+                        <img src="https://img.youtube.com/vi/mtV6qu-1_xM/maxresdefault.jpg" alt="Robotics Control Project">
                     </div>
                     <div class="project-info" onclick="toggleProject(this.closest('.project-card'), event)">
                         <h3>Robotics Control Project</h3>
@@ -854,7 +871,7 @@
                 <!-- AI Tetris -->
                 <div class="project-card expandable-card" data-animate="fade-up">
                     <div class="project-image" onclick="toggleProject(this.closest('.project-card'), event)">
-                        <img src="https://img.youtube.com/vi/jo5F_d3a7GM/maxresdefault.jpg" alt="AI Tetris" style="width: 100%; height: 100%; object-fit: cover;">
+                        <img src="https://img.youtube.com/vi/jo5F_d3a7GM/maxresdefault.jpg" alt="AI Tetris">
                     </div>
                     <div class="project-info" onclick="toggleProject(this.closest('.project-card'), event)">
                         <h3>AI Tetris</h3>
@@ -890,7 +907,7 @@
                 <!-- SPOT Robot -->
                 <div class="project-card expandable-card" data-animate="fade-up">
                     <div class="project-image" onclick="toggleProject(this.closest('.project-card'), event)">
-                        <img src="images/SPOT_Pathplanning.png" alt="SPOT Search and Rescue" style="width: 100%; height: 100%; object-fit: cover;">
+                        <img src="images/SPOT_Pathplanning.png" alt="SPOT Search and Rescue">
                     </div>
                     <div class="project-info" onclick="toggleProject(this.closest('.project-card'), event)">
                         <h3>SPOT Search and Rescue</h3>
@@ -915,7 +932,7 @@
                 <!-- THOR Robot -->
                 <div class="project-card expandable-card" data-animate="fade-up">
                     <div class="project-image" onclick="toggleProject(this.closest('.project-card'), event)">
-                        <img src="images/Thor_Robot1.jpeg" alt="THOR Robot" style="width: 100%; height: 100%; object-fit: cover;">
+                        <img src="images/Thor_Robot1.jpeg" alt="THOR Robot">
                     </div>
                     <div class="project-info" onclick="toggleProject(this.closest('.project-card'), event)">
                         <h3>THOR Robotic Build</h3>
