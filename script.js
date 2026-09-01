@@ -364,6 +364,11 @@ function toggleProject(element, event) {
 
     element.classList.toggle('expanded');
 
+    const expandLabel = element.querySelector('.tile-expand-label');
+    if (expandLabel) {
+        expandLabel.textContent = element.classList.contains('expanded') ? 'Hide Details' : 'View Project';
+    }
+
     // After collapsing, scroll back to where this box sits on the page.
     if (isExpanded) {
         const navbar = document.getElementById('navbar');
