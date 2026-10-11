@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="100%" height="100%">
+  <defs>
+    <linearGradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fef08a" />
+      <stop offset="100%" stop-color="#facc15" />
+    </linearGradient>
+    <linearGradient id="redGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ef4444" />
+      <stop offset="100%" stop-color="#dc2626" />
+    </linearGradient>
+  </defs>
+
+  <!-- Circular Badge Background -->
+  <circle cx="100" cy="100" r="94" fill="url(#bgGradient)" stroke="#dc2626" stroke-width="8" />
+  <circle cx="100" cy="100" r="84" fill="none" stroke="#dc2626" stroke-width="2" stroke-dasharray="6,4" opacity="0.4" />
+
+  <!-- Chicken Body / Torso -->
+  <path d="M 60 145 C 45 130, 45 95, 75 75 C 90 65, 115 65, 130 80 C 145 95, 150 120, 135 142 C 122 156, 75 160, 60 145 Z" fill="#ffffff" stroke="#000000" stroke-width="6" stroke-linejoin="round" />
+
+  <!-- Wing -->
+  <path d="M 70 125 C 65 105, 85 98, 102 108 C 112 114, 115 130, 95 136 C 82 140, 72 135, 70 125 Z" fill="#facc15" stroke="#000000" stroke-width="5" />
+
+  <!-- Comb -->
+  <path d="M 88 56 C 82 40, 96 32, 105 44 C 112 30, 128 32, 128 46 C 136 36, 148 42, 142 58 C 136 68, 122 68, 110 65 Z" fill="url(#redGradient)" stroke="#000000" stroke-width="5" stroke-linejoin="round" />
+
+  <!-- Wattle -->
+  <path d="M 148 108 C 158 114, 158 128, 146 128 C 138 128, 138 116, 144 110 Z" fill="url(#redGradient)" stroke="#000000" stroke-width="4" />
+
+  <!-- Beak -->
+  <path d="M 140 88 L 176 98 L 140 110 Z" fill="#f59e0b" stroke="#000000" stroke-width="5" stroke-linejoin="round" />
+
+  <!-- Stealth Headband -->
+  <path d="M 92 78 Q 120 72 148 84 L 146 98 Q 120 86 92 90 Z" fill="#dc2626" stroke="#000000" stroke-width="4" stroke-linejoin="round" />
+  <path d="M 92 84 L 70 82 L 88 92 Z" fill="#dc2626" stroke="#000000" stroke-width="3.5" />
+  <path d="M 90 88 L 65 96 L 86 96 Z" fill="#b91c1c" stroke="#000000" stroke-width="3.5" />
+
+  <!-- Eye -->
+  <circle cx="128" cy="89" r="6" fill="#ffffff" stroke="#000000" stroke-width="3" />
+  <circle cx="130" cy="89" r="3" fill="#000000" />
+  <circle cx="131" cy="88" r="1" fill="#ffffff" />
+
+  <!-- Feet -->
+  <path d="M 88 152 L 80 172 M 80 172 L 68 174 M 80 172 L 86 176" fill="none" stroke="#000000" stroke-width="5" stroke-linecap="round" />
+  <path d="M 115 150 L 120 170 M 120 170 L 110 174 M 120 170 L 128 174" fill="none" stroke="#000000" stroke-width="5" stroke-linecap="round" />
+</svg>

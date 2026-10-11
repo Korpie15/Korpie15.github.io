@@ -1001,6 +1001,38 @@ body {
     font-size: 1.1rem;
 }
 
+/* Army Cadets Split Layout */
+.cadets-content {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 3rem;
+    align-items: center;
+    margin-bottom: 3.5rem;
+}
+
+.cadets-text {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.cadets-image-container {
+    width: 100%;
+    overflow: hidden;
+    border-radius: 12px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.cadets-image {
+    width: 100%;
+    height: auto;
+    max-height: 440px;
+    object-fit: cover;
+    display: block;
+    border-radius: 12px;
+}
+
 .stats-grid {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
@@ -1810,6 +1842,20 @@ body {
         order: 2;
     }
 
+    /* Cadets mobile layout - stack text above photo */
+    .cadets-content {
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
+    }
+
+    .cadets-text {
+        order: 1;
+    }
+
+    .cadets-image-container {
+        order: 2;
+    }
+
     .professional-projects-grid {
         padding: 0;
     }
@@ -2448,6 +2494,15 @@ body {
     .leadership-content strong {
         color: #0f172a !important;
         font-weight: 600;
+    }
+
+    .cadets-content {
+        display: block !important;
+    }
+
+    .cadets-image-container {
+        max-width: 460px;
+        margin: 1.5rem auto;
     }
 
     /* Hide animated stats, show print-only stats */

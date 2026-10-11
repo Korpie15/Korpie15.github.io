@@ -584,13 +584,15 @@
             <h2 class="section-title" data-animate="fade-up">Leadership</h2>
 
             <!-- Army Cadets Section -->
-            <div class="leadership-content" data-animate="fade-up" style="margin-bottom: 3rem;">
-                <h3>Youth Development Instructor, Army Cadets</h3>
-                <p>
-                    As a 2nd Lieutenant and Company Directing Staff, I lead and mentor over 100 cadets and 3 staff members, ensuring their safety and fostering a supportive environment for their development. My role involves teaching leadership, teamwork, and technical skills, while guiding cadets through challenging environments to build confidence and practical abilities. I design engaging lessons, supervise activities and camps, and uphold high standards of discipline and professionalism, preparing cadets for future success.
-                </p>
-                <div style="margin-top: 1.5rem;">
-                    <img src="images/Cadets.jpeg" alt="Army Cadets activity" style="width: 100%; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.3);">
+            <div class="leadership-content cadets-content" data-animate="fade-up">
+                <div class="cadets-text">
+                    <h3>Youth Development Instructor, Army Cadets</h3>
+                    <p>
+                        As a 2nd Lieutenant and Company Directing Staff, I lead and mentor over 100 cadets and 3 staff members, ensuring their safety and fostering a supportive environment for their development. My role involves teaching leadership, teamwork, and technical skills, while guiding cadets through challenging environments to build confidence and practical abilities. I design engaging lessons, supervise activities and camps, and uphold high standards of discipline and professionalism, preparing cadets for future success.
+                    </p>
+                </div>
+                <div class="cadets-image-container">
+                    <img src="images/Cadets.jpeg" alt="Army Cadets activity" class="cadets-image">
                 </div>
             </div>
             
@@ -695,6 +697,61 @@
             <h2 class="section-title" data-animate="fade-up">Personal Projects and Academic Experience</h2>
             
             <div class="projects-grid">
+                <!-- Chase the Chicken -->
+                <div class="project-card expandable-card" data-animate="fade-up">
+                    <div class="project-image project-carousel" data-carousel-index="0" onclick="toggleProject(this.closest('.project-card'), event)">
+                        <div class="project-slide active">
+                            <img src="images/chicken_safehouse_active.png" alt="In-game Chicken safehouse active view with radar and zone status">
+                        </div>
+                        <div class="project-slide">
+                            <img src="images/chicken_home_screen.png" alt="Chase the Chicken landing screen with signature yellow and crimson identity">
+                        </div>
+                        <div class="project-slide">
+                            <img src="images/chicken_view.png" alt="In-game Chicken perspective and tactical HUD">
+                        </div>
+                        <div class="project-slide">
+                            <img src="images/chicken_zone_settings.png" alt="Interactive tactical zone configuration and boundary tuning">
+                        </div>
+
+                        <button class="project-carousel-btn prev" onclick="moveProjectCarousel(this, -1); event.stopPropagation();" aria-label="Previous photo">❮</button>
+                        <button class="project-carousel-btn next" onclick="moveProjectCarousel(this, 1); event.stopPropagation();" aria-label="Next photo">❯</button>
+
+                        <div class="project-carousel-dots">
+                            <span class="project-dot active" onclick="setProjectCarouselSlide(this, 0); event.stopPropagation();" aria-label="Go to photo 1"></span>
+                            <span class="project-dot" onclick="setProjectCarouselSlide(this, 1); event.stopPropagation();" aria-label="Go to photo 2"></span>
+                            <span class="project-dot" onclick="setProjectCarouselSlide(this, 2); event.stopPropagation();" aria-label="Go to photo 3"></span>
+                            <span class="project-dot" onclick="setProjectCarouselSlide(this, 3); event.stopPropagation();" aria-label="Go to photo 4"></span>
+                        </div>
+                    </div>
+                    <div class="project-info" onclick="toggleProject(this.closest('.project-card'), event)">
+                        <h3>Chase the Chicken</h3>
+                        <p>Real-world urban hide-and-seek web application fusing high-stakes tag mechanics with battle-royale shrinking zones and nightlife precinct discovery</p>
+                        <div class="project-tags">
+                            <span class="tag">React 18</span>
+                            <span class="tag">Vite</span>
+                            <span class="tag">Leaflet &amp; OSM</span>
+                            <span class="tag">Supabase Realtime</span>
+                            <span class="tag">PostgreSQL &amp; RLS</span>
+                            <span class="tag">Cloudflare Pages</span>
+                        </div>
+                    </div>
+                    <div class="project-expanded-content">
+                        <div class="project-expanded-inner">
+                            <p><strong>App Link:</strong> <a href="https://chasethechicken.pages.dev" target="_blank">chasethechicken.pages.dev</a></p>
+
+                            <p><strong>About the Project: What It Is &amp; How It Works</strong><br>
+                            Chase the Chicken is a real-world urban hide-and-seek web application that fuses high-stakes tag mechanics with battle-royale shrinking zones and nightlife precinct discovery. Players gather in an urban precinct, scan a room QR code to enter a synchronized multiplayer lobby, and divide into competing squads: the elusive Chickens and the pursuing Hunters.</p>
+
+                            <p>Once the match begins, Chickens must stay within dynamically shrinking precinct boundaries, navigate between local venues, and complete stealth photo check-ins to stay ahead of the hunters. Hunters track them across an interactive map using periodic location intel, zone shrink timers, and pub radar. The match concludes when hunters physically verify a chicken tag or the chickens survive the final zone collapse, with all players receiving full match recaps and photo vaults.</p>
+
+                            <p><strong>Technology Stack &amp; Architecture</strong><br>
+                            Built as a progressive web application with React 18 and Vite, the interface utilizes custom Vanilla CSS design tokens for ultra-responsive styling, fluid micro-animations, and full light/dark mode support. Interactive geospatial mapping is powered by Leaflet and OpenStreetMap (Nominatim), featuring custom non-concentric boundary slicing algorithms for dynamic zone shrinkage.</p>
+
+                            <p>Real-time device synchronization is driven by Supabase Realtime broadcast channels and PostgreSQL with hardened Row-Level Security (RLS) policies. Deployed on Cloudflare Pages with automated CI/CD and strict Content Security Policies, the architecture adheres to a privacy-by-design framework: player locations exist purely in-transit without persistent tracking breadcrumbs, uploaded check-in proofs auto-purge after 24 hours, and venue foot-traffic analytics remain strictly anonymized.</p>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Foz Prints -->
                 <div class="project-card expandable-card" data-animate="fade-up">
                     <div class="project-image project-carousel" data-carousel-index="0" onclick="toggleProject(this.closest('.project-card'), event)">
