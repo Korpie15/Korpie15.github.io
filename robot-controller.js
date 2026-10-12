@@ -28,15 +28,70 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Hook up Section Changes
     workcell.onSectionChange = (sectionId, index) => {
-        currentSectionIndex = index;
-        highlightActivePendantButton(index);
-        displayFrontStageSection(sectionId, index);
-        updateNavMenuHighlight(sectionId);
+        if (sectionId && index >= 0) {
+            currentSectionIndex = index;
+            highlightActivePendantButton(index);
+            displayFrontStageSection(sectionId, index);
+            updateNavMenuHighlight(sectionId);
+        } else {
+            hideFrontStageSection();
+            highlightActivePendantButton(-1);
+            updateNavMenuHighlight('');
+        }
     };
 
-    // Initial display of Section 0 (Home/Hero)
-    displayFrontStageSection(sectionIds[0], 0);
-    highlightActivePendantButton(0);
+    // Initial state: start with blank front stool, robot in standby, NO pop-ups open!
+    hideFrontStageSection();
+    highlightActivePendantButton(-1);
+
+    // Support URL parameters for automated verification (?bay=1&inspect=true&progress=0.5)
+    const urlParams = new URLSearchParams(window.location.search);
+    const inspectParam = urlParams.get('inspect');
+    const targetBayParam = urlParams.get('bay');
+    const progressParam = urlParams.get('progress');
+
+    if (inspectParam === 'true') {
+        const stage = document.getElementById('robot-front-stage');
+        if (stage) stage.classList.add('minimized-dock');
+        const btn = document.getElementById('dockInspectBtn');
+        if (btn) btn.textContent = '📄 View Topic Card';
+    }
+
+    if (progressParam !== null) {
+        const p = parseFloat(progressParam);
+        if (!isNaN(p)) {
+            setTimeout(() => {
+                workcell.targetProgress = p;
+                workcell.currentProgress = p;
+                workcell.evaluateProgress(p);
+            }, 100);
+        }
+    } else if (targetBayParam !== null) {
+        const bIdx = parseInt(targetBayParam, 10);
+        if (!isNaN(bIdx)) {
+            setTimeout(() => {
+                workcell.goToSection(bIdx);
+            }, 100);
+        }
+    }
+
+    const gripBayParam = urlParams.get('gripBay') || urlParams.get('reachBay');
+    if (gripBayParam !== null) {
+        const bIdx = parseInt(gripBayParam, 10);
+        if (!isNaN(bIdx)) {
+            setTimeout(() => {
+                const cfg = workcell.bayConfigs[bIdx];
+                const pose = workcell.solveIK(cfg.pos[0], cfg.handleY, cfg.pos[2]);
+                workcell.jointAngles.j1 = pose.j1;
+                workcell.jointAngles.j2 = pose.j2;
+                workcell.jointAngles.j3 = pose.j3;
+                workcell.jointAngles.j4 = pose.j4;
+                workcell.joints.gripper.targetGap = 0.075;
+                workcell.joints.gripper.gap = 0.075;
+                workcell.statusText = `CLAMPED AT BAY [${cfg.bayNum} // ${cfg.name.toUpperCase()}]`;
+            }, 100);
+        }
+    }
 
     /**
      * Build the Authentic Industrial Teach Pendant DOM Element
@@ -158,7 +213,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     alert('Robot is halted by EMERGENCY STOP! Click the E-STOP button to reset safety circuit.');
                     return;
                 }
-                workcell.setTargetBay(index, true);
+                workcell.goToSection(index);
             });
         });
 
@@ -242,6 +297,17 @@ document.addEventListener('DOMContentLoaded', () => {
      * Front Stage Display Management
      * Seamlessly docks and unfolds the target HTML section card
      */
+    function hideFrontStageSection() {
+        const stageCard = document.getElementById('robot-front-stage');
+        if (!stageCard) return;
+        stageCard.classList.remove('expanded');
+        stageCard.classList.add('docked-hidden');
+        document.querySelectorAll('.section, .hero').forEach(sec => {
+            sec.classList.add('robot-mode-hidden');
+            sec.classList.remove('robot-mode-active');
+        });
+    }
+
     function displayFrontStageSection(sectionId, index) {
         if (viewMode !== 'robot') return;
 
@@ -259,6 +325,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (targetSection) {
             targetSection.classList.remove('robot-mode-hidden');
             targetSection.classList.add('robot-mode-active');
+            stageCard.classList.remove('docked-hidden');
             stageCard.classList.add('expanded');
 
             const dockTitle = document.getElementById('dock-active-title');
@@ -290,43 +357,26 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     /**
-     * Mouse Wheel Scroll Driver
-     * Scrolling smoothly commands the robot to transition to adjacent sections
+     * Mouse Wheel Continuous Scrub Driver:
+     * Directly scrubs robot kinematics across sections.
+     * Stopping scrolling immediately freezes the robot in mid-motion!
      */
     window.addEventListener('wheel', (e) => {
-        if (viewMode !== 'robot' || workcell.isEStopped || workcell.isMoving) return;
+        if (viewMode !== 'robot' || workcell.isEStopped) return;
 
         const stageCard = document.getElementById('robot-front-stage');
-        // If user is scrolling inside an expanded section that has scrollable content, allow them to read
-        if (stageCard && stageCard.classList.contains('expanded')) {
+        // If user is reading an expanded card that has internal scroll:
+        if (stageCard && stageCard.classList.contains('expanded') && !stageCard.classList.contains('minimized-dock')) {
             const isAtBottom = stageCard.scrollHeight - stageCard.scrollTop <= stageCard.clientHeight + 10;
             const isAtTop = stageCard.scrollTop <= 10;
 
-            if (e.deltaY > 0 && !isAtBottom) return; // User is scrolling down through text
-            if (e.deltaY < 0 && !isAtTop) return;    // User is scrolling up through text
+            if (e.deltaY > 0 && !isAtBottom) return; // Allow reading down text
+            if (e.deltaY < 0 && !isAtTop) return;    // Allow reading up text
         }
 
-        // Section transition threshold
-        if (Math.abs(e.deltaY) > 35) {
-            isScrollLocked = true;
-            if (e.deltaY > 0) {
-                // Scroll down -> next section
-                const nextIdx = Math.min(sectionIds.length - 1, currentSectionIndex + 1);
-                if (nextIdx !== currentSectionIndex) {
-                    workcell.setTargetBay(nextIdx, true);
-                }
-            } else {
-                // Scroll up -> previous section
-                const prevIdx = Math.max(0, currentSectionIndex - 1);
-                if (prevIdx !== currentSectionIndex) {
-                    workcell.setTargetBay(prevIdx, true);
-                }
-            }
-
-            setTimeout(() => {
-                isScrollLocked = false;
-            }, 1400); // Debounce to allow robot motion to execute
-        }
+        // Scrub sensitivity: smooth and responsive
+        const scrubSensitivity = 0.0022;
+        workcell.applyScrollDelta(e.deltaY * scrubSensitivity);
     }, { passive: true });
 
     /**
@@ -340,7 +390,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const targetId = link.getAttribute('href').substring(1);
                 const targetIdx = sectionIds.indexOf(targetId);
                 if (targetIdx !== -1) {
-                    workcell.setTargetBay(targetIdx, true);
+                    workcell.goToSection(targetIdx);
                 }
             }
         });
@@ -386,6 +436,16 @@ document.addEventListener('DOMContentLoaded', () => {
         stage.classList.toggle('expanded-full');
         if (btn) {
             btn.textContent = stage.classList.contains('expanded-full') ? '🗗 Split View' : '⛶ Expand';
+        }
+    };
+
+    window.toggleCardInspect = function() {
+        const stage = document.getElementById('robot-front-stage');
+        const btn = document.getElementById('dockInspectBtn');
+        if (!stage) return;
+        stage.classList.toggle('minimized-dock');
+        if (btn) {
+            btn.textContent = stage.classList.contains('minimized-dock') ? '📄 View Topic Card' : '👁 Inspect 3D Cell';
         }
     };
 });

@@ -2835,7 +2835,9 @@ body {
     position: fixed;
     top: 145px;
     left: 50%;
-    transform: translateX(-50%);
+    transform: translateX(-50%) translateY(30px) scale(0.95);
+    opacity: 0;
+    pointer-events: none;
     width: min(940px, 92vw);
     max-height: calc(100vh - 175px);
     background: rgba(15, 23, 42, 0.95);
@@ -2847,17 +2849,56 @@ body {
     box-shadow: 0 35px 80px rgba(0, 0, 0, 0.85), 0 0 0 1px rgba(245, 158, 11, 0.2);
     z-index: 100;
     overflow-y: auto;
-    pointer-events: auto;
     padding: 1.5rem 2.5rem 2.5rem;
     transition: opacity 0.35s ease, transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
     scrollbar-width: thin;
     scrollbar-color: #f59e0b #1e293b;
 }
 
-#robot-front-stage.transitioning {
-    opacity: 0;
-    transform: translateX(-50%) scale(0.92) translateY(20px);
-    pointer-events: none;
+#robot-front-stage.expanded:not(.docked-hidden) {
+    opacity: 1;
+    pointer-events: auto;
+    transform: translateX(-50%) translateY(0) scale(1);
+}
+
+#robot-front-stage.transitioning,
+#robot-front-stage.docked-hidden {
+    opacity: 0 !important;
+    transform: translateX(-50%) scale(0.92) translateY(30px) !important;
+    pointer-events: none !important;
+}
+
+#robot-front-stage.minimized-dock {
+    top: auto;
+    bottom: 25px;
+    max-height: 52px;
+    padding: 0.6rem 1.5rem;
+    overflow: hidden;
+    cursor: pointer;
+}
+
+#robot-front-stage.minimized-dock .section,
+#robot-front-stage.minimized-dock .hero {
+    display: none !important;
+}
+
+.dock-inspect-btn {
+    background: #1e293b;
+    border: 1px solid #475569;
+    color: #cbd5e1;
+    font-size: 0.72rem;
+    padding: 0.2rem 0.5rem;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-family: monospace;
+    margin-left: 0.6rem;
+}
+
+.dock-inspect-btn:hover {
+    background: #f59e0b;
+    color: #0f172a;
+    border-color: #f59e0b;
 }
 
 #robot-front-stage::-webkit-scrollbar {
