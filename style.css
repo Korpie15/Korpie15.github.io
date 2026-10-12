@@ -2805,3 +2805,550 @@ body {
 .print-mode .professional-project-tile .tile-preview {
     display: none !important;
 }
+
+/* ============================================
+   INDUSTRIAL ROBOT WORKCELL & TEACH PENDANT
+   ============================================ */
+
+/* 3D Workcell Viewport Layer */
+#robot-app-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: 5;
+    pointer-events: none;
+    overflow: hidden;
+}
+
+#robot-canvas-container {
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    top: 0;
+    left: 0;
+}
+
+/* Front Stage Workstation Platform (Holds Active HTML Section) */
+#robot-front-stage {
+    position: fixed;
+    top: 75px;
+    right: 25px;
+    left: auto;
+    transform: none;
+    width: min(680px, 49vw);
+    max-height: calc(100vh - 95px);
+    background: rgba(15, 23, 42, 0.94);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 2px solid #334155;
+    border-top: 5px solid #f59e0b; /* Industrial Yellow Header Accent */
+    border-radius: 12px;
+    box-shadow: 0 25px 60px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(245, 158, 11, 0.15);
+    z-index: 100;
+    overflow-y: auto;
+    pointer-events: auto;
+    padding: 1.5rem 1.8rem 2rem;
+    transition: width 0.35s cubic-bezier(0.16, 1, 0.3, 1), transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s ease;
+    scrollbar-width: thin;
+    scrollbar-color: #f59e0b #1e293b;
+}
+
+#robot-front-stage.expanded-full {
+    width: min(1140px, 94vw);
+    right: 50%;
+    transform: translateX(50%);
+}
+
+#robot-front-stage::-webkit-scrollbar {
+    width: 8px;
+}
+#robot-front-stage::-webkit-scrollbar-track {
+    background: #0f172a;
+}
+#robot-front-stage::-webkit-scrollbar-thumb {
+    background: #f59e0b;
+    border-radius: 4px;
+}
+
+/* Workcell Top Dock Status Header */
+.stage-dock-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-bottom: 0.8rem;
+    margin-bottom: 1.2rem;
+    border-bottom: 1px solid rgba(148, 163, 184, 0.15);
+    font-family: monospace;
+    font-size: 0.82rem;
+    color: #94a3b8;
+}
+
+.dock-expand-btn {
+    background: #1e293b;
+    border: 1px solid #475569;
+    color: #cbd5e1;
+    font-size: 0.75rem;
+    padding: 0.2rem 0.5rem;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-family: monospace;
+}
+
+.dock-expand-btn:hover {
+    background: #f59e0b;
+    color: #0f172a;
+    border-color: #f59e0b;
+}
+
+.stage-dock-title {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: #f59e0b;
+    font-weight: bold;
+    letter-spacing: 0.05em;
+}
+
+.stage-dock-indicator {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #10b981;
+    box-shadow: 0 0 8px #10b981;
+    display: inline-block;
+}
+
+/* Section visibility rules for Robot Mode */
+body:not(.classic-view-mode) .section:not(.robot-mode-active),
+body:not(.classic-view-mode) .hero:not(.robot-mode-active) {
+    display: none !important;
+}
+
+body:not(.classic-view-mode) .section.robot-mode-active,
+body:not(.classic-view-mode) .hero.robot-mode-active {
+    display: block !important;
+    padding: 0 !important;
+    animation: stageFadeIn 0.4s ease-out;
+}
+
+body:not(.classic-view-mode) #robot-front-stage .hero.robot-mode-active {
+    min-height: auto !important;
+    padding: 1rem 0 !important;
+}
+
+body:not(.classic-view-mode) #robot-front-stage .hero.robot-mode-active .hero-content {
+    padding-top: 0.5rem;
+    padding-bottom: 0.5rem;
+}
+
+@keyframes stageFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(12px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Classic view mode fallback */
+body.classic-view-mode #robot-app-container,
+body.classic-view-mode #teach-pendant {
+    display: none !important;
+}
+
+body.classic-view-mode #robot-front-stage {
+    position: static !important;
+    max-height: none !important;
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+    width: 100% !important;
+    transform: none !important;
+    overflow: visible !important;
+}
+
+body.classic-view-mode .stage-dock-header {
+    display: none !important;
+}
+
+/* Mode Switch Button in Navbar */
+.view-mode-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    background: #1e293b;
+    border: 1px solid #f59e0b;
+    color: #f59e0b;
+    padding: 0.35rem 0.8rem;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    margin-left: 0.8rem;
+}
+
+.view-mode-toggle:hover {
+    background: #f59e0b;
+    color: #0f172a;
+    box-shadow: 0 0 12px rgba(245, 158, 11, 0.4);
+}
+
+/* ============================================
+   INDUSTRIAL ROBOT TEACH PENDANT CONTROLLER
+   ============================================ */
+
+.teach-pendant {
+    position: fixed;
+    bottom: 20px;
+    left: 25px;
+    right: auto;
+    width: 325px;
+    background: #18181b; /* Matte industrial graphite */
+    border: 3px solid #f59e0b; /* Yellow shock bumper */
+    border-radius: 16px;
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.7), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    z-index: 10000;
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    color: #f1f5f9;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), height 0.3s ease;
+    user-select: none;
+}
+
+.teach-pendant.minimized {
+    height: 48px;
+    border-radius: 12px;
+}
+
+.teach-pendant.minimized .tp-body {
+    display: none;
+}
+
+/* Top Grip & Bezel */
+.tp-header {
+    background: #27272a;
+    padding: 0.6rem 0.8rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 2px solid #3f3f46;
+    cursor: default;
+}
+
+.tp-title {
+    display: flex;
+    flex-direction: column;
+}
+
+.tp-brand {
+    font-size: 0.8rem;
+    font-weight: 900;
+    color: #f59e0b;
+    letter-spacing: 0.05em;
+}
+
+.tp-subtitle {
+    font-size: 0.65rem;
+    color: #a1a1aa;
+    font-weight: 600;
+}
+
+.tp-minimize-btn {
+    background: #3f3f46;
+    border: none;
+    color: #f4f4f5;
+    width: 26px;
+    height: 26px;
+    border-radius: 6px;
+    font-size: 1rem;
+    font-weight: bold;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s;
+}
+
+.tp-minimize-btn:hover {
+    background: #f59e0b;
+    color: #18181b;
+}
+
+/* Body Container */
+.tp-body {
+    padding: 0.8rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.7rem;
+    background: #18181b;
+}
+
+/* LED Status Bar */
+.tp-status-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: #09090b;
+    padding: 0.4rem 0.6rem;
+    border-radius: 6px;
+    border: 1px solid #27272a;
+}
+
+.tp-led {
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+    font-size: 0.7rem;
+    font-weight: bold;
+    color: #71717a;
+    transition: color 0.2s;
+}
+
+.led-pip {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #3f3f46;
+    transition: all 0.2s;
+}
+
+.tp-led-run.active {
+    color: #4ade80;
+}
+.tp-led-run.active .led-pip {
+    background: #22c55e;
+    box-shadow: 0 0 8px #22c55e;
+}
+
+.tp-led-jog.active {
+    color: #facc15;
+}
+.tp-led-jog.active .led-pip {
+    background: #eab308;
+    box-shadow: 0 0 8px #eab308;
+}
+
+.tp-led-estop.active {
+    color: #ef4444;
+}
+.tp-led-estop.active .led-pip {
+    background: #dc2626;
+    box-shadow: 0 0 8px #dc2626;
+    animation: estopBlink 0.6s infinite alternate;
+}
+
+@keyframes estopBlink {
+    from { opacity: 0.4; }
+    to { opacity: 1; }
+}
+
+/* Industrial Green LCD Matrix Display */
+.tp-lcd-screen {
+    background: #052010; /* Dark bottle green industrial LCD */
+    border: 2px solid #14532d;
+    border-radius: 6px;
+    padding: 0.5rem 0.6rem;
+    font-family: 'Courier New', Courier, monospace;
+    color: #4ade80;
+    box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.7);
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.lcd-line {
+    font-size: 0.75rem;
+    line-height: 1.2;
+    display: flex;
+    justify-content: space-between;
+}
+
+.lcd-status {
+    font-weight: bold;
+    color: #86efac;
+    border-bottom: 1px dashed #166534;
+    padding-bottom: 0.2rem;
+    margin-bottom: 0.15rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.lcd-highlight {
+    color: #facc15;
+    font-weight: bold;
+}
+
+/* Section Labels */
+.tp-section-label {
+    font-size: 0.65rem;
+    font-weight: 800;
+    color: #f59e0b;
+    letter-spacing: 0.05em;
+    margin-top: 0.1rem;
+}
+
+/* Workpiece Quick Select Grid */
+.tp-button-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0.35rem;
+}
+
+.tp-workpiece-btn {
+    background: #27272a;
+    border: 1px solid #3f3f46;
+    color: #e4e4e7;
+    padding: 0.4rem 0.2rem;
+    border-radius: 5px;
+    font-size: 0.7rem;
+    font-weight: bold;
+    cursor: pointer;
+    text-align: center;
+    transition: all 0.15s ease;
+}
+
+.tp-workpiece-btn:hover {
+    background: #3f3f46;
+    border-color: #f59e0b;
+    color: #f59e0b;
+}
+
+.tp-workpiece-btn.active {
+    background: #f59e0b;
+    border-color: #d97706;
+    color: #18181b;
+    box-shadow: 0 0 8px rgba(245, 158, 11, 0.4);
+}
+
+/* Manual Jog Controls */
+.tp-jog-container {
+    background: #141416;
+    border: 1px solid #27272a;
+    border-radius: 8px;
+    padding: 0.5rem;
+}
+
+.tp-jog-controls {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+    margin-top: 0.3rem;
+}
+
+.tp-jog-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.4rem;
+}
+
+.jog-label {
+    font-size: 0.65rem;
+    font-weight: bold;
+    color: #a1a1aa;
+    width: 65px;
+}
+
+.tp-jog-btn {
+    flex: 1;
+    background: #27272a;
+    border: 1px solid #3f3f46;
+    color: #f4f4f5;
+    padding: 0.25rem 0.4rem;
+    border-radius: 4px;
+    font-size: 0.7rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.15s;
+}
+
+.tp-jog-btn:hover {
+    background: #3f3f46;
+    border-color: #eab308;
+    color: #eab308;
+}
+
+.tp-jog-btn:active {
+    transform: scale(0.96);
+}
+
+.tp-grip-btn {
+    background: #1e293b;
+    border-color: #3b82f6;
+    color: #93c5fd;
+}
+
+/* Safety Row & Emergency Stop Button */
+.tp-safety-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 0.2rem;
+    padding-top: 0.5rem;
+    border-top: 1px solid #27272a;
+}
+
+.tp-estop-btn {
+    background: radial-gradient(circle at 40% 40%, #ef4444, #b91c1c);
+    border: 3px solid #facc15; /* Yellow safety ring */
+    width: 62px;
+    height: 62px;
+    border-radius: 50%;
+    cursor: pointer;
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.6), inset 0 -2px 6px rgba(0, 0, 0, 0.4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.1s ease, box-shadow 0.1s ease;
+}
+
+.tp-estop-btn:active,
+.tp-estop-btn.latched {
+    transform: translateY(3px) scale(0.95);
+    background: radial-gradient(circle at 50% 50%, #991b1b, #7f1d1d);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.6), 0 0 14px rgba(239, 68, 68, 0.7);
+}
+
+.estop-label {
+    font-size: 0.55rem;
+    font-weight: 900;
+    color: #ffffff;
+    text-align: center;
+    line-height: 1.1;
+    letter-spacing: 0.05em;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
+}
+
+.tp-estop-caption {
+    font-size: 0.65rem;
+    font-weight: bold;
+    color: #ef4444;
+    line-height: 1.3;
+}
+
+/* Responsive adjustments */
+@media (max-width: 900px) {
+    #robot-front-stage {
+        top: 70px;
+        width: 96vw;
+        max-height: calc(100vh - 85px);
+        padding: 1rem 1.2rem;
+    }
+
+    .teach-pendant {
+        bottom: 12px;
+        right: 12px;
+        width: 290px;
+    }
+}
+

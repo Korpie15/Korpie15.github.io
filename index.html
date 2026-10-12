@@ -33,6 +33,9 @@
                     Print
                 </a></li>
             </ul>
+            <button id="viewModeToggle" class="view-mode-toggle" onclick="toggleViewMode()" title="Switch between 3D Robot Workcell and Classic Mode">
+                <span>🤖</span> Robot Cell
+            </button>
         </div>
     </nav>
 
@@ -42,6 +45,24 @@
         <h2>Automation Engineer</h2>
         <p>Email: aidankorpar@gmail.com | LinkedIn: linkedin.com/in/aidan-korpar</p>
     </div>
+
+    <!-- 3D Industrial Robotic Workcell Viewport Layer -->
+    <div id="robot-app-container">
+        <div id="robot-canvas-container"></div>
+    </div>
+
+    <!-- Front Center Stage Dock Platform -->
+    <main id="robot-front-stage" class="robot-front-stage">
+        <div class="stage-dock-header">
+            <div class="stage-dock-title">
+                <span class="stage-dock-indicator"></span>
+                <span>WORKCELL INSPECTION DOCK // ACTIVE WORKPIECE</span>
+            </div>
+            <div class="stage-dock-meta">
+                <span>6-DOF INDUSTRIAL YELLOW ROBOT ARM &bull; TP-6000</span>
+                <button id="expandDockBtn" class="dock-expand-btn" onclick="toggleDockExpand()" title="Toggle Full Width Reading">⛶ Expand</button>
+            </div>
+        </div>
 
     <!-- Hero Section with Particles -->
     <section id="hero" class="hero">
@@ -1160,6 +1181,7 @@
             </div>
         </div>
     </section>
+    </main>
 
     <!-- Footer -->
     <footer class="footer">
@@ -1194,6 +1216,10 @@
         </div>
     </div>
 
+    <script src="three.min.js"></script>
+    <script src="gsap.min.js"></script>
     <script src="script.js"></script>
+    <script src="robot-arm.js"></script>
+    <script src="robot-controller.js"></script>
 </body>
 </html>
