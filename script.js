@@ -682,34 +682,8 @@ window.addEventListener('click', (e) => {
 // ============================================
 
 function createParticles() {
-    const particlesContainer = document.getElementById('particles');
-    if (!particlesContainer) return;
-    
-    // Create animated gradient circles
-    for (let i = 0; i < 3; i++) {
-        const circle = document.createElement('div');
-        circle.style.position = 'absolute';
-        circle.style.borderRadius = '50%';
-        circle.style.filter = 'blur(60px)';
-        circle.style.opacity = '0.3';
-        circle.style.animation = `float ${10 + i * 5}s ease-in-out infinite`;
-        
-        const size = 200 + i * 100;
-        circle.style.width = size + 'px';
-        circle.style.height = size + 'px';
-        
-        const colors = [
-            'radial-gradient(circle, rgba(102, 126, 234, 0.8) 0%, transparent 70%)',
-            'radial-gradient(circle, rgba(118, 75, 162, 0.8) 0%, transparent 70%)',
-            'radial-gradient(circle, rgba(240, 147, 251, 0.8) 0%, transparent 70%)'
-        ];
-        circle.style.background = colors[i];
-        
-        circle.style.left = (i * 30) + '%';
-        circle.style.top = (i * 20) + '%';
-        
-        particlesContainer.appendChild(circle);
-    }
+    // Disabled gradient particle background circles
+    return;
 }
 
 // Add float animation
