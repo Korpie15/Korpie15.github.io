@@ -56,9 +56,12 @@ class RobotWorkcell {
         this.inspectPose = { j1: 0, j2: 0.12, j3: 0.72, j4: 0.96 };
 
         // Blank Staging Front Stool (Inspection table - destination where boxes are placed)
+        // Table top of front stool is at: -0.5 + 0.05 = -0.45.
+        // Crate tub bottom is at local -0.325.
+        // So crate center rests at: -0.45 - (-0.325) = -0.125!
         this.frontStoolPos = new THREE.Vector3(0, -0.5, 2.4);
-        this.frontBoxRestY = -0.5 + 0.325; // Box center when resting on stool: -0.175
-        this.frontHandleY = -0.5 + 0.77;   // Box handle Y when resting on stool: 0.27
+        this.frontBoxRestY = -0.125; // Box center when resting on stool
+        this.frontHandleY = this.frontBoxRestY + 0.445; // 0.320
         this.frontStoolBoxPos = new THREE.Vector3(0, this.frontBoxRestY, 2.4);
 
         // 7 Perimeter Storage Racks (all within verified reach)
@@ -72,16 +75,21 @@ class RobotWorkcell {
             { id: 'contact', name: 'Contact', bayNum: '06', pos: [1.6, -0.3, 1.8], rotY: 0.7, color: 0x4f46e5 }
         ];
 
-        // Compute handle heights and rack positions for each storage bay
+        // Compute handle heights and rack positions for each storage bay:
+        // Shelf top surface is at: cfg.pos[1] + 0.04.
+        // Crate bottom is at local -0.325.
+        // Crate center rests at: cfg.pos[1] + 0.04 - (-0.325) = cfg.pos[1] + 0.365.
         this.bayConfigs.forEach(cfg => {
-            cfg.boxRestY = cfg.pos[1] + 0.325;
-            cfg.handleY = cfg.pos[1] + 0.77;
+            cfg.boxRestY = cfg.pos[1] + 0.365;
+            cfg.handleY = cfg.boxRestY + 0.445;
             cfg.boxRestPos = new THREE.Vector3(cfg.pos[0], cfg.boxRestY, cfg.pos[2]);
         });
 
-        // Current & Target Joint Angles
-        this.jointAngles = { ...this.standbyPose };
-        this.targetJointAngles = { ...this.standbyPose };
+        // Current & Target Joint Angles (Full 6-Axis Robotic Kinematics)
+        this.jointAngles = { ...this.standbyPose, j5: 0, j6: 0 };
+        this.targetJointAngles = { ...this.standbyPose, j5: 0, j6: 0 };
+        this.jogOffsets = { j1: 0, j2: 0, j3: 0, j4: 0, j5: 0, j6: 0 };
+        this.manualGripperGap = null; // null = follow kinematics; number = manual override clamp/open
 
         // Continuous Scrubbable Progress State: 0.0 (Idle, blank front stool) to 7.0 (Section 6 docked)
         this.currentProgress = 0.0;
@@ -394,6 +402,7 @@ class RobotWorkcell {
         this.joints.forearm = forearm;
 
         // --- J4: Wrist Pitch (Pitches around X) ---
+        // --- J4: Wrist Pitch (Pitches around X) ---
         const wrist = new THREE.Group();
         wrist.position.set(0, this.L2, 0);
 
@@ -401,9 +410,17 @@ class RobotWorkcell {
         wristPivot.castShadow = true;
         wrist.add(wristPivot);
 
-        // Tool Flange (Rotated 90 deg so jaws clamp across horizontal handle bar)
+        // --- J5: Wrist Yaw / Tilt (Pivots around Z) ---
+        const wristYaw = new THREE.Group();
+        wristYaw.position.set(0, 0.08, 0);
+
+        const yawPivot = new THREE.Mesh(new THREE.CylinderGeometry(0.14, 0.14, 0.08, 16), darkMat);
+        yawPivot.castShadow = true;
+        wristYaw.add(yawPivot);
+
+        // --- J6: Tool Flange (Rotated 90 deg so jaws clamp across horizontal handle bar, rolls around Y) ---
         const flange = new THREE.Group();
-        flange.position.set(0, 0.16, 0);
+        flange.position.set(0, 0.08, 0);
         flange.rotation.y = Math.PI / 2;
 
         const flangePlate = new THREE.Mesh(new THREE.CylinderGeometry(0.15, 0.15, 0.06, 20), chromeMat);
@@ -462,10 +479,12 @@ class RobotWorkcell {
         gripperBase.add(rightFinger);
 
         flange.add(gripperBase);
-        wrist.add(flange);
+        wristYaw.add(flange);
+        wrist.add(wristYaw);
         forearm.add(wrist);
 
         this.joints.wrist = wrist;
+        this.joints.wristYaw = wristYaw;
         this.joints.flange = flange;
         this.joints.gripper.base = gripperBase;
         this.joints.gripper.jawCenter = jawCenter;
@@ -676,13 +695,14 @@ class RobotWorkcell {
             ledStrip.position.set(0, tubHeight / 2 - 0.08, 0);
             boxGroup.add(ledStrip);
 
-            // 4 Lower Corner Bumper Caps
+            // 4 Lower Corner Bumper Caps (Flush with tub bottom at Y = -0.325)
             const capGeo = new THREE.BoxGeometry(0.12, 0.12, 0.12);
             const hx = boxWidth / 2;
             const hz = boxDepth / 2;
+            const capCenterY = -0.075 - tubHeight / 2 + 0.06;
             [
-                [-hx, -0.075 - tubHeight / 2, -hz], [hx, -0.075 - tubHeight / 2, -hz],
-                [-hx, -0.075 - tubHeight / 2,  hz], [hx, -0.075 - tubHeight / 2,  hz]
+                [-hx, capCenterY, -hz], [hx, capCenterY, -hz],
+                [-hx, capCenterY,  hz], [hx, capCenterY,  hz]
             ].forEach(([cx, cy, cz]) => {
                 const cap = new THREE.Mesh(capGeo, cornerCapMat);
                 cap.position.set(cx, cy, cz);
@@ -813,61 +833,73 @@ class RobotWorkcell {
             const bayCorridor = this.getFlightCorridorPose(j1Bay);
             const box0 = this.pallets[0];
 
-            if (u <= 0.15) {
-                const t = u / 0.15;
+            if (u <= 0.14) {
+                // Step 1: Arm rotates to Bay 0 corridor & extends to bayLift (open fingers)
+                const t = u / 0.14;
                 targetAngles = t < 0.5 ? this.lerpPose(this.standbyPose, bayCorridor, t / 0.5) : this.lerpPose(bayCorridor, bayLift, (t - 0.5) / 0.5);
-                gripGap = 0.18;
-            } else if (u <= 0.25) {
-                const t = (u - 0.15) / 0.10;
-                if (t <= 0.7) {
-                    targetAngles = this.lerpPose(bayLift, bayGrip, t / 0.7);
-                    gripGap = 0.18;
-                } else {
-                    targetAngles = bayGrip;
-                    gripGap = 0.18 - ((t - 0.7) / 0.3) * (0.18 - 0.075);
-                }
-            } else if (u <= 0.38) {
-                const t = (u - 0.25) / 0.13;
+                gripGap = 0.20;
+                carriedBox = null;
+            } else if (u <= 0.26) {
+                // Step 2: Arm descends straight down to Box 0 handle (Fingers stay wide open at 0.20!)
+                const t = (u - 0.14) / 0.12;
+                targetAngles = this.lerpPose(bayLift, bayGrip, t);
+                gripGap = 0.20;
+                carriedBox = null;
+            } else if (u <= 0.36) {
+                // Step 3: CLAMPING PHASE! Arm is stationary at handle, fingers slowly clamp shut from 0.20 to 0.075!
+                const t = (u - 0.26) / 0.10;
+                targetAngles = bayGrip;
+                gripGap = 0.20 - t * (0.20 - 0.075);
+                carriedBox = null;
+            } else if (u <= 0.48) {
+                // Step 4: Arm lifts Box 0 straight up off rack
+                const t = (u - 0.36) / 0.12;
                 targetAngles = this.lerpPose(bayGrip, bayLift, t);
                 gripGap = 0.075;
                 carriedBox = box0;
-            } else if (u <= 0.52) {
-                const t = (u - 0.38) / 0.14;
+            } else if (u <= 0.58) {
+                // Step 5: Arm retracts Box 0 radially inward to central flight corridor
+                const t = (u - 0.48) / 0.10;
                 targetAngles = this.lerpPose(bayLift, bayCorridor, t);
                 gripGap = 0.075;
                 carriedBox = box0;
             } else if (u <= 0.72) {
-                const t = (u - 0.52) / 0.20;
+                // Step 6: Arm rotates carried Box 0 through high central corridor to Front Stool heading
+                const t = (u - 0.58) / 0.14;
                 targetAngles = this.lerpPose(bayCorridor, frontCorridor, t);
                 gripGap = 0.075;
                 carriedBox = box0;
-            } else if (u <= 0.84) {
-                const t = (u - 0.72) / 0.12;
+            } else if (u <= 0.80) {
+                // Step 7: Arm extends outward above front stool
+                const t = (u - 0.72) / 0.08;
                 targetAngles = this.lerpPose(frontCorridor, frontLift, t);
                 gripGap = 0.075;
                 carriedBox = box0;
-            } else if (u <= 0.92) {
-                const t = (u - 0.84) / 0.08;
-                if (t <= 0.75) {
-                    targetAngles = this.lerpPose(frontLift, frontGrip, t / 0.75);
-                    gripGap = 0.075;
-                    carriedBox = box0;
-                } else {
-                    targetAngles = frontGrip;
-                    gripGap = 0.075 + ((t - 0.75) / 0.25) * (0.18 - 0.075);
-                    box0.position.copy(this.frontStoolBoxPos);
-                    box0.rotation.set(0, 0, 0);
-                    carriedBox = null;
-                }
-            } else if (u <= 0.96) {
-                const t = (u - 0.92) / 0.04;
+            } else if (u <= 0.88) {
+                // Step 8: Arm lowers Box 0 onto front stool
+                const t = (u - 0.80) / 0.08;
+                targetAngles = this.lerpPose(frontLift, frontGrip, t);
+                gripGap = 0.075;
+                carriedBox = box0;
+            } else if (u <= 0.94) {
+                // Step 9: UNCLAMPING PHASE! Box 0 rests on stool, arm stationary, fingers open from 0.075 to 0.20!
+                const t = (u - 0.88) / 0.06;
+                targetAngles = frontGrip;
+                gripGap = 0.075 + t * (0.20 - 0.075);
+                box0.position.copy(this.frontStoolBoxPos);
+                box0.rotation.set(0, 0, 0);
+                carriedBox = null;
+            } else if (u <= 0.97) {
+                // Step 10: Arm backs away to inspect pose
+                const t = (u - 0.94) / 0.03;
                 targetAngles = this.lerpPose(frontGrip, this.inspectPose, t);
                 gripGap = 0.20;
                 box0.position.copy(this.frontStoolBoxPos);
                 box0.rotation.set(0, 0, 0);
                 carriedBox = null;
             } else {
-                const t = (u - 0.96) / 0.04;
+                // Step 11: Box 0 lid hinges OPEN 80 degrees, topic card unfolds!
+                const t = (u - 0.97) / 0.03;
                 targetAngles = this.inspectPose;
                 gripGap = 0.20;
                 box0.position.copy(this.frontStoolBoxPos);
@@ -919,7 +951,7 @@ class RobotWorkcell {
                 const boxFrom = this.pallets[kFrom];
                 const boxTo = this.pallets[kTo];
 
-                if (u <= 0.52) {
+                if (u <= 0.56) {
                     boxFrom.position.copy(this.frontStoolBoxPos);
                     boxFrom.rotation.set(0, 0, 0);
                 } else {
@@ -927,118 +959,129 @@ class RobotWorkcell {
                     boxFrom.rotation.set(0, boxFrom.userData.rackHomeRotY, 0);
                 }
 
-                if (u <= 0.05) {
-                    const t = u / 0.05;
-                    if (t <= 0.5) {
-                        targetAngles = this.inspectPose;
-                        gripGap = 0.20;
-                        boxFrom.userData.setOpen(1.0 - (t / 0.5));
-                    } else {
-                        const gu = (t - 0.5) / 0.5;
-                        targetAngles = this.lerpPose(this.inspectPose, frontGrip, gu);
-                        gripGap = 0.20 - gu * (0.20 - 0.075);
-                        boxFrom.userData.setOpen(0.0);
-                    }
+                if (u <= 0.06) {
+                    // Step 1: BoxFrom lid hinges completely CLOSED! Arm stays at inspect pose
+                    const t = u / 0.06;
+                    targetAngles = this.inspectPose;
+                    gripGap = 0.20;
+                    boxFrom.userData.setOpen(1.0 - t);
                     carriedBox = null;
-                } else if (u <= 0.14) {
-                    const t = (u - 0.05) / 0.09;
+                } else if (u <= 0.12) {
+                    // Step 2: Arm lowers from inspectPose to frontGrip handle of BoxFrom (fingers open)
+                    const t = (u - 0.06) / 0.06;
+                    targetAngles = this.lerpPose(this.inspectPose, frontGrip, t);
+                    gripGap = 0.20;
+                    boxFrom.userData.setOpen(0.0);
+                    carriedBox = null;
+                } else if (u <= 0.18) {
+                    // Step 3: CLAMPING PHASE! Arm stationary at frontGrip, fingers clamp from 0.20 to 0.075!
+                    const t = (u - 0.12) / 0.06;
+                    targetAngles = frontGrip;
+                    gripGap = 0.20 - t * (0.20 - 0.075);
+                    boxFrom.userData.setOpen(0.0);
+                    carriedBox = null;
+                } else if (u <= 0.26) {
+                    // Step 4: Arm lifts BoxFrom straight up off front stool (frontGrip -> frontLift)
+                    const t = (u - 0.18) / 0.08;
                     targetAngles = this.lerpPose(frontGrip, frontLift, t);
                     gripGap = 0.075;
                     carriedBox = boxFrom;
                     boxFrom.userData.setOpen(0.0);
-                } else if (u <= 0.24) {
-                    const t = (u - 0.14) / 0.10;
+                } else if (u <= 0.34) {
+                    // Step 5: Arm retracts BoxFrom into central flight corridor (frontLift -> frontCorridor)
+                    const t = (u - 0.26) / 0.08;
                     targetAngles = this.lerpPose(frontLift, frontCorridor, t);
                     gripGap = 0.075;
                     carriedBox = boxFrom;
-                } else if (u <= 0.38) {
-                    const t = (u - 0.24) / 0.14;
+                } else if (u <= 0.44) {
+                    // Step 6: Arm rotates carried BoxFrom through central corridor directly to Rack k heading
+                    const t = (u - 0.34) / 0.10;
                     targetAngles = this.lerpPose(frontCorridor, fromCorridor, t);
                     gripGap = 0.075;
                     carriedBox = boxFrom;
-                } else if (u <= 0.46) {
-                    const t = (u - 0.38) / 0.08;
+                } else if (u <= 0.50) {
+                    // Step 7: Arm extends outward to Rack k (fromCorridor -> fromLift)
+                    const t = (u - 0.44) / 0.06;
                     targetAngles = this.lerpPose(fromCorridor, fromLift, t);
                     gripGap = 0.075;
                     carriedBox = boxFrom;
-                } else if (u <= 0.52) {
-                    const t = (u - 0.46) / 0.06;
-                    if (t <= 0.7) {
-                        targetAngles = this.lerpPose(fromLift, fromGrip, t / 0.7);
-                        gripGap = 0.075;
-                        carriedBox = boxFrom;
-                    } else {
-                        const uu = (t - 0.7) / 0.3;
-                        targetAngles = fromGrip;
-                        gripGap = 0.075 + uu * (0.18 - 0.075);
-                        boxFrom.position.copy(boxFrom.userData.rackHomePos);
-                        boxFrom.rotation.set(0, boxFrom.userData.rackHomeRotY, 0);
-                        carriedBox = null;
-                    }
-                } else if (u <= 0.58) {
-                    const t = (u - 0.52) / 0.06;
+                } else if (u <= 0.56) {
+                    // Step 8: Arm lowers BoxFrom onto Rack k (fromLift -> fromGrip)
+                    const t = (u - 0.50) / 0.06;
+                    targetAngles = this.lerpPose(fromLift, fromGrip, t);
+                    gripGap = 0.075;
+                    carriedBox = boxFrom;
+                } else if (u <= 0.62) {
+                    // Step 9: UNCLAMPING PHASE! BoxFrom sits on Rack k, arm stationary, fingers open from 0.075 to 0.18!
+                    const t = (u - 0.56) / 0.06;
+                    targetAngles = fromGrip;
+                    gripGap = 0.075 + t * (0.18 - 0.075);
+                    boxFrom.position.copy(boxFrom.userData.rackHomePos);
+                    boxFrom.rotation.set(0, boxFrom.userData.rackHomeRotY, 0);
+                    carriedBox = null;
+                } else if (u <= 0.68) {
+                    // Step 10: Empty arm retracts from Rack k into central corridor (fromGrip -> fromCorridor)
+                    const t = (u - 0.62) / 0.06;
                     targetAngles = this.lerpPose(fromGrip, fromCorridor, t);
                     gripGap = 0.18;
                     carriedBox = null;
-                } else if (u <= 0.68) {
-                    const t = (u - 0.58) / 0.10;
+                } else if (u <= 0.76) {
+                    // Step 11: Empty arm rotates through central corridor to Rack k+1 heading (fromCorridor -> toCorridor)
+                    const t = (u - 0.68) / 0.08;
                     targetAngles = this.lerpPose(fromCorridor, toCorridor, t);
                     gripGap = 0.18;
                     carriedBox = null;
-                } else if (u <= 0.74) {
-                    const t = (u - 0.68) / 0.06;
-                    if (t <= 0.5) {
-                        targetAngles = this.lerpPose(toCorridor, toLift, t / 0.5);
-                        gripGap = 0.18;
-                    } else if (t <= 0.85) {
-                        const du = (t - 0.5) / 0.35;
-                        targetAngles = this.lerpPose(toLift, toGrip, du);
-                        gripGap = 0.18;
-                    } else {
-                        targetAngles = toGrip;
-                        const cu = (t - 0.85) / 0.15;
-                        gripGap = 0.18 - cu * (0.18 - 0.075);
-                    }
+                } else if (u <= 0.82) {
+                    // Step 12: Empty arm extends to Rack k+1 and descends to handle (toCorridor -> toLift -> toGrip)
+                    const t = (u - 0.76) / 0.06;
+                    targetAngles = t < 0.5 ? this.lerpPose(toCorridor, toLift, t / 0.5) : this.lerpPose(toLift, toGrip, (t - 0.5) / 0.5);
+                    gripGap = 0.18;
                     boxTo.position.copy(boxTo.userData.rackHomePos);
                     boxTo.rotation.set(0, boxTo.userData.rackHomeRotY, 0);
                     carriedBox = null;
-                } else if (u <= 0.80) {
-                    const t = (u - 0.74) / 0.06;
+                } else if (u <= 0.87) {
+                    // Step 13: CLAMPING PHASE! Arm stationary at toGrip, fingers clamp handle of BoxTo from 0.18 to 0.075!
+                    const t = (u - 0.82) / 0.05;
+                    targetAngles = toGrip;
+                    gripGap = 0.18 - t * (0.18 - 0.075);
+                    boxTo.position.copy(boxTo.userData.rackHomePos);
+                    boxTo.rotation.set(0, boxTo.userData.rackHomeRotY, 0);
+                    carriedBox = null;
+                } else if (u <= 0.91) {
+                    // Step 14: Arm lifts BoxTo straight up (toGrip -> toLift)
+                    const t = (u - 0.87) / 0.04;
                     targetAngles = this.lerpPose(toGrip, toLift, t);
                     gripGap = 0.075;
                     carriedBox = boxTo;
-                } else if (u <= 0.86) {
-                    const t = (u - 0.80) / 0.06;
+                } else if (u <= 0.94) {
+                    // Step 15: Arm retracts BoxTo into central corridor (toLift -> toCorridor)
+                    const t = (u - 0.91) / 0.03;
                     targetAngles = this.lerpPose(toLift, toCorridor, t);
                     gripGap = 0.075;
                     carriedBox = boxTo;
-                } else if (u <= 0.94) {
-                    const t = (u - 0.86) / 0.08;
+                } else if (u <= 0.965) {
+                    // Step 16: Arm rotates BoxTo to front corridor and extends (toCorridor -> frontCorridor -> frontLift)
+                    const t = (u - 0.94) / 0.025;
                     targetAngles = t < 0.6 ? this.lerpPose(toCorridor, frontCorridor, t / 0.6) : this.lerpPose(frontCorridor, frontLift, (t - 0.6) / 0.4);
                     gripGap = 0.075;
                     carriedBox = boxTo;
-                } else if (u <= 0.97) {
-                    const t = (u - 0.94) / 0.03;
-                    if (t <= 0.7) {
-                        targetAngles = this.lerpPose(frontLift, frontGrip, t / 0.7);
-                        gripGap = 0.075;
-                        carriedBox = boxTo;
-                    } else {
-                        targetAngles = frontGrip;
-                        gripGap = 0.075 + ((t - 0.7) / 0.3) * (0.18 - 0.075);
-                        boxTo.position.copy(this.frontStoolBoxPos);
-                        boxTo.rotation.set(0, 0, 0);
-                        carriedBox = null;
-                    }
-                } else if (u <= 0.985) {
-                    const t = (u - 0.97) / 0.015;
+                } else if (u <= 0.98) {
+                    // Step 17: Arm lowers BoxTo onto front stool (frontLift -> frontGrip)
+                    const t = (u - 0.965) / 0.015;
+                    targetAngles = this.lerpPose(frontLift, frontGrip, t);
+                    gripGap = 0.075;
+                    carriedBox = boxTo;
+                } else if (u <= 0.99) {
+                    // Step 18: UNCLAMP & BACK AWAY! Fingers open from 0.075 to 0.20, arm backs up to inspectPose
+                    const t = (u - 0.98) / 0.01;
                     targetAngles = this.lerpPose(frontGrip, this.inspectPose, t);
-                    gripGap = 0.20;
+                    gripGap = 0.075 + t * (0.20 - 0.075);
                     boxTo.position.copy(this.frontStoolBoxPos);
                     boxTo.rotation.set(0, 0, 0);
                     carriedBox = null;
                 } else {
-                    const t = (u - 0.985) / 0.015;
+                    // Step 19: BoxTo lid hinges OPEN from 0.0 to 1.0! Topic card unfolds
+                    const t = (u - 0.99) / 0.01;
                     targetAngles = this.inspectPose;
                     gripGap = 0.20;
                     boxTo.position.copy(this.frontStoolBoxPos);
@@ -1051,21 +1094,30 @@ class RobotWorkcell {
             }
         }
 
-        // Apply Joint Angles immediately
-        this.jointAngles.j1 = targetAngles.j1;
-        this.jointAngles.j2 = targetAngles.j2;
-        this.jointAngles.j3 = targetAngles.j3;
-        this.jointAngles.j4 = targetAngles.j4;
-        this.joints.gripper.targetGap = gripGap;
+        // Apply Joint Angles with active manual jog offsets (Full 6-Axis Robotic Kinematics)
+        const jOffsets = this.jogOffsets || { j1: 0, j2: 0, j3: 0, j4: 0, j5: 0, j6: 0 };
+        this.jointAngles.j1 = targetAngles.j1 + (jOffsets.j1 || 0);
+        this.jointAngles.j2 = targetAngles.j2 + (jOffsets.j2 || 0);
+        this.jointAngles.j3 = targetAngles.j3 + (jOffsets.j3 || 0);
+        this.jointAngles.j4 = targetAngles.j4 + (jOffsets.j4 || 0);
+        this.jointAngles.j5 = (jOffsets.j5 || 0);
+        this.jointAngles.j6 = (jOffsets.j6 || 0);
 
-        if (this.joints.turntable) this.joints.turntable.rotation.y = targetAngles.j1;
-        if (this.joints.shoulder) this.joints.shoulder.rotation.x = targetAngles.j2;
-        if (this.joints.elbow) this.joints.elbow.rotation.x = targetAngles.j3;
-        if (this.joints.wrist) this.joints.wrist.rotation.x = targetAngles.j4;
+        if (this.joints.turntable) this.joints.turntable.rotation.y = this.jointAngles.j1;
+        if (this.joints.shoulder) this.joints.shoulder.rotation.x = this.jointAngles.j2;
+        if (this.joints.elbow) this.joints.elbow.rotation.x = this.jointAngles.j3;
+        if (this.joints.wrist) this.joints.wrist.rotation.x = this.jointAngles.j4;
+        if (this.joints.wristYaw) this.joints.wristYaw.rotation.z = this.jointAngles.j5;
+        if (this.joints.flange) this.joints.flange.rotation.y = Math.PI / 2 + this.jointAngles.j6;
+
+        // Manual Gripper Override check:
+        const effectiveGap = this.manualGripperGap !== null ? this.manualGripperGap : gripGap;
+        this.joints.gripper.targetGap = effectiveGap;
+        this.joints.gripper.gap = effectiveGap;
 
         if (this.joints.gripper.leftFinger && this.joints.gripper.rightFinger) {
-            this.joints.gripper.leftFinger.position.x = -gripGap;
-            this.joints.gripper.rightFinger.position.x = gripGap;
+            this.joints.gripper.leftFinger.position.x = -effectiveGap;
+            this.joints.gripper.rightFinger.position.x = effectiveGap;
         }
 
         // Lock carried box directly to the robot jaw center
@@ -1101,6 +1153,320 @@ class RobotWorkcell {
     }
 
     /**
+     * Direct Dossier Transfer Evaluator:
+     * When clicking a Teach Pendant button or Navbar link:
+     * Takes its time and moves DIRECTLY between the current dossier and requested dossier,
+     * without picking up or moving through any of the intermediate dossiers!
+     * kFrom: index of currently docked box on front stool (or null if blank)
+     * kTo: index of requested box to bring to front stool
+     * t in [0.0, 1.0]
+     */
+    evaluateDirectTransfer(kFrom, kTo, t) {
+        const frontGrip = this.solveIK(this.frontStoolPos.x, this.frontHandleY, this.frontStoolPos.z);
+        const frontLift = this.solveIK(this.frontStoolPos.x, this.frontHandleY + 0.65, this.frontStoolPos.z);
+        const frontCorridor = this.getFlightCorridorPose(0);
+
+        let targetAngles = this.standbyPose;
+        let gripGap = 0.18;
+        let carriedBox = null;
+        let frontDockedSection = -1;
+        let frontLidOpenAmount = 0.0;
+
+        // Reset all uninvolved boxes to their home rack position and closed lids
+        for (let i = 0; i < this.pallets.length; i++) {
+            if (i !== kFrom && i !== kTo) {
+                const box = this.pallets[i];
+                box.position.copy(box.userData.rackHomePos);
+                box.rotation.set(0, box.userData.rackHomeRotY, 0);
+                box.userData.setOpen(0.0);
+            }
+        }
+
+        if (kFrom === null || kFrom === undefined || kFrom < 0) {
+            // Direct fetch from Standby -> kTo
+            const bToCfg = this.bayConfigs[kTo];
+            const j1To = bToCfg.rotY;
+            const toGrip = this.solveIK(bToCfg.pos[0], bToCfg.handleY, bToCfg.pos[2]);
+            const toLift = this.solveIK(bToCfg.pos[0], bToCfg.handleY + 0.65, bToCfg.pos[2]);
+            const toCorridor = this.getFlightCorridorPose(j1To);
+            const boxTo = this.pallets[kTo];
+
+            boxTo.position.copy(boxTo.userData.rackHomePos);
+            boxTo.rotation.set(0, boxTo.userData.rackHomeRotY, 0);
+            boxTo.userData.setOpen(0.0);
+
+            if (t <= 0.15) {
+                const u = t / 0.15;
+                targetAngles = u < 0.5 ? this.lerpPose(this.standbyPose, toCorridor, u / 0.5) : this.lerpPose(toCorridor, toLift, (u - 0.5) / 0.5);
+                gripGap = 0.18;
+            } else if (t <= 0.25) {
+                const u = (t - 0.15) / 0.10;
+                if (u <= 0.7) {
+                    targetAngles = this.lerpPose(toLift, toGrip, u / 0.7);
+                    gripGap = 0.18;
+                } else {
+                    targetAngles = toGrip;
+                    gripGap = 0.18 - ((u - 0.7) / 0.3) * (0.18 - 0.075);
+                }
+            } else if (t <= 0.38) {
+                const u = (t - 0.25) / 0.13;
+                targetAngles = this.lerpPose(toGrip, toLift, u);
+                gripGap = 0.075;
+                carriedBox = boxTo;
+            } else if (t <= 0.52) {
+                const u = (t - 0.38) / 0.14;
+                targetAngles = this.lerpPose(toLift, toCorridor, u);
+                gripGap = 0.075;
+                carriedBox = boxTo;
+            } else if (t <= 0.72) {
+                const u = (t - 0.52) / 0.20;
+                targetAngles = this.lerpPose(toCorridor, frontCorridor, u);
+                gripGap = 0.075;
+                carriedBox = boxTo;
+            } else if (t <= 0.84) {
+                const u = (t - 0.72) / 0.12;
+                targetAngles = this.lerpPose(frontCorridor, frontLift, u);
+                gripGap = 0.075;
+                carriedBox = boxTo;
+            } else if (t <= 0.92) {
+                const u = (t - 0.84) / 0.08;
+                if (u <= 0.75) {
+                    targetAngles = this.lerpPose(frontLift, frontGrip, u / 0.75);
+                    gripGap = 0.075;
+                    carriedBox = boxTo;
+                } else {
+                    targetAngles = frontGrip;
+                    gripGap = 0.075 + ((u - 0.75) / 0.25) * (0.18 - 0.075);
+                    boxTo.position.copy(this.frontStoolBoxPos);
+                    boxTo.rotation.set(0, 0, 0);
+                    carriedBox = null;
+                }
+            } else if (t <= 0.96) {
+                const u = (t - 0.92) / 0.04;
+                targetAngles = this.lerpPose(frontGrip, this.inspectPose, u);
+                gripGap = 0.20;
+                boxTo.position.copy(this.frontStoolBoxPos);
+                boxTo.rotation.set(0, 0, 0);
+                carriedBox = null;
+            } else {
+                const u = (t - 0.96) / 0.04;
+                targetAngles = this.inspectPose;
+                gripGap = 0.20;
+                boxTo.position.copy(this.frontStoolBoxPos);
+                boxTo.rotation.set(0, 0, 0);
+                carriedBox = null;
+                frontDockedSection = kTo;
+                frontLidOpenAmount = u;
+                boxTo.userData.setOpen(u);
+            }
+        } else {
+            // Direct transfer from kFrom -> kTo (without intermediate boxes)
+            const bFromCfg = this.bayConfigs[kFrom];
+            const j1From = bFromCfg.rotY;
+            const fromGrip = this.solveIK(bFromCfg.pos[0], bFromCfg.handleY, bFromCfg.pos[2]);
+            const fromLift = this.solveIK(bFromCfg.pos[0], bFromCfg.handleY + 0.65, bFromCfg.pos[2]);
+            const fromCorridor = this.getFlightCorridorPose(j1From);
+
+            const bToCfg = this.bayConfigs[kTo];
+            const j1To = bToCfg.rotY;
+            const toGrip = this.solveIK(bToCfg.pos[0], bToCfg.handleY, bToCfg.pos[2]);
+            const toLift = this.solveIK(bToCfg.pos[0], bToCfg.handleY + 0.65, bToCfg.pos[2]);
+            const toCorridor = this.getFlightCorridorPose(j1To);
+
+            const boxFrom = this.pallets[kFrom];
+            const boxTo = this.pallets[kTo];
+
+            if (t <= 0.50) {
+                boxFrom.position.copy(this.frontStoolBoxPos);
+                boxFrom.rotation.set(0, 0, 0);
+            } else {
+                boxFrom.position.copy(boxFrom.userData.rackHomePos);
+                boxFrom.rotation.set(0, boxFrom.userData.rackHomeRotY, 0);
+            }
+
+            boxTo.position.copy(boxTo.userData.rackHomePos);
+            boxTo.rotation.set(0, boxTo.userData.rackHomeRotY, 0);
+
+            if (t <= 0.05) {
+                // Lid closes, gripper lowers to handle
+                const u = t / 0.05;
+                if (u <= 0.5) {
+                    targetAngles = this.inspectPose;
+                    gripGap = 0.20;
+                    boxFrom.userData.setOpen(1.0 - (u / 0.5));
+                } else {
+                    const gu = (u - 0.5) / 0.5;
+                    targetAngles = this.lerpPose(this.inspectPose, frontGrip, gu);
+                    gripGap = 0.20 - gu * (0.20 - 0.075);
+                    boxFrom.userData.setOpen(0.0);
+                }
+                carriedBox = null;
+            } else if (t <= 0.14) {
+                // Lift off front stool
+                const u = (t - 0.05) / 0.09;
+                targetAngles = this.lerpPose(frontGrip, frontLift, u);
+                gripGap = 0.075;
+                carriedBox = boxFrom;
+                boxFrom.userData.setOpen(0.0);
+            } else if (t <= 0.24) {
+                // Retract into central corridor
+                const u = (t - 0.14) / 0.10;
+                targetAngles = this.lerpPose(frontLift, frontCorridor, u);
+                gripGap = 0.075;
+                carriedBox = boxFrom;
+            } else if (t <= 0.38) {
+                // Rotate directly to Rack kFrom
+                const u = (t - 0.24) / 0.14;
+                targetAngles = this.lerpPose(frontCorridor, fromCorridor, u);
+                gripGap = 0.075;
+                carriedBox = boxFrom;
+            } else if (t <= 0.45) {
+                // Extend outward to Rack kFrom
+                const u = (t - 0.38) / 0.07;
+                targetAngles = this.lerpPose(fromCorridor, fromLift, u);
+                gripGap = 0.075;
+                carriedBox = boxFrom;
+            } else if (t <= 0.50) {
+                // Lower onto Rack kFrom, unclamp
+                const u = (t - 0.45) / 0.05;
+                if (u <= 0.7) {
+                    targetAngles = this.lerpPose(fromLift, fromGrip, u / 0.7);
+                    gripGap = 0.075;
+                    carriedBox = boxFrom;
+                } else {
+                    const uu = (u - 0.7) / 0.3;
+                    targetAngles = fromGrip;
+                    gripGap = 0.075 + uu * (0.18 - 0.075);
+                    boxFrom.position.copy(boxFrom.userData.rackHomePos);
+                    boxFrom.rotation.set(0, boxFrom.userData.rackHomeRotY, 0);
+                    carriedBox = null;
+                }
+            } else if (t <= 0.56) {
+                // Empty arm lifts & retracts into central corridor
+                const u = (t - 0.50) / 0.06;
+                targetAngles = this.lerpPose(fromGrip, fromCorridor, u);
+                gripGap = 0.18;
+                carriedBox = null;
+            } else if (t <= 0.68) {
+                // Empty arm rotates DIRECTLY through central corridor from Rack kFrom to Rack kTo!
+                const u = (t - 0.56) / 0.12;
+                targetAngles = this.lerpPose(fromCorridor, toCorridor, u);
+                gripGap = 0.18;
+                carriedBox = null;
+            } else if (t <= 0.74) {
+                // Empty arm extends to Rack kTo, descends to handle, clamps
+                const u = (t - 0.68) / 0.06;
+                if (u <= 0.5) {
+                    targetAngles = this.lerpPose(toCorridor, toLift, u / 0.5);
+                    gripGap = 0.18;
+                } else if (u <= 0.85) {
+                    const du = (u - 0.5) / 0.35;
+                    targetAngles = this.lerpPose(toLift, toGrip, du);
+                    gripGap = 0.18;
+                } else {
+                    targetAngles = toGrip;
+                    const cu = (u - 0.85) / 0.15;
+                    gripGap = 0.18 - cu * (0.18 - 0.075);
+                }
+                carriedBox = null;
+            } else if (t <= 0.80) {
+                // Lift Box kTo vertically
+                const u = (t - 0.74) / 0.06;
+                targetAngles = this.lerpPose(toGrip, toLift, u);
+                gripGap = 0.075;
+                carriedBox = boxTo;
+            } else if (t <= 0.86) {
+                // Retract Box kTo into central corridor
+                const u = (t - 0.80) / 0.06;
+                targetAngles = this.lerpPose(toLift, toCorridor, u);
+                gripGap = 0.075;
+                carriedBox = boxTo;
+            } else if (t <= 0.94) {
+                // Rotate Box kTo through central corridor directly to Front Stool heading, extend outward
+                const u = (t - 0.86) / 0.08;
+                targetAngles = u < 0.6 ? this.lerpPose(toCorridor, frontCorridor, u / 0.6) : this.lerpPose(frontCorridor, frontLift, (u - 0.6) / 0.4);
+                gripGap = 0.075;
+                carriedBox = boxTo;
+            } else if (t <= 0.97) {
+                // Lower Box kTo onto Front Stool, unclamp
+                const u = (t - 0.94) / 0.03;
+                if (u <= 0.7) {
+                    targetAngles = this.lerpPose(frontLift, frontGrip, u / 0.7);
+                    gripGap = 0.075;
+                    carriedBox = boxTo;
+                } else {
+                    targetAngles = frontGrip;
+                    gripGap = 0.075 + ((u - 0.7) / 0.3) * (0.18 - 0.075);
+                    boxTo.position.copy(this.frontStoolBoxPos);
+                    boxTo.rotation.set(0, 0, 0);
+                    carriedBox = null;
+                }
+            } else if (t <= 0.985) {
+                // Arm backs up to inspect pose
+                const u = (t - 0.97) / 0.015;
+                targetAngles = this.lerpPose(frontGrip, this.inspectPose, u);
+                gripGap = 0.20;
+                boxTo.position.copy(this.frontStoolBoxPos);
+                boxTo.rotation.set(0, 0, 0);
+                carriedBox = null;
+            } else {
+                // Box kTo lid hinges OPEN!
+                const u = (t - 0.985) / 0.015;
+                targetAngles = this.inspectPose;
+                gripGap = 0.20;
+                boxTo.position.copy(this.frontStoolBoxPos);
+                boxTo.rotation.set(0, 0, 0);
+                carriedBox = null;
+                frontDockedSection = kTo;
+                frontLidOpenAmount = u;
+                boxTo.userData.setOpen(u);
+            }
+        }
+
+        // Apply Joint Angles
+        this.jointAngles.j1 = targetAngles.j1;
+        this.jointAngles.j2 = targetAngles.j2;
+        this.jointAngles.j3 = targetAngles.j3;
+        this.jointAngles.j4 = targetAngles.j4;
+        this.joints.gripper.targetGap = gripGap;
+        this.joints.gripper.gap = gripGap;
+
+        if (this.joints.turntable) this.joints.turntable.rotation.y = targetAngles.j1;
+        if (this.joints.shoulder) this.joints.shoulder.rotation.x = targetAngles.j2;
+        if (this.joints.elbow) this.joints.elbow.rotation.x = targetAngles.j3;
+        if (this.joints.wrist) this.joints.wrist.rotation.x = targetAngles.j4;
+
+        if (this.joints.gripper.leftFinger && this.joints.gripper.rightFinger) {
+            this.joints.gripper.leftFinger.position.x = -gripGap;
+            this.joints.gripper.rightFinger.position.x = gripGap;
+        }
+
+        if (carriedBox && this.joints.gripper.jawCenter) {
+            this.robot.updateMatrixWorld(true);
+            const jawWorldPos = new THREE.Vector3();
+            this.joints.gripper.jawCenter.getWorldPosition(jawWorldPos);
+            carriedBox.position.set(jawWorldPos.x, jawWorldPos.y - 0.445, jawWorldPos.z);
+            carriedBox.rotation.set(0, targetAngles.j1, 0);
+        }
+
+        if (frontDockedSection >= 0 && frontLidOpenAmount > 0.6) {
+            if (this.dockedSectionIndex !== frontDockedSection) {
+                this.dockedSectionIndex = frontDockedSection;
+                if (this.onSectionChange) {
+                    this.onSectionChange(this.bayConfigs[frontDockedSection].id, frontDockedSection);
+                }
+            }
+        } else {
+            if (this.dockedSectionIndex !== -1) {
+                this.dockedSectionIndex = -1;
+                if (this.onSectionChange) {
+                    this.onSectionChange(null, -1);
+                }
+            }
+        }
+    }
+
+    /**
      * Mouse Wheel Scroll Input: Directly scrubs robot kinematics
      * Stopping scrolling freezes the robot right where it is!
      */
@@ -1110,50 +1476,121 @@ class RobotWorkcell {
             this.activeTween.kill();
             this.activeTween = null;
         }
+        if (this.directTransfer) {
+            this.directTransfer = null;
+            this.targetProgress = this.currentProgress;
+        }
+        this.manualGripperGap = null;
+        if (this.jogOffsets) {
+            this.jogOffsets.j1 = 0;
+            this.jogOffsets.j2 = 0;
+            this.jogOffsets.j3 = 0;
+            this.jogOffsets.j4 = 0;
+            this.jogOffsets.j5 = 0;
+            this.jogOffsets.j6 = 0;
+        }
 
         this.targetProgress = Math.max(0, Math.min(this.maxProgress, this.targetProgress + delta));
         this.statusText = `MANUAL SCROLL // PROGRESS: ${(this.targetProgress / this.maxProgress * 100).toFixed(0)}%`;
     }
 
     /**
-     * Smooth jump to a section (used by Teach Pendant buttons / Navbar links)
-     * Target progress for section s in [0, 6] is s + 1.0!
+     * Direct Dossier Dispatch:
+     * When clicking a Teach Pendant button or Navbar link:
+     * Takes its time, puts the current box away, and goes directly to the requested dossier!
      */
     goToSection(sectionIndex) {
         if (this.isEStopped) return;
         if (sectionIndex < 0 || sectionIndex >= this.bayConfigs.length) return;
-        if (this.activeTween) this.activeTween.kill();
+        if (this.activeTween) {
+            this.activeTween.kill();
+            this.activeTween = null;
+        }
+        this.manualGripperGap = null;
+        if (this.jogOffsets) {
+            this.jogOffsets.j1 = 0;
+            this.jogOffsets.j2 = 0;
+            this.jogOffsets.j3 = 0;
+            this.jogOffsets.j4 = 0;
+            this.jogOffsets.j5 = 0;
+            this.jogOffsets.j6 = 0;
+        }
 
-        const targetP = sectionIndex + 1.0;
-        const diff = Math.abs(targetP - this.currentProgress);
-        const duration = Math.min(3.2, Math.max(1.4, diff * 0.7));
+        const kFrom = this.dockedSectionIndex >= 0 ? this.dockedSectionIndex : null;
+        const kTo = sectionIndex;
 
-        this.statusText = `DISPATCHING: BAY [${this.bayConfigs[sectionIndex].bayNum} // ${this.bayConfigs[sectionIndex].name.toUpperCase()}]`;
+        if (kFrom === kTo) {
+            // Already at this section! Ensure opened.
+            this.evaluateProgress(sectionIndex + 1.0);
+            return;
+        }
 
-        this.activeTween = gsap.to(this, {
-            targetProgress: targetP,
+        const duration = kFrom === null ? 2.8 : 4.0; // Stately, deliberate industrial motion
+        this.statusText = `DISPATCHING: BAY [${this.bayConfigs[kTo].bayNum} // ${this.bayConfigs[kTo].name.toUpperCase()}]`;
+
+        const transferState = { t: 0.0 };
+        this.directTransfer = { kFrom, kTo, state: transferState };
+
+        this.activeTween = gsap.to(transferState, {
+            t: 1.0,
             duration: duration,
-            ease: 'power2.inOut',
+            ease: 'power1.inOut',
+            onUpdate: () => {
+                if (this.directTransfer) {
+                    this.evaluateDirectTransfer(kFrom, kTo, transferState.t);
+                }
+            },
             onComplete: () => {
                 this.activeTween = null;
-                this.statusText = `PLACED ON FRONT STOOL // ${this.bayConfigs[sectionIndex].name.toUpperCase()}`;
+                this.directTransfer = null;
+                this.currentProgress = kTo + 1.0;
+                this.targetProgress = kTo + 1.0;
+                this.evaluateProgress(this.currentProgress);
+                this.statusText = `PLACED ON FRONT STOOL // ${this.bayConfigs[kTo].name.toUpperCase()}`;
             }
         });
     }
 
-    // Manual Jog and Safety Controls
+    // Manual Jog and Safety Controls (All 6 Articulated Axes + Gripper)
     jogJoint(jointKey, delta) {
         if (this.isEStopped) return;
-        this.statusText = `MANUAL JOG // ${jointKey.toUpperCase()}`;
-        if (this.jointAngles[jointKey] !== undefined) {
-            this.jointAngles[jointKey] += delta;
+        if (!this.jogOffsets) this.jogOffsets = { j1: 0, j2: 0, j3: 0, j4: 0, j5: 0, j6: 0 };
+        if (this.jogOffsets[jointKey] === undefined) this.jogOffsets[jointKey] = 0;
+        this.jogOffsets[jointKey] += delta;
+        this.jointAngles[jointKey] = (this.jointAngles[jointKey] || 0) + delta;
+
+        // Apply immediately to Three.js meshes
+        if (jointKey === 'j1' && this.joints.turntable) {
+            this.joints.turntable.rotation.y = this.jointAngles.j1;
+        } else if (jointKey === 'j2' && this.joints.shoulder) {
+            this.joints.shoulder.rotation.x = this.jointAngles.j2;
+        } else if (jointKey === 'j3' && this.joints.elbow) {
+            this.joints.elbow.rotation.x = this.jointAngles.j3;
+        } else if (jointKey === 'j4' && this.joints.wrist) {
+            this.joints.wrist.rotation.x = this.jointAngles.j4;
+        } else if (jointKey === 'j5' && this.joints.wristYaw) {
+            this.joints.wristYaw.rotation.z = this.jogOffsets.j5;
+        } else if (jointKey === 'j6' && this.joints.flange) {
+            this.joints.flange.rotation.y = Math.PI / 2 + this.jogOffsets.j6;
         }
+
+        const degVal = ((this.jogOffsets[jointKey] || 0) * (180 / Math.PI)).toFixed(1);
+        this.statusText = `MANUAL JOG // ${jointKey.toUpperCase()}: ${degVal > 0 ? '+' : ''}${degVal}° OFFSET`;
     }
 
     toggleGripperManual() {
         if (this.isEStopped) return;
-        this.joints.gripper.targetGap = this.joints.gripper.targetGap > 0.12 ? 0.075 : 0.20;
-        this.statusText = this.joints.gripper.targetGap > 0.12 ? 'GRIPPER: OPEN' : 'GRIPPER: CLAMPED';
+        const currentGap = this.manualGripperGap !== null ? this.manualGripperGap : this.joints.gripper.gap;
+        // Toggle clamp (75mm) / open (200mm)
+        this.manualGripperGap = currentGap > 0.12 ? 0.075 : 0.20;
+        this.joints.gripper.targetGap = this.manualGripperGap;
+        this.joints.gripper.gap = this.manualGripperGap;
+
+        if (this.joints.gripper.leftFinger && this.joints.gripper.rightFinger) {
+            this.joints.gripper.leftFinger.position.x = -this.manualGripperGap;
+            this.joints.gripper.rightFinger.position.x = this.manualGripperGap;
+        }
+        this.statusText = this.manualGripperGap > 0.12 ? 'MANUAL JOG // GRIPPER: OPEN (200mm)' : 'MANUAL JOG // GRIPPER: CLAMPED (75mm)';
     }
 
     emergencyStop() {
@@ -1185,14 +1622,18 @@ class RobotWorkcell {
         const delta = this.clock.getDelta();
 
         if (!this.isEStopped) {
-            // Smoothly lerp towards targetProgress (settles immediately when user stops scrolling!)
-            const lerpSpeed = 0.18;
-            this.currentProgress += (this.targetProgress - this.currentProgress) * lerpSpeed;
+            if (!this.directTransfer) {
+                // Smoothly lerp towards targetProgress (settles immediately when user stops scrolling!)
+                const lerpSpeed = 0.18;
+                this.currentProgress += (this.targetProgress - this.currentProgress) * lerpSpeed;
 
-            // Evaluate continuous scrub kinematics
-            this.evaluateProgress(this.currentProgress);
+                // Evaluate continuous scrub kinematics
+                this.evaluateProgress(this.currentProgress);
 
-            this.isMoving = Math.abs(this.targetProgress - this.currentProgress) > 0.005;
+                this.isMoving = Math.abs(this.targetProgress - this.currentProgress) > 0.005;
+            } else {
+                this.isMoving = true;
+            }
         }
 
         // Camera softly frames robot
@@ -1210,7 +1651,11 @@ class RobotWorkcell {
                 j1: THREE.MathUtils.radToDeg(this.jointAngles.j1).toFixed(1),
                 j2: THREE.MathUtils.radToDeg(this.jointAngles.j2).toFixed(1),
                 j3: THREE.MathUtils.radToDeg(this.jointAngles.j3).toFixed(1),
-                gap: (this.joints.gripper.gap * 100).toFixed(0),
+                j4: THREE.MathUtils.radToDeg(this.jointAngles.j4).toFixed(1),
+                j5: THREE.MathUtils.radToDeg(this.jointAngles.j5 || 0).toFixed(1),
+                j6: THREE.MathUtils.radToDeg(this.jointAngles.j6 || 0).toFixed(1),
+                gap: (this.joints.gripper.gap * 1000).toFixed(0),
+                isOpen: this.joints.gripper.gap > 0.12,
                 status: this.statusText,
                 isEStopped: this.isEStopped,
                 activeBay: activeName,

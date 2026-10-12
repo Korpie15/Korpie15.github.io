@@ -75,6 +75,18 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    const directFromParam = urlParams.get('directFrom');
+    const directToParam = urlParams.get('directTo');
+    const directTParam = urlParams.get('directT');
+    if (directToParam !== null && directTParam !== null) {
+        const fromIdx = directFromParam !== null ? parseInt(directFromParam, 10) : null;
+        const toIdx = parseInt(directToParam, 10);
+        const tVal = parseFloat(directTParam);
+        setTimeout(() => {
+            workcell.evaluateDirectTransfer(fromIdx, toIdx, tVal);
+        }, 120);
+    }
+
     const gripBayParam = urlParams.get('gripBay') || urlParams.get('reachBay');
     if (gripBayParam !== null) {
         const bIdx = parseInt(gripBayParam, 10);
@@ -136,8 +148,13 @@ document.addEventListener('DOMContentLoaded', () => {
                         <span id="lcd-j2">J2: 20.0°</span>
                         <span id="lcd-j3">J3: -28.6°</span>
                     </div>
+                    <div class="lcd-line lcd-telemetry">
+                        <span id="lcd-j4">J4: 8.6°</span>
+                        <span id="lcd-j5">J5: 0.0°</span>
+                        <span id="lcd-j6">J6: 0.0°</span>
+                    </div>
                     <div class="lcd-line lcd-gripper">
-                        <span id="lcd-grip">GRIPPER: 25mm</span>
+                        <span id="lcd-grip">GRIPPER: 200mm (OPEN)</span>
                         <span id="lcd-bay" class="lcd-highlight">ACTIVE: HOME / DOSSIER</span>
                     </div>
                 </div>
@@ -154,9 +171,9 @@ document.addEventListener('DOMContentLoaded', () => {
                     <button class="tp-btn tp-workpiece-btn" data-index="6">6: CONTACT</button>
                 </div>
 
-                <!-- Manual Jog Buttons -->
+                <!-- Manual 6-Axis Jog Buttons + Gripper -->
                 <div class="tp-jog-container">
-                    <div class="tp-section-label">MANUAL JOG OVERRIDE:</div>
+                    <div class="tp-section-label">MANUAL 6-AXIS JOG OVERRIDE:</div>
                     <div class="tp-jog-controls">
                         <div class="tp-jog-row">
                             <span class="jog-label">J1 BASE:</span>
@@ -164,13 +181,33 @@ document.addEventListener('DOMContentLoaded', () => {
                             <button class="tp-jog-btn" id="jog-j1-pos">+J1 ▶</button>
                         </div>
                         <div class="tp-jog-row">
-                            <span class="jog-label">ARM REACH:</span>
-                            <button class="tp-jog-btn" id="jog-reach-pos">▲ EXT</button>
-                            <button class="tp-jog-btn" id="jog-reach-neg">▼ RET</button>
+                            <span class="jog-label">J2 SHLDR:</span>
+                            <button class="tp-jog-btn" id="jog-j2-neg">▼ -J2</button>
+                            <button class="tp-jog-btn" id="jog-j2-pos">+J2 ▲</button>
                         </div>
                         <div class="tp-jog-row">
+                            <span class="jog-label">J3 ELBOW:</span>
+                            <button class="tp-jog-btn" id="jog-j3-neg">▼ -J3</button>
+                            <button class="tp-jog-btn" id="jog-j3-pos">+J3 ▲</button>
+                        </div>
+                        <div class="tp-jog-row">
+                            <span class="jog-label">J4 WRIST:</span>
+                            <button class="tp-jog-btn" id="jog-j4-neg">▼ -J4</button>
+                            <button class="tp-jog-btn" id="jog-j4-pos">+J4 ▲</button>
+                        </div>
+                        <div class="tp-jog-row">
+                            <span class="jog-label">J5 YAW:</span>
+                            <button class="tp-jog-btn" id="jog-j5-neg">◀ -J5</button>
+                            <button class="tp-jog-btn" id="jog-j5-pos">+J5 ▶</button>
+                        </div>
+                        <div class="tp-jog-row">
+                            <span class="jog-label">J6 ROLL:</span>
+                            <button class="tp-jog-btn" id="jog-j6-neg">↺ -J6</button>
+                            <button class="tp-jog-btn" id="jog-j6-pos">+J6 ↻</button>
+                        </div>
+                        <div class="tp-jog-row tp-grip-row">
                             <span class="jog-label">GRIPPER:</span>
-                            <button class="tp-jog-btn tp-grip-btn" id="jog-grip-toggle">CLAMP / OPEN</button>
+                            <button class="tp-jog-btn tp-grip-btn" id="jog-grip-toggle">CLAMP / OPEN JAWS</button>
                         </div>
                     </div>
                 </div>
@@ -217,29 +254,40 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         });
 
-        // Jog Controls
-        pendant.querySelector('#jog-j1-neg').addEventListener('click', () => {
-            workcell.jogJoint('j1', -0.15);
-            activateJogLED();
+        // 6-Axis Articulated Jog Controls
+        const jogBindings = [
+            ['#jog-j1-neg', 'j1', -0.15],
+            ['#jog-j1-pos', 'j1', 0.15],
+            ['#jog-j2-neg', 'j2', -0.10],
+            ['#jog-j2-pos', 'j2', 0.10],
+            ['#jog-j3-neg', 'j3', -0.10],
+            ['#jog-j3-pos', 'j3', 0.10],
+            ['#jog-j4-neg', 'j4', -0.12],
+            ['#jog-j4-pos', 'j4', 0.12],
+            ['#jog-j5-neg', 'j5', -0.15],
+            ['#jog-j5-pos', 'j5', 0.15],
+            ['#jog-j6-neg', 'j6', -0.20],
+            ['#jog-j6-pos', 'j6', 0.20],
+        ];
+
+        jogBindings.forEach(([selector, axis, delta]) => {
+            const btn = pendant.querySelector(selector);
+            if (btn) {
+                btn.addEventListener('click', () => {
+                    workcell.jogJoint(axis, delta);
+                    activateJogLED();
+                });
+            }
         });
-        pendant.querySelector('#jog-j1-pos').addEventListener('click', () => {
-            workcell.jogJoint('j1', 0.15);
-            activateJogLED();
-        });
-        pendant.querySelector('#jog-reach-pos').addEventListener('click', () => {
-            workcell.jogJoint('j2', 0.1);
-            workcell.jogJoint('j3', -0.1);
-            activateJogLED();
-        });
-        pendant.querySelector('#jog-reach-neg').addEventListener('click', () => {
-            workcell.jogJoint('j2', -0.1);
-            workcell.jogJoint('j3', 0.1);
-            activateJogLED();
-        });
-        pendant.querySelector('#jog-grip-toggle').addEventListener('click', () => {
-            workcell.toggleGripperManual();
-            activateJogLED();
-        });
+
+        // Gripper Clamp / Open Manual Toggle
+        const gripToggleBtn = pendant.querySelector('#jog-grip-toggle');
+        if (gripToggleBtn) {
+            gripToggleBtn.addEventListener('click', () => {
+                workcell.toggleGripperManual();
+                activateJogLED();
+            });
+        }
 
         // Emergency Stop Button
         const estopBtn = pendant.querySelector('#tp-estop-btn');
@@ -282,6 +330,9 @@ document.addEventListener('DOMContentLoaded', () => {
         const lcdJ1 = document.getElementById('lcd-j1');
         const lcdJ2 = document.getElementById('lcd-j2');
         const lcdJ3 = document.getElementById('lcd-j3');
+        const lcdJ4 = document.getElementById('lcd-j4');
+        const lcdJ5 = document.getElementById('lcd-j5');
+        const lcdJ6 = document.getElementById('lcd-j6');
         const lcdGrip = document.getElementById('lcd-grip');
         const lcdBay = document.getElementById('lcd-bay');
 
@@ -289,7 +340,10 @@ document.addEventListener('DOMContentLoaded', () => {
         if (lcdJ1) lcdJ1.textContent = `J1: ${data.j1}°`;
         if (lcdJ2) lcdJ2.textContent = `J2: ${data.j2}°`;
         if (lcdJ3) lcdJ3.textContent = `J3: ${data.j3}°`;
-        if (lcdGrip) lcdGrip.textContent = `GRIPPER: ${data.gap}mm`;
+        if (lcdJ4) lcdJ4.textContent = `J4: ${data.j4}°`;
+        if (lcdJ5) lcdJ5.textContent = `J5: ${data.j5}°`;
+        if (lcdJ6) lcdJ6.textContent = `J6: ${data.j6}°`;
+        if (lcdGrip) lcdGrip.textContent = `GRIPPER: ${data.gap}mm ${data.isOpen ? '(OPEN)' : '(CLAMPED)'}`;
         if (lcdBay) lcdBay.textContent = `ACTIVE: ${data.activeBay.toUpperCase()}`;
     }
 
@@ -374,9 +428,18 @@ document.addEventListener('DOMContentLoaded', () => {
             if (e.deltaY < 0 && !isAtTop) return;    // Allow reading up text
         }
 
-        // Scrub sensitivity: smooth and responsive
-        const scrubSensitivity = 0.0022;
-        workcell.applyScrollDelta(e.deltaY * scrubSensitivity);
+        // Handle deltaMode (0 = pixels, 1 = lines, 2 = pages)
+        let rawDelta = e.deltaY;
+        if (e.deltaMode === 1) rawDelta *= 33;
+        else if (e.deltaMode === 2) rawDelta *= 100;
+
+        // Clamp single event impulse so a fast flick/trackpad fling cannot skip past stages
+        const maxNotchDelta = 100;
+        const clampedDelta = Math.sign(rawDelta) * Math.min(maxNotchDelta, Math.abs(rawDelta));
+
+        // Scrub sensitivity: ~0.028 progress per mouse notch => ~35 deliberate scrolls per section
+        const scrubSensitivity = 0.00028;
+        workcell.applyScrollDelta(clampedDelta * scrubSensitivity);
     }, { passive: true });
 
     /**
