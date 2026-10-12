@@ -294,7 +294,7 @@ document.addEventListener('DOMContentLoaded', () => {
      * Scrolling smoothly commands the robot to transition to adjacent sections
      */
     window.addEventListener('wheel', (e) => {
-        if (viewMode !== 'robot' || workcell.isEStopped || isScrollLocked) return;
+        if (viewMode !== 'robot' || workcell.isEStopped || workcell.isMoving) return;
 
         const stageCard = document.getElementById('robot-front-stage');
         // If user is scrolling inside an expanded section that has scrollable content, allow them to read
