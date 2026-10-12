@@ -261,6 +261,11 @@ document.addEventListener('DOMContentLoaded', () => {
             targetSection.classList.add('robot-mode-active');
             stageCard.classList.add('expanded');
 
+            const dockTitle = document.getElementById('dock-active-title');
+            if (dockTitle && workcell && workcell.bayConfigs && workcell.bayConfigs[index]) {
+                dockTitle.textContent = `ACTIVE TOPIC: [${workcell.bayConfigs[index].bayNum}] ${workcell.bayConfigs[index].name.toUpperCase()}`;
+            }
+
             // Scroll front stage card to top
             stageCard.scrollTop = 0;
 

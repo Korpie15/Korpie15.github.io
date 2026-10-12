@@ -51,16 +51,22 @@
         <div id="robot-canvas-container"></div>
     </div>
 
-    <!-- Front Center Stage Dock Platform -->
+    <!-- Center Workpiece Held by Robot Gripper in Middle of Page -->
     <main id="robot-front-stage" class="robot-front-stage">
-        <div class="stage-dock-header">
-            <div class="stage-dock-title">
-                <span class="stage-dock-indicator"></span>
-                <span>WORKCELL INSPECTION DOCK // ACTIVE WORKPIECE</span>
+        <div class="gripper-dock-bracket">
+            <div class="gripper-mount-fixture">
+                <span class="clamp-bolt left"></span>
+                <div class="clamp-handle-bar"></div>
+                <span class="clamp-bolt right"></span>
             </div>
-            <div class="stage-dock-meta">
-                <span>6-DOF INDUSTRIAL YELLOW ROBOT ARM &bull; TP-6000</span>
-                <button id="expandDockBtn" class="dock-expand-btn" onclick="toggleDockExpand()" title="Toggle Full Width Reading">⛶ Expand</button>
+            <div class="stage-dock-header">
+                <div class="stage-dock-title">
+                    <span class="stage-dock-indicator"></span>
+                    <span id="dock-active-title">ACTIVE WORKPIECE: HOME / DOSSIER</span>
+                </div>
+                <div class="stage-dock-meta">
+                    6-DOF INDUSTRIAL ROBOT WORKCELL // TP-6000
+                </div>
             </div>
         </div>
 

@@ -2830,35 +2830,34 @@ body {
     left: 0;
 }
 
-/* Front Stage Workstation Platform (Holds Active HTML Section) */
+/* Center Stage Workpiece (Held by Robot Gripper in Middle of Page) */
 #robot-front-stage {
     position: fixed;
-    top: 75px;
-    right: 25px;
-    left: auto;
-    transform: none;
-    width: min(680px, 49vw);
-    max-height: calc(100vh - 95px);
-    background: rgba(15, 23, 42, 0.94);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
+    top: 145px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: min(940px, 92vw);
+    max-height: calc(100vh - 175px);
+    background: rgba(15, 23, 42, 0.95);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
     border: 2px solid #334155;
-    border-top: 5px solid #f59e0b; /* Industrial Yellow Header Accent */
-    border-radius: 12px;
-    box-shadow: 0 25px 60px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(245, 158, 11, 0.15);
+    border-top: 3px solid #f59e0b;
+    border-radius: 14px;
+    box-shadow: 0 35px 80px rgba(0, 0, 0, 0.85), 0 0 0 1px rgba(245, 158, 11, 0.2);
     z-index: 100;
     overflow-y: auto;
     pointer-events: auto;
-    padding: 1.5rem 1.8rem 2rem;
-    transition: width 0.35s cubic-bezier(0.16, 1, 0.3, 1), transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s ease;
+    padding: 1.5rem 2.5rem 2.5rem;
+    transition: opacity 0.35s ease, transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
     scrollbar-width: thin;
     scrollbar-color: #f59e0b #1e293b;
 }
 
-#robot-front-stage.expanded-full {
-    width: min(1140px, 94vw);
-    right: 50%;
-    transform: translateX(50%);
+#robot-front-stage.transitioning {
+    opacity: 0;
+    transform: translateX(-50%) scale(0.92) translateY(20px);
+    pointer-events: none;
 }
 
 #robot-front-stage::-webkit-scrollbar {
@@ -2872,35 +2871,54 @@ body {
     border-radius: 4px;
 }
 
+/* Mechanical Clamp Bracket at Top of Card */
+.gripper-dock-bracket {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin: -1.5rem -2.5rem 1.5rem -2.5rem;
+    background: #0f172a;
+    border-bottom: 2px solid #334155;
+    padding: 0.6rem 1.5rem 0.8rem;
+    position: sticky;
+    top: -1.5rem;
+    z-index: 10;
+}
+
+.gripper-mount-fixture {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    margin-bottom: 0.4rem;
+}
+
+.clamp-handle-bar {
+    width: 140px;
+    height: 12px;
+    background: linear-gradient(180deg, #f8fafc, #94a3b8, #475569);
+    border: 1px solid #64748b;
+    border-radius: 6px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.8);
+}
+
+.clamp-bolt {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: #cbd5e1;
+    border: 2px solid #334155;
+}
+
 /* Workcell Top Dock Status Header */
 .stage-dock-header {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding-bottom: 0.8rem;
-    margin-bottom: 1.2rem;
-    border-bottom: 1px solid rgba(148, 163, 184, 0.15);
+    width: 100%;
     font-family: monospace;
     font-size: 0.82rem;
     color: #94a3b8;
-}
-
-.dock-expand-btn {
-    background: #1e293b;
-    border: 1px solid #475569;
-    color: #cbd5e1;
-    font-size: 0.75rem;
-    padding: 0.2rem 0.5rem;
-    border-radius: 4px;
-    cursor: pointer;
-    transition: all 0.2s;
-    font-family: monospace;
-}
-
-.dock-expand-btn:hover {
-    background: #f59e0b;
-    color: #0f172a;
-    border-color: #f59e0b;
 }
 
 .stage-dock-title {
@@ -2919,6 +2937,17 @@ body {
     background: #10b981;
     box-shadow: 0 0 8px #10b981;
     display: inline-block;
+}
+
+/* Proper Topic Card Rendering inside robot-front-stage */
+#robot-front-stage .container {
+    max-width: 100% !important;
+    padding: 0 !important;
+}
+
+#robot-front-stage .section-title {
+    font-size: clamp(2rem, 3.5vw, 2.6rem);
+    margin-bottom: 2rem;
 }
 
 /* Section visibility rules for Robot Mode */

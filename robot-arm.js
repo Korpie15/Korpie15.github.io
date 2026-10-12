@@ -1,7 +1,7 @@
 /**
  * ROBOT WORKCELL - THREE.JS 3D INDUSTRIAL ROBOT SYSTEM
- * Industrial 6-DOF Robot Arm with Parallel Gripper & 3D Surrounding Section Bays
- * Authentic Industrial Yellow (FANUC / CAT Yellow), No Cyber Glow
+ * Centered 6-DOF Yellow Robot Arm holding the active section in the middle of the page
+ * Radial surrounding 3D topic bays with clean industrial materials & smooth kinematics
  */
 
 class RobotWorkcell {
@@ -20,64 +20,62 @@ class RobotWorkcell {
         // Robot Hierarchical Joints
         this.robot = null;
         this.joints = {
-            base: null,     // J0: Bolted pedestal
-            turntable: null,// J1: Base rotation around Y
-            shoulder: null, // J2: Pitch around X
+            base: null,
+            turntable: null, // J1 (rotation around Y)
+            shoulder: null,  // J2 (pitch around X)
             upperArm: null,
-            elbow: null,    // J3: Pitch around X
-            forearm: null,  // J4: Roll around Y
-            wrist: null,    // J5: Pitch around X
-            flange: null,   // J6: Tool roll
+            elbow: null,     // J3 (pitch around X)
+            forearm: null,
+            wrist: null,     // J4 (pitch around X)
+            flange: null,    // J5 (roll around tool axis)
             gripper: {
                 base: null,
                 leftFinger: null,
                 rightFinger: null,
-                gap: 0.25,
-                targetGap: 0.25
+                gap: 0.1,
+                targetGap: 0.1
             }
         };
 
-        // Kinematic Targets & Current State
-        this.jointAngles = {
+        // Center Hold Pose (holding workpiece in middle of screen)
+        this.centerPose = {
             j1: 0,
-            j2: 0.35,
-            j3: -0.5,
-            j4: 0,
-            j5: 0.15,
-            j6: 0
+            j2: 0.72,
+            j3: -1.28,
+            j4: 0.56,
+            j5: 0,
+            gap: 0.08
         };
 
-        this.targetJointAngles = { ...this.jointAngles };
+        // Current Joint Angles
+        this.jointAngles = { ...this.centerPose };
+        this.targetJointAngles = { ...this.centerPose };
 
-        // Industrial Pallets & Storage Bays
+        // Topic Bay Definitions (Arranged radially in 3D around the robot)
+        this.bayConfigs = [
+            { id: 'hero', name: 'Home / Dossier', bayNum: '00', pos: [0, 0.4, 2.8], rotY: 0, color: 0x2563eb },
+            { id: 'about', name: 'About Me', bayNum: '01', pos: [-3.4, 0.9, -0.2], rotY: 0.8, color: 0x059669 },
+            { id: 'experience', name: 'Experience', bayNum: '02', pos: [-2.6, 1.8, -2.6], rotY: 1.4, color: 0xd97706 },
+            { id: 'leadership', name: 'Leadership', bayNum: '03', pos: [0, 2.1, -3.5], rotY: Math.PI, color: 0x7c3aed },
+            { id: 'projects', name: 'Projects', bayNum: '04', pos: [2.6, 1.8, -2.6], rotY: -1.4, color: 0x0284c7 },
+            { id: 'skills', name: 'Technical Skills', bayNum: '05', pos: [3.4, 0.9, -0.2], rotY: -0.8, color: 0xe11d48 },
+            { id: 'contact', name: 'Contact', bayNum: '06', pos: [2.2, 0.4, 2.4], rotY: -0.4, color: 0x4f46e5 }
+        ];
+
         this.bays = [];
         this.pallets = [];
         this.activePalletIndex = 0;
-        this.carriedPallet = null;
 
-        // Motion & State Machine
+        // State Machine
         this.isMoving = false;
         this.isEStopped = false;
-        this.isManualJog = false;
-        this.statusText = 'SYSTEM READY - AUTO RUN';
+        this.statusText = 'ROBOT ONLINE // HOLDING IN CENTER';
 
-        // Camera animation targets (framed for split-screen on desktop, centered on mobile)
-        const isWide = typeof window !== 'undefined' && window.innerWidth > 992;
-        this.cameraPos = new THREE.Vector3(isWide ? -0.9 : 0, 3.2, 7.2);
-        this.cameraLookAt = new THREE.Vector3(isWide ? -0.9 : 0, 1.4, 0);
+        // Camera - perfectly centered on robot
+        this.cameraPos = new THREE.Vector3(0, 1.8, 8.2);
+        this.cameraLookAt = new THREE.Vector3(0, 0.4, 0);
 
-        // Section Bay Definitions (Arranged in 3D around the robot)
-        this.bayConfigs = [
-            { id: 'hero', name: 'Home / Dossier', bayNum: '00', pos: [0, 0.45, 2.8], rotY: 0, color: 0x2563eb },
-            { id: 'about', name: 'About Me', bayNum: '01', pos: [-3.8, 1.2, 0.8], rotY: 0.7, color: 0x059669 },
-            { id: 'experience', name: 'Experience', bayNum: '02', pos: [-3.2, 2.2, -2.6], rotY: 1.3, color: 0xd97706 },
-            { id: 'leadership', name: 'Leadership', bayNum: '03', pos: [0, 2.6, -3.8], rotY: Math.PI, color: 0x7c3aed },
-            { id: 'projects', name: 'Projects', bayNum: '04', pos: [3.2, 2.2, -2.6], rotY: -1.3, color: 0x0284c7 },
-            { id: 'skills', name: 'Technical Skills', bayNum: '05', pos: [3.8, 1.2, 0.8], rotY: -0.7, color: 0xe11d48 },
-            { id: 'contact', name: 'Contact', bayNum: '06', pos: [2.5, 0.6, 2.6], rotY: -0.35, color: 0x4f46e5 }
-        ];
-
-        // Callbacks for UI updates
+        // Callbacks
         this.onTelemetryUpdate = null;
         this.onSectionChange = null;
 
@@ -93,7 +91,7 @@ class RobotWorkcell {
         this.setupEventListeners();
         this.animate();
 
-        // Start at home section
+        // Initial setup for Section 0 (Home)
         this.setTargetBay(0, false);
     }
 
@@ -102,11 +100,10 @@ class RobotWorkcell {
         const height = this.container.clientHeight || window.innerHeight;
 
         this.scene = new THREE.Scene();
-        this.scene.background = new THREE.Color(0x0b0f17);
-        this.scene.fog = new THREE.FogExp2(0x0b0f17, 0.035);
+        this.scene.background = new THREE.Color(0x0a0e17);
+        this.scene.fog = new THREE.FogExp2(0x0a0e17, 0.03);
 
-        // Clean Front-Facing Perspective Camera
-        this.camera = new THREE.PerspectiveCamera(42, width / height, 0.1, 100);
+        this.camera = new THREE.PerspectiveCamera(40, width / height, 0.1, 100);
         this.camera.position.copy(this.cameraPos);
         this.camera.lookAt(this.cameraLookAt);
 
@@ -116,482 +113,415 @@ class RobotWorkcell {
         this.renderer.shadowMap.enabled = true;
         this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
         this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
-        this.renderer.toneMappingExposure = 1.1;
+        this.renderer.toneMappingExposure = 1.15;
 
         this.container.appendChild(this.renderer.domElement);
     }
 
     setupLighting() {
-        // High-Bay Industrial Overhead Lighting
-        const ambientLight = new THREE.AmbientLight(0x94a3b8, 0.7);
+        const ambientLight = new THREE.AmbientLight(0x94a3b8, 0.8);
         this.scene.add(ambientLight);
 
-        // Main Directional Factory Spotlight (Casts crisp soft shadows)
-        const mainLight = new THREE.DirectionalLight(0xfffbeb, 1.8);
-        mainLight.position.set(4, 9, 6);
+        // Main Studio Spotlight
+        const mainLight = new THREE.DirectionalLight(0xfffbeb, 1.6);
+        mainLight.position.set(3, 10, 6);
         mainLight.castShadow = true;
         mainLight.shadow.mapSize.width = 2048;
         mainLight.shadow.mapSize.height = 2048;
         mainLight.shadow.camera.near = 0.5;
         mainLight.shadow.camera.far = 25;
-        mainLight.shadow.camera.left = -7;
-        mainLight.shadow.camera.right = 7;
-        mainLight.shadow.camera.top = 7;
-        mainLight.shadow.camera.bottom = -7;
-        mainLight.shadow.bias = -0.0005;
+        mainLight.shadow.camera.left = -6;
+        mainLight.shadow.camera.right = 6;
+        mainLight.shadow.camera.top = 6;
+        mainLight.shadow.camera.bottom = -6;
+        mainLight.shadow.bias = -0.0001;
+        mainLight.shadow.normalBias = 0.02; // Prevents shadow acne artifacts
         this.scene.add(mainLight);
 
-        // Secondary Cool Industrial Fill Light
-        const fillLight = new THREE.DirectionalLight(0x60a5fa, 0.6);
-        fillLight.position.set(-6, 6, -3);
+        // Fill Light
+        const fillLight = new THREE.DirectionalLight(0x38bdf8, 0.5);
+        fillLight.position.set(-5, 6, -3);
         this.scene.add(fillLight);
 
-        // Floor reflection light
-        const floorBounce = new THREE.PointLight(0xffffff, 0.4, 8);
-        floorBounce.position.set(0, 0.3, 1.5);
-        this.scene.add(floorBounce);
-    }
-
-    createHazardTexture() {
-        const canvas = document.createElement('canvas');
-        canvas.width = 256;
-        canvas.height = 64;
-        const ctx = canvas.getContext('2d');
-
-        ctx.fillStyle = '#f59e0b'; // Industrial warning yellow
-        ctx.fillRect(0, 0, 256, 64);
-
-        ctx.fillStyle = '#18181b'; // Dark black stripe
-        const stripeWidth = 32;
-        for (let x = -64; x < 320; x += stripeWidth * 2) {
-            ctx.beginPath();
-            ctx.moveTo(x, 0);
-            ctx.lineTo(x + stripeWidth, 0);
-            ctx.lineTo(x + stripeWidth - 40, 64);
-            ctx.lineTo(x - 40, 64);
-            ctx.closePath();
-            ctx.fill();
-        }
-
-        const texture = new THREE.CanvasTexture(canvas);
-        texture.wrapS = THREE.RepeatWrapping;
-        texture.wrapT = THREE.RepeatWrapping;
-        return texture;
+        // Center Workpiece Accent Light
+        const centerLight = new THREE.PointLight(0xffedd5, 0.6, 6);
+        centerLight.position.set(0, 1.5, 3.0);
+        this.scene.add(centerLight);
     }
 
     buildFactoryFloor() {
-        // Concrete Floor Slab
-        const floorGeo = new THREE.PlaneGeometry(30, 30);
+        const floorGeo = new THREE.PlaneGeometry(32, 32);
         const floorMat = new THREE.MeshStandardMaterial({
-            color: 0x111827,
+            color: 0x0f172a,
             roughness: 0.85,
             metalness: 0.2
         });
         const floor = new THREE.Mesh(floorGeo, floorMat);
         floor.rotation.x = -Math.PI / 2;
-        floor.position.y = 0;
+        floor.position.y = -1.8;
         floor.receiveShadow = true;
         this.scene.add(floor);
 
-        // Workcell Grid Pattern
-        const grid = new THREE.GridHelper(24, 24, 0x374151, 0x1f2937);
-        grid.position.y = 0.002;
+        // Floor Grid Lines
+        const grid = new THREE.GridHelper(26, 26, 0x334155, 0x1e293b);
+        grid.position.y = -1.798;
         this.scene.add(grid);
 
-        // Yellow-Black Hazard Perimeter Line around Robot Envelope
-        const hazardTex = this.createHazardTexture();
-        hazardTex.repeat.set(8, 1);
-
-        const hazardRingGeo = new THREE.RingGeometry(1.6, 1.85, 32);
+        // Yellow Hazard Boundary Circle
+        const hazardRingGeo = new THREE.RingGeometry(1.5, 1.75, 48);
         const hazardRingMat = new THREE.MeshStandardMaterial({
-            map: hazardTex,
-            roughness: 0.6,
+            color: 0xf59e0b,
+            roughness: 0.5,
             side: THREE.DoubleSide
         });
         const hazardRing = new THREE.Mesh(hazardRingGeo, hazardRingMat);
         hazardRing.rotation.x = -Math.PI / 2;
-        hazardRing.position.y = 0.005;
+        hazardRing.position.y = -1.795;
         this.scene.add(hazardRing);
-
-        // Front Dock Workstation Platform
-        const dockGeo = new THREE.BoxGeometry(2.4, 0.15, 1.6);
-        const dockMat = new THREE.MeshStandardMaterial({
-            color: 0x1e293b,
-            roughness: 0.7,
-            metalness: 0.4
-        });
-        const dock = new THREE.Mesh(dockGeo, dockMat);
-        dock.position.set(0, 0.075, 2.5);
-        dock.receiveShadow = true;
-        dock.castShadow = true;
-        this.scene.add(dock);
-
-        // Dock Guide Rails & Fixture Pegs
-        const railMat = new THREE.MeshStandardMaterial({ color: 0x94a3b8, metalness: 0.8, roughness: 0.3 });
-        const leftRail = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.03, 1.4, 16), railMat);
-        leftRail.rotation.x = Math.PI / 2;
-        leftRail.position.set(-1.0, 0.18, 2.5);
-        this.scene.add(leftRail);
-
-        const rightRail = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.03, 1.4, 16), railMat);
-        rightRail.rotation.x = Math.PI / 2;
-        rightRail.position.set(1.0, 0.18, 2.5);
-        this.scene.add(rightRail);
     }
 
     buildRobotArm() {
-        // High-Quality Industrial Powder-Coated Materials
         const yellowMat = new THREE.MeshStandardMaterial({
             color: 0xf59e0b, // FANUC / CAT Yellow
-            roughness: 0.4,
+            roughness: 0.42,
             metalness: 0.25
         });
 
-        const darkJointMat = new THREE.MeshStandardMaterial({
-            color: 0x18181b, // Cast iron dark graphite
+        const darkMat = new THREE.MeshStandardMaterial({
+            color: 0x18181b, // Dark industrial casting
             roughness: 0.65,
-            metalness: 0.4
+            metalness: 0.45
         });
 
         const chromeMat = new THREE.MeshStandardMaterial({
-            color: 0xe2e8f0, // Polished chrome pistons
+            color: 0xe2e8f0, // Polished chrome
             roughness: 0.15,
             metalness: 0.9
         });
 
         const rubberMat = new THREE.MeshStandardMaterial({
             color: 0x09090b,
-            roughness: 0.95,
-            metalness: 0.05
+            roughness: 0.95
         });
 
         this.robot = new THREE.Group();
-        this.robot.position.set(0, 0, 0);
+        this.robot.position.set(0, -1.8, 0); // Position base securely on floor
 
-        // --- J0: Bolted Pedestal Base ---
+        // --- J0: Bolted Pedestal ---
         const baseGroup = new THREE.Group();
-        const baseFlange = new THREE.Mesh(new THREE.CylinderGeometry(0.9, 1.05, 0.18, 24), darkJointMat);
-        baseFlange.position.y = 0.09;
+        const baseFlange = new THREE.Mesh(new THREE.CylinderGeometry(0.85, 0.98, 0.2, 24), darkMat);
+        baseFlange.position.y = 0.1;
         baseFlange.castShadow = true;
         baseFlange.receiveShadow = true;
         baseGroup.add(baseFlange);
 
-        // Anchor Bolts around flange
+        // Foundation Bolts
         for (let i = 0; i < 8; i++) {
             const angle = (i / 8) * Math.PI * 2;
-            const bolt = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.03, 0.12, 8), chromeMat);
-            bolt.position.set(Math.cos(angle) * 0.92, 0.2, Math.sin(angle) * 0.92);
+            const bolt = new THREE.Mesh(new THREE.CylinderGeometry(0.025, 0.025, 0.12, 8), chromeMat);
+            bolt.position.set(Math.cos(angle) * 0.88, 0.22, Math.sin(angle) * 0.88);
             baseGroup.add(bolt);
         }
 
-        const baseCylinder = new THREE.Mesh(new THREE.CylinderGeometry(0.75, 0.82, 0.4, 24), yellowMat);
-        baseCylinder.position.y = 0.38;
+        const baseCylinder = new THREE.Mesh(new THREE.CylinderGeometry(0.7, 0.78, 0.4, 24), yellowMat);
+        baseCylinder.position.y = 0.4;
         baseCylinder.castShadow = true;
         baseGroup.add(baseCylinder);
 
         this.robot.add(baseGroup);
         this.joints.base = baseGroup;
 
-        // --- J1: Turntable (Rotates around Y axis) ---
+        // --- J1: Turntable (Rotates around Y) ---
         const turntable = new THREE.Group();
-        turntable.position.set(0, 0.58, 0);
+        turntable.position.set(0, 0.6, 0);
 
-        const turntableBearing = new THREE.Mesh(new THREE.CylinderGeometry(0.68, 0.72, 0.14, 24), darkJointMat);
-        turntableBearing.position.y = 0.07;
+        const turntableBearing = new THREE.Mesh(new THREE.CylinderGeometry(0.65, 0.68, 0.15, 24), darkMat);
+        turntableBearing.position.y = 0.075;
         turntableBearing.castShadow = true;
         turntable.add(turntableBearing);
 
-        // J1 Motor Housing
-        const motorHousing = new THREE.Mesh(new THREE.BoxGeometry(0.7, 0.55, 0.75), yellowMat);
-        motorHousing.position.set(0, 0.38, -0.05);
+        const motorHousing = new THREE.Mesh(new THREE.BoxGeometry(0.65, 0.5, 0.7), yellowMat);
+        motorHousing.position.set(0, 0.35, -0.05);
         motorHousing.castShadow = true;
         turntable.add(motorHousing);
 
         this.robot.add(turntable);
         this.joints.turntable = turntable;
 
-        // --- J2: Shoulder Pivot ---
+        // --- J2: Shoulder Pivot (Pitches around X) ---
         const shoulder = new THREE.Group();
-        shoulder.position.set(0, 0.65, 0); // Shoulder pivot point
+        shoulder.position.set(0, 0.6, 0); // Shoulder rotation center
 
-        // Shoulder heavy side plates
-        const shoulderPlateLeft = new THREE.Mesh(new THREE.CylinderGeometry(0.32, 0.32, 0.18, 24), darkJointMat);
-        shoulderPlateLeft.rotation.z = Math.PI / 2;
-        shoulderPlateLeft.position.set(-0.38, 0, 0);
-        shoulderPlateLeft.castShadow = true;
-        shoulder.add(shoulderPlateLeft);
+        // Shoulder bearing hubs
+        const leftHub = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.3, 0.18, 20), darkMat);
+        leftHub.rotation.z = Math.PI / 2;
+        leftHub.position.set(-0.36, 0, 0);
+        leftHub.castShadow = true;
+        shoulder.add(leftHub);
 
-        const shoulderPlateRight = new THREE.Mesh(new THREE.CylinderGeometry(0.32, 0.32, 0.18, 24), darkJointMat);
-        shoulderPlateRight.rotation.z = Math.PI / 2;
-        shoulderPlateRight.position.set(0.38, 0, 0);
-        shoulderPlateRight.castShadow = true;
-        shoulder.add(shoulderPlateRight);
+        const rightHub = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.3, 0.18, 20), darkMat);
+        rightHub.rotation.z = Math.PI / 2;
+        rightHub.position.set(0.36, 0, 0);
+        rightHub.castShadow = true;
+        shoulder.add(rightHub);
 
-        // Counterweight block at rear
-        const counterweight = new THREE.Mesh(new THREE.BoxGeometry(0.58, 0.4, 0.5), darkJointMat);
-        counterweight.position.set(0, -0.15, -0.45);
+        // Counterbalance weight behind shoulder
+        const counterweight = new THREE.Mesh(new THREE.BoxGeometry(0.52, 0.38, 0.45), darkMat);
+        counterweight.position.set(0, -0.15, -0.4);
         counterweight.castShadow = true;
         shoulder.add(counterweight);
 
-        // Upper Arm Girder Structure (Length ~ 1.8m)
-        const upperArm = new THREE.Mesh(new THREE.BoxGeometry(0.42, 1.7, 0.45), yellowMat);
-        upperArm.position.set(0, 0.85, 0.08);
+        // Upper Arm Girder (Length L1 = 2.0)
+        const upperArm = new THREE.Mesh(new THREE.BoxGeometry(0.4, 2.0, 0.42), yellowMat);
+        upperArm.position.set(0, 1.0, 0);
         upperArm.castShadow = true;
         shoulder.add(upperArm);
 
         // Hydraulic lift cylinder along upper arm
-        const cylinderBody = new THREE.Mesh(new THREE.CylinderGeometry(0.09, 0.09, 1.0, 16), darkJointMat);
-        cylinderBody.position.set(0.24, 0.6, -0.18);
+        const cylinderBody = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.08, 1.2, 16), darkMat);
+        cylinderBody.position.set(0.24, 0.7, -0.16);
         cylinderBody.castShadow = true;
         shoulder.add(cylinderBody);
 
-        const pistonShaft = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.05, 1.1, 16), chromeMat);
-        pistonShaft.position.set(0.24, 1.1, -0.18);
+        const pistonShaft = new THREE.Mesh(new THREE.CylinderGeometry(0.045, 0.045, 1.3, 16), chromeMat);
+        pistonShaft.position.set(0.24, 1.25, -0.16);
         shoulder.add(pistonShaft);
 
         turntable.add(shoulder);
         this.joints.shoulder = shoulder;
         this.joints.upperArm = upperArm;
 
-        // --- J3: Elbow Pivot ---
+        // --- J3: Elbow Pivot (Pitches around X) ---
         const elbow = new THREE.Group();
-        elbow.position.set(0, 1.7, 0.08); // Top of upper arm
+        elbow.position.set(0, 2.0, 0); // At top of upper arm
 
-        const elbowJointCylinder = new THREE.Mesh(new THREE.CylinderGeometry(0.28, 0.28, 0.52, 24), darkJointMat);
+        const elbowJointCylinder = new THREE.Mesh(new THREE.CylinderGeometry(0.26, 0.26, 0.48, 20), darkMat);
         elbowJointCylinder.rotation.z = Math.PI / 2;
         elbowJointCylinder.castShadow = true;
         elbow.add(elbowJointCylinder);
 
-        // Forearm Link (Length ~ 1.5m)
+        // Forearm Link (Length L2 = 1.8)
         const forearm = new THREE.Group();
         forearm.position.set(0, 0, 0);
 
-        const forearmBody = new THREE.Mesh(new THREE.BoxGeometry(0.35, 1.45, 0.35), yellowMat);
-        forearmBody.position.set(0, 0.72, 0.02);
+        const forearmBody = new THREE.Mesh(new THREE.BoxGeometry(0.32, 1.8, 0.32), yellowMat);
+        forearmBody.position.set(0, 0.9, 0);
         forearmBody.castShadow = true;
         forearm.add(forearmBody);
-
-        // J4 Forearm Roll Barrel
-        const rollBarrel = new THREE.Mesh(new THREE.CylinderGeometry(0.18, 0.18, 0.4, 20), darkJointMat);
-        rollBarrel.position.set(0, 1.45, 0.02);
-        rollBarrel.castShadow = true;
-        forearm.add(rollBarrel);
 
         elbow.add(forearm);
         shoulder.add(elbow);
         this.joints.elbow = elbow;
         this.joints.forearm = forearm;
 
-        // --- J5: Wrist Pitch Pivot ---
+        // --- J4: Wrist Pitch (Pitches around X) ---
         const wrist = new THREE.Group();
-        wrist.position.set(0, 1.62, 0.02);
+        wrist.position.set(0, 1.8, 0); // At top of forearm
 
-        const wristPivot = new THREE.Mesh(new THREE.SphereGeometry(0.19, 16, 16), darkJointMat);
+        const wristPivot = new THREE.Mesh(new THREE.SphereGeometry(0.18, 16, 16), darkMat);
         wristPivot.castShadow = true;
         wrist.add(wristPivot);
 
-        // --- J6: Tool Mount Flange & Parallel Gripper Attachment ---
+        // --- J5: Wrist Tool Flange ---
         const flange = new THREE.Group();
-        flange.position.set(0, 0.15, 0);
+        flange.position.set(0, 0.16, 0);
 
-        const flangePlate = new THREE.Mesh(new THREE.CylinderGeometry(0.16, 0.16, 0.08, 20), chromeMat);
+        const flangePlate = new THREE.Mesh(new THREE.CylinderGeometry(0.15, 0.15, 0.06, 20), chromeMat);
         flangePlate.castShadow = true;
         flange.add(flangePlate);
 
-        // Gripper Body (Pneumatic actuator housing)
-        const gripperBody = new THREE.Mesh(new THREE.BoxGeometry(0.48, 0.22, 0.32), darkJointMat);
-        gripperBody.position.set(0, 0.15, 0);
+        // --- J6: Parallel Gripper Attachment ---
+        const gripperBase = new THREE.Group();
+        gripperBase.position.set(0, 0.12, 0);
+
+        const gripperBody = new THREE.Mesh(new THREE.BoxGeometry(0.44, 0.2, 0.28), darkMat);
         gripperBody.castShadow = true;
-        flange.add(gripperBody);
+        gripperBase.add(gripperBody);
 
-        // Chrome linear guide shafts for fingers
-        const leftGuide = new THREE.Mesh(new THREE.CylinderGeometry(0.025, 0.025, 0.44, 12), chromeMat);
-        leftGuide.rotation.z = Math.PI / 2;
-        leftGuide.position.set(0, 0.18, 0.08);
-        flange.add(leftGuide);
+        // Chrome guide rods
+        const guideRod = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 0.42, 12), chromeMat);
+        guideRod.rotation.z = Math.PI / 2;
+        guideRod.position.set(0, 0.06, 0);
+        gripperBase.add(guideRod);
 
-        const rightGuide = new THREE.Mesh(new THREE.CylinderGeometry(0.025, 0.025, 0.44, 12), chromeMat);
-        rightGuide.rotation.z = Math.PI / 2;
-        rightGuide.position.set(0, 0.18, -0.08);
-        flange.add(rightGuide);
-
-        // Dual Moving Finger Jaws
-        const fingerGeo = new THREE.BoxGeometry(0.08, 0.35, 0.18);
-        const padGeo = new THREE.BoxGeometry(0.03, 0.26, 0.16);
+        // Moving Finger Jaws
+        const fingerGeo = new THREE.BoxGeometry(0.07, 0.32, 0.16);
+        const padGeo = new THREE.BoxGeometry(0.025, 0.24, 0.14);
 
         // Left Finger
         const leftFinger = new THREE.Group();
-        const leftFingerMesh = new THREE.Mesh(fingerGeo, yellowMat);
-        leftFingerMesh.position.y = 0.18;
-        leftFingerMesh.castShadow = true;
-        leftFinger.add(leftFingerMesh);
+        const leftMesh = new THREE.Mesh(fingerGeo, yellowMat);
+        leftMesh.position.y = 0.16;
+        leftMesh.castShadow = true;
+        leftFinger.add(leftMesh);
 
         const leftPad = new THREE.Mesh(padGeo, rubberMat);
-        leftPad.position.set(0.045, 0.18, 0);
+        leftPad.position.set(0.04, 0.16, 0);
         leftFinger.add(leftPad);
 
-        leftFinger.position.set(-0.16, 0.26, 0);
-        flange.add(leftFinger);
+        leftFinger.position.set(-0.1, 0.1, 0);
+        gripperBase.add(leftFinger);
 
         // Right Finger
         const rightFinger = new THREE.Group();
-        const rightFingerMesh = new THREE.Mesh(fingerGeo, yellowMat);
-        rightFingerMesh.position.y = 0.18;
-        rightFingerMesh.castShadow = true;
-        rightFinger.add(rightFingerMesh);
+        const rightMesh = new THREE.Mesh(fingerGeo, yellowMat);
+        rightMesh.position.y = 0.16;
+        rightMesh.castShadow = true;
+        rightFinger.add(rightMesh);
 
         const rightPad = new THREE.Mesh(padGeo, rubberMat);
-        rightPad.position.set(-0.045, 0.18, 0);
+        rightPad.position.set(-0.04, 0.16, 0);
         rightFinger.add(rightPad);
 
-        rightFinger.position.set(0.16, 0.26, 0);
-        flange.add(rightFinger);
+        rightFinger.position.set(0.1, 0.1, 0);
+        gripperBase.add(rightFinger);
 
+        flange.add(gripperBase);
         wrist.add(flange);
         forearm.add(wrist);
 
         this.joints.wrist = wrist;
         this.joints.flange = flange;
-        this.joints.gripper.base = flange;
+        this.joints.gripper.base = gripperBase;
         this.joints.gripper.leftFinger = leftFinger;
         this.joints.gripper.rightFinger = rightFinger;
 
         this.scene.add(this.robot);
     }
 
-    createPalletTexture(text, bayNum, accentColor) {
+    /**
+     * High-Resolution Crisp 3D Pallet Stencil Textures (No shadow artifacts)
+     */
+    createPalletTexture(title, bayNum, accentHex) {
         const canvas = document.createElement('canvas');
-        canvas.width = 512;
-        canvas.height = 256;
+        canvas.width = 1024;
+        canvas.height = 512;
         const ctx = canvas.getContext('2d');
 
-        // Dark industrial plate background
+        // Solid Dark Industrial Steel Background
         ctx.fillStyle = '#0f172a';
-        ctx.fillRect(0, 0, 512, 256);
+        ctx.fillRect(0, 0, 1024, 512);
 
-        // Border with accent color
-        ctx.strokeStyle = accentColor;
-        ctx.lineWidth = 14;
-        ctx.strokeRect(7, 7, 498, 242);
+        // Colored Header Accent Banner
+        ctx.fillStyle = accentHex;
+        ctx.fillRect(0, 0, 1024, 80);
 
-        // Header bar
-        ctx.fillStyle = accentColor;
-        ctx.fillRect(0, 0, 512, 54);
-
+        // Header Text
         ctx.fillStyle = '#ffffff';
-        ctx.font = 'bold 26px "Segoe UI", Arial, sans-serif';
-        ctx.fillText(`BAY ${bayNum} // WORKPIECE DOCK`, 24, 38);
+        ctx.font = 'bold 36px "Segoe UI", Arial, sans-serif';
+        ctx.fillText(`BAY ${bayNum} // WORKPIECE FIXTURE`, 32, 54);
 
-        // Main Section Title
+        // Border
+        ctx.strokeStyle = accentHex;
+        ctx.lineWidth = 12;
+        ctx.strokeRect(6, 6, 1012, 500);
+
+        // Main Topic Title
         ctx.fillStyle = '#f8fafc';
-        ctx.font = 'bold 44px "Segoe UI", Arial, sans-serif';
-        ctx.fillText(text.toUpperCase(), 32, 130);
+        ctx.font = 'bold 74px "Segoe UI", Arial, sans-serif';
+        ctx.fillText(title.toUpperCase(), 48, 240);
 
-        // Subtitle / Specs
+        // Status Line
         ctx.fillStyle = '#94a3b8';
-        ctx.font = '20px monospace';
-        ctx.fillText('STATUS: LOCKED / VERIFIED', 32, 175);
-        ctx.fillText('PAYLOAD: ENGINEERING ASSET', 32, 208);
+        ctx.font = '32px monospace';
+        ctx.fillText('STATUS: VERIFIED // READY FOR DISPATCH', 48, 330);
+        ctx.fillText('CELL DOCK: 6-DOF ROBOT REACH', 48, 385);
 
-        // Corner bolt circles
-        ctx.fillStyle = '#64748b';
-        ctx.beginPath();
-        ctx.arc(28, 28, 8, 0, Math.PI * 2);
-        ctx.arc(484, 28, 8, 0, Math.PI * 2);
-        ctx.arc(28, 228, 8, 0, Math.PI * 2);
-        ctx.arc(484, 228, 8, 0, Math.PI * 2);
-        ctx.fill();
+        // Corner Bolt Rivets
+        ctx.fillStyle = '#475569';
+        [ [40, 40], [984, 40], [40, 472], [984, 472] ].forEach(([x, y]) => {
+            ctx.beginPath();
+            ctx.arc(x, y, 14, 0, Math.PI * 2);
+            ctx.fill();
+        });
 
-        return new THREE.CanvasTexture(canvas);
+        const texture = new THREE.CanvasTexture(canvas);
+        texture.minFilter = THREE.LinearFilter;
+        texture.magFilter = THREE.LinearFilter;
+        return texture;
     }
 
     buildWorkcellBays() {
-        const rackSteelMat = new THREE.MeshStandardMaterial({
+        const steelMat = new THREE.MeshStandardMaterial({
             color: 0x334155,
-            metalness: 0.6,
-            roughness: 0.5
+            roughness: 0.5,
+            metalness: 0.6
         });
 
-        const handleChromeMat = new THREE.MeshStandardMaterial({
+        const chromeMat = new THREE.MeshStandardMaterial({
             color: 0xf1f5f9,
-            metalness: 0.9,
-            roughness: 0.2
+            roughness: 0.15,
+            metalness: 0.95
         });
 
         this.bayConfigs.forEach((cfg, index) => {
+            // Stand Rack in 3D Space
             const bayGroup = new THREE.Group();
             bayGroup.position.set(cfg.pos[0], cfg.pos[1], cfg.pos[2]);
             bayGroup.rotation.y = cfg.rotY;
 
-            // Cantilever Storage Rack Stand
-            const postHeight = cfg.pos[1];
+            // Cantilever Post
+            const postHeight = cfg.pos[1] - (-1.8);
             if (postHeight > 0.4) {
-                const post = new THREE.Mesh(new THREE.BoxGeometry(0.18, postHeight, 0.18), rackSteelMat);
+                const post = new THREE.Mesh(new THREE.BoxGeometry(0.18, postHeight, 0.18), steelMat);
                 post.position.set(0, -postHeight / 2, 0);
                 post.castShadow = true;
                 bayGroup.add(post);
             }
 
-            // Shelf Cradle
-            const shelf = new THREE.Mesh(new THREE.BoxGeometry(1.6, 0.1, 1.1), rackSteelMat);
+            // Shelf Platform
+            const shelf = new THREE.Mesh(new THREE.BoxGeometry(1.6, 0.08, 1.1), steelMat);
             shelf.castShadow = true;
             shelf.receiveShadow = true;
             bayGroup.add(shelf);
 
-            // Side Guide Brackets
-            const leftGuide = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.22, 1.1), rackSteelMat);
-            leftGuide.position.set(-0.84, 0.1, 0);
-            bayGroup.add(leftGuide);
-
-            const rightGuide = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.22, 1.1), rackSteelMat);
-            rightGuide.position.set(0.84, 0.1, 0);
-            bayGroup.add(rightGuide);
-
             this.scene.add(bayGroup);
             this.bays.push(bayGroup);
 
-            // Workpiece Section Pallet
+            // 3D Workpiece Pallet
             const palletGroup = new THREE.Group();
-            palletGroup.position.set(cfg.pos[0], cfg.pos[1] + 0.12, cfg.pos[2]);
+            palletGroup.position.set(cfg.pos[0], cfg.pos[1] + 0.1, cfg.pos[2]);
             palletGroup.rotation.y = cfg.rotY;
 
-            // Pallet Base Slab
-            const palletSlab = new THREE.Mesh(new THREE.BoxGeometry(1.4, 0.14, 0.95), rackSteelMat);
-            palletSlab.castShadow = true;
-            palletGroup.add(palletSlab);
+            // Pallet Base
+            const palletBase = new THREE.Mesh(new THREE.BoxGeometry(1.4, 0.12, 0.9), steelMat);
+            palletBase.castShadow = true;
+            palletGroup.add(palletBase);
 
-            // Front Info Display Faceplate
+            // Faceplate Display (Thick Box to prevent shadow acne)
             const hexColor = '#' + cfg.color.toString(16).padStart(6, '0');
             const faceTex = this.createPalletTexture(cfg.name, cfg.bayNum, hexColor);
             const faceMat = new THREE.MeshStandardMaterial({
                 map: faceTex,
                 roughness: 0.4,
-                metalness: 0.1
+                polygonOffset: true,
+                polygonOffsetFactor: -1,
+                polygonOffsetUnits: -1
             });
-            const faceplate = new THREE.Mesh(new THREE.PlaneGeometry(1.3, 0.65), faceMat);
-            faceplate.position.set(0, 0.42, 0.48);
+            const faceplate = new THREE.Mesh(new THREE.BoxGeometry(1.3, 0.65, 0.04), faceMat);
+            faceplate.position.set(0, 0.44, 0.45);
             faceplate.castShadow = true;
             palletGroup.add(faceplate);
 
-            // Steel Lift Lug / Handle for Gripper Clamping
-            const handleBar = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, 0.32, 16), handleChromeMat);
+            // Top Lifting Handle for Gripper Clamping
+            const handleBar = new THREE.Mesh(new THREE.CylinderGeometry(0.035, 0.035, 0.32, 16), chromeMat);
             handleBar.rotation.z = Math.PI / 2;
-            handleBar.position.set(0, 0.78, 0);
+            handleBar.position.set(0, 0.82, 0);
             handleBar.castShadow = true;
             palletGroup.add(handleBar);
 
-            const leftStanchion = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.03, 0.16, 12), handleChromeMat);
-            leftStanchion.position.set(-0.16, 0.7, 0);
+            const leftStanchion = new THREE.Mesh(new THREE.CylinderGeometry(0.025, 0.025, 0.15, 12), chromeMat);
+            leftStanchion.position.set(-0.16, 0.74, 0);
             palletGroup.add(leftStanchion);
 
-            const rightStanchion = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.03, 0.16, 12), handleChromeMat);
-            rightStanchion.position.set(0.16, 0.7, 0);
+            const rightStanchion = new THREE.Mesh(new THREE.CylinderGeometry(0.025, 0.025, 0.15, 12), chromeMat);
+            rightStanchion.position.set(0.16, 0.74, 0);
             palletGroup.add(rightStanchion);
 
             palletGroup.userData = {
                 index,
                 cfg,
-                homePos: new THREE.Vector3(cfg.pos[0], cfg.pos[1] + 0.12, cfg.pos[2]),
+                homePos: new THREE.Vector3(cfg.pos[0], cfg.pos[1] + 0.1, cfg.pos[2]),
                 homeRotY: cfg.rotY
             };
 
@@ -601,234 +531,141 @@ class RobotWorkcell {
     }
 
     /**
-     * Kinematic Solve for reaching a target position in cell space
+     * Kinematic Solve for reaching Bay Targets
      */
-    calculateJointsForPosition(targetPos, pitchAngle = 0.2) {
-        // Polar angle on horizontal plane gives J1 base angle
-        const dx = targetPos.x;
-        const dz = targetPos.z;
-        const j1 = Math.atan2(dx, dz);
+    calculateAnglesForBay(cfg) {
+        const dx = cfg.pos[0];
+        const dz = cfg.pos[2];
+        const j1 = Math.atan2(dx, dz); // Base rotation angle
 
-        // Distance in horizontal reach
-        const r = Math.sqrt(dx * dx + dz * dz);
-        const y = targetPos.y;
+        const dist = Math.sqrt(dx * dx + dz * dz);
+        const y = cfg.pos[1];
 
-        // Simplified 2-link geometric reach for J2 (shoulder) and J3 (elbow)
-        const L1 = 1.7; // Upper arm length
-        const L2 = 1.5; // Forearm length
-
-        // Wrist center offset
-        const r_target = Math.max(0.8, r - 0.25);
-        const y_target = Math.max(0.4, y);
-
-        const d_sq = r_target * r_target + (y_target - 0.8) * (y_target - 0.8);
-        const d = Math.sqrt(d_sq);
-
-        // Clamp reach within physical envelope
-        const reach = Math.min(d, (L1 + L2) * 0.96);
-
-        // Law of Cosines for elbow angle
-        const cosElbow = (reach * reach - L1 * L1 - L2 * L2) / (2 * L1 * L2);
-        const safeCos = Math.max(-1, Math.min(1, cosElbow));
-        const elbowAngle = -Math.acos(safeCos);
-
-        // Shoulder elevation angle
-        const alpha = Math.atan2(y_target - 0.8, r_target);
-        const beta = Math.acos(Math.max(-1, Math.min(1, (L1 * L1 + reach * reach - L2 * L2) / (2 * L1 * reach))));
-        const shoulderAngle = Math.PI / 2 - (alpha + beta);
-
+        // Natural articulated reach
         return {
             j1: j1,
-            j2: THREE.MathUtils.clamp(shoulderAngle, -0.6, 1.2),
-            j3: THREE.MathUtils.clamp(elbowAngle, -1.8, -0.1),
-            j4: 0,
-            j5: THREE.MathUtils.clamp(pitchAngle, -0.8, 0.8),
-            j6: 0
+            j2: THREE.MathUtils.clamp(0.45 + (dist * 0.08) - (y * 0.06), 0.2, 0.9),
+            j3: THREE.MathUtils.clamp(-1.1 - (dist * 0.06), -1.6, -0.6),
+            j4: 0.65,
+            j5: 0,
+            gap: 0.08
         };
     }
 
     /**
-     * Dispatches robot to target section bay with full pick-and-place sequence
+     * Main Pick-and-Place Cycle
+     * Moves robot to target bay, grips workpiece, brings it to middle of the screen
      */
     setTargetBay(index, animate = true) {
-        if (this.isEStopped) {
-            console.warn('Robot is halted by E-STOP');
-            return;
-        }
-
+        if (this.isEStopped) return;
         if (index < 0 || index >= this.bayConfigs.length) return;
 
         const targetCfg = this.bayConfigs[index];
-        const previousIndex = this.activePalletIndex;
+        const prevIndex = this.activePalletIndex;
         this.activePalletIndex = index;
         this.isMoving = true;
-        this.statusText = `DISPATCHING TO BAY [${targetCfg.bayNum} // ${targetCfg.name.toUpperCase()}]`;
+        this.statusText = `DISPATCHING: BAY [${targetCfg.bayNum} // ${targetCfg.name.toUpperCase()}]`;
 
         if (!animate) {
-            // Instant setup for initial load
-            const angles = this.calculateJointsForPosition(
-                new THREE.Vector3(targetCfg.pos[0], targetCfg.pos[1] + 0.6, targetCfg.pos[2])
-            );
-            this.jointAngles = { ...angles };
-            this.targetJointAngles = { ...angles };
-            this.updatePalletPositionsImmediate(index);
+            // Instant center pose
+            this.jointAngles = { ...this.centerPose };
+            this.targetJointAngles = { ...this.centerPose };
             this.isMoving = false;
-            this.statusText = `DOCKED AT FRONT STAGE // ${targetCfg.name.toUpperCase()}`;
+            this.statusText = `HOLDING IN CENTER // ${targetCfg.name.toUpperCase()}`;
             if (this.onSectionChange) this.onSectionChange(targetCfg.id, index);
             return;
         }
 
-        // GSAP Pick-and-Place Animated Choreography
+        // Animated GSAP Sequence
         if (typeof gsap !== 'undefined') {
-            this.executePickAndPlaceChoreography(previousIndex, index, targetCfg);
+            this.executeFetchChoreography(prevIndex, index, targetCfg);
         } else {
-            // Fallback lerp target
-            const targetPos = new THREE.Vector3(targetCfg.pos[0], targetCfg.pos[1] + 0.6, targetCfg.pos[2]);
-            this.targetJointAngles = this.calculateJointsForPosition(targetPos);
-            this.updatePalletPositionsImmediate(index);
+            // Fallback lerp
             setTimeout(() => {
                 this.isMoving = false;
-                this.statusText = `DOCKED // ${targetCfg.name.toUpperCase()}`;
+                this.statusText = `HOLDING IN CENTER // ${targetCfg.name.toUpperCase()}`;
                 if (this.onSectionChange) this.onSectionChange(targetCfg.id, index);
-            }, 1200);
+            }, 1000);
         }
     }
 
-    executePickAndPlaceChoreography(fromIndex, toIndex, targetCfg) {
+    executeFetchChoreography(fromIndex, toIndex, targetCfg) {
+        const bayAngles = this.calculateAnglesForBay(targetCfg);
+
+        // Tell UI the current card is transitioning (shrinks / fades smoothly)
+        const stageCard = document.getElementById('robot-front-stage');
+        if (stageCard) stageCard.classList.add('transitioning');
+
         const tl = gsap.timeline({
             onComplete: () => {
                 this.isMoving = false;
-                this.statusText = `DOCKED AT FRONT STAGE // ${targetCfg.name.toUpperCase()}`;
+                this.statusText = `HOLDING IN CENTER // ${targetCfg.name.toUpperCase()}`;
+                if (stageCard) stageCard.classList.remove('transitioning');
                 if (this.onSectionChange) this.onSectionChange(targetCfg.id, toIndex);
             }
         });
 
-        const currentPallet = this.pallets[fromIndex];
-        const targetPallet = this.pallets[toIndex];
-        const frontPos = new THREE.Vector3(0, 0.45 + 0.12, 2.5);
-
-        // Step 1: Open Gripper
+        // 1. Release gripper & retract arm upward
         tl.to(this.joints.gripper, {
-            targetGap: 0.28,
+            targetGap: 0.24,
             duration: 0.35,
             ease: 'power2.out'
         });
 
-        // Step 2: If previous pallet is at front stage and not target, return it to its bay
-        if (fromIndex !== toIndex && fromIndex !== 0) {
-            const returnAngles = this.calculateJointsForPosition(
-                new THREE.Vector3(currentPallet.userData.homePos.x, currentPallet.userData.homePos.y + 0.5, currentPallet.userData.homePos.z)
-            );
-
-            // Lift pallet from front dock
-            tl.to(currentPallet.position, {
-                y: frontPos.y + 0.8,
-                duration: 0.5,
-                ease: 'power2.inOut'
-            }, 'returnStart');
-
-            // Move robot to return bay
-            tl.to(this.targetJointAngles, {
-                ...returnAngles,
-                duration: 0.9,
-                ease: 'power2.inOut'
-            }, 'returnStart');
-
-            // Pallet travels with arm to its home bay
-            tl.to(currentPallet.position, {
-                x: currentPallet.userData.homePos.x,
-                y: currentPallet.userData.homePos.y,
-                z: currentPallet.userData.homePos.z,
-                duration: 0.9,
-                ease: 'power2.inOut'
-            }, 'returnStart+=0.2');
-
-            tl.to(currentPallet.rotation, {
-                y: currentPallet.userData.homeRotY,
-                duration: 0.9,
-                ease: 'power2.inOut'
-            }, 'returnStart+=0.2');
-        }
-
-        // Step 3: Align to target bay & approach workpiece
-        const pickAngles = this.calculateJointsForPosition(
-            new THREE.Vector3(targetPallet.userData.homePos.x, targetPallet.userData.homePos.y + 0.5, targetPallet.userData.homePos.z)
-        );
-
         tl.to(this.targetJointAngles, {
-            ...pickAngles,
-            duration: 0.8,
+            j2: 0.35,
+            j3: -0.75,
+            j4: 0.4,
+            duration: 0.45,
             ease: 'power2.inOut'
-        }, 'fetch');
+        });
 
-        // Step 4: Close Gripper around target workpiece
+        // 2. Rotate base and extend to target Bay
+        tl.to(this.targetJointAngles, {
+            j1: bayAngles.j1,
+            j2: bayAngles.j2,
+            j3: bayAngles.j3,
+            j4: bayAngles.j4,
+            duration: 0.9,
+            ease: 'power2.inOut'
+        }, 'reachBay');
+
+        // 3. Clamp Gripper onto target workpiece handle
         tl.to(this.joints.gripper, {
-            targetGap: 0.08, // Clamp tight
-            duration: 0.35,
+            targetGap: 0.08,
+            duration: 0.3,
             ease: 'power2.in'
         });
 
-        // Step 5: Hoist & Swing Workpiece to Front Center Dock
-        const frontAngles = this.calculateJointsForPosition(
-            new THREE.Vector3(0, 0.45 + 0.5, 2.5)
-        );
-
+        // 4. Lift workpiece from rack
         tl.to(this.targetJointAngles, {
-            ...frontAngles,
-            duration: 1.1,
-            ease: 'power2.inOut'
-        }, 'carry');
-
-        tl.to(targetPallet.position, {
-            x: 0,
-            y: frontPos.y + 0.1,
-            z: frontPos.z,
-            duration: 1.1,
-            ease: 'power2.inOut'
-        }, 'carry');
-
-        tl.to(targetPallet.rotation, {
-            y: 0,
-            duration: 1.1,
-            ease: 'power2.inOut'
-        }, 'carry');
-
-        // Step 6: Dock onto front platform & Release Gripper
-        tl.to(targetPallet.position, {
-            y: frontPos.y,
-            duration: 0.3,
-            ease: 'bounce.out'
+            j2: bayAngles.j2 - 0.2,
+            j3: bayAngles.j3 + 0.15,
+            duration: 0.4,
+            ease: 'power2.out'
         });
 
+        // 5. Swing smoothly back to Center Hold Pose (in front of camera)
+        tl.to(this.targetJointAngles, {
+            j1: this.centerPose.j1,
+            j2: this.centerPose.j2,
+            j3: this.centerPose.j3,
+            j4: this.centerPose.j4,
+            duration: 1.0,
+            ease: 'power2.inOut'
+        }, 'bringCenter');
+
+        // 6. Firm Grip lock
         tl.to(this.joints.gripper, {
-            targetGap: 0.24, // Release clamp
-            duration: 0.35,
+            targetGap: 0.07,
+            duration: 0.25,
             ease: 'power2.out'
         });
     }
 
-    updatePalletPositionsImmediate(activeIdx) {
-        const frontPos = new THREE.Vector3(0, 0.45 + 0.12, 2.5);
-
-        this.pallets.forEach((pallet, idx) => {
-            if (idx === activeIdx) {
-                pallet.position.set(frontPos.x, frontPos.y, frontPos.z);
-                pallet.rotation.y = 0;
-            } else {
-                pallet.position.copy(pallet.userData.homePos);
-                pallet.rotation.y = pallet.userData.homeRotY;
-            }
-        });
-    }
-
-    /**
-     * Manual Jog Controls for Teach Pendant
-     */
     jogJoint(jointKey, delta) {
         if (this.isEStopped) return;
-        this.isManualJog = true;
-        this.statusText = `MANUAL JOG // ${jointKey.toUpperCase()} ADJUST`;
-
+        this.statusText = `MANUAL JOG // ${jointKey.toUpperCase()}`;
         if (this.targetJointAngles[jointKey] !== undefined) {
             this.targetJointAngles[jointKey] += delta;
         }
@@ -836,20 +673,19 @@ class RobotWorkcell {
 
     toggleGripperManual() {
         if (this.isEStopped) return;
-        this.joints.gripper.targetGap = this.joints.gripper.targetGap > 0.15 ? 0.08 : 0.26;
+        this.joints.gripper.targetGap = this.joints.gripper.targetGap > 0.15 ? 0.07 : 0.24;
         this.statusText = this.joints.gripper.targetGap > 0.15 ? 'GRIPPER: OPEN' : 'GRIPPER: CLAMPED';
     }
 
     emergencyStop() {
         this.isEStopped = true;
-        this.isMoving = false;
-        this.statusText = 'EMERGENCY STOP (E-STOP) ACTIVATED! ALL DRIVES HALTED';
+        this.statusText = 'EMERGENCY STOP (E-STOP) ACTIVATED! ALL MOTORS HALTED';
         if (typeof gsap !== 'undefined') gsap.globalTimeline.pause();
     }
 
     resetEmergencyStop() {
         this.isEStopped = false;
-        this.statusText = 'E-STOP CLEARED // DRIVES RE-INITIALIZED';
+        this.statusText = 'E-STOP CLEARED // MOTORS RE-INITIALIZED';
         if (typeof gsap !== 'undefined') gsap.globalTimeline.resume();
     }
 
@@ -861,10 +697,6 @@ class RobotWorkcell {
             this.camera.aspect = width / height;
             this.camera.updateProjectionMatrix();
             this.renderer.setSize(width, height);
-
-            const isWide = width > 992;
-            this.cameraPos.x = isWide ? -0.9 : 0;
-            this.cameraLookAt.x = isWide ? -0.9 : 0;
         });
     }
 
@@ -873,24 +705,20 @@ class RobotWorkcell {
 
         const delta = this.clock.getDelta();
 
-        // Interpolate Joint Angles (Physical Servo Lerp)
         if (!this.isEStopped) {
-            const lerpSpeed = 5.0 * delta;
+            const lerpSpeed = 6.0 * delta;
             this.jointAngles.j1 += (this.targetJointAngles.j1 - this.jointAngles.j1) * lerpSpeed;
             this.jointAngles.j2 += (this.targetJointAngles.j2 - this.jointAngles.j2) * lerpSpeed;
             this.jointAngles.j3 += (this.targetJointAngles.j3 - this.jointAngles.j3) * lerpSpeed;
             this.jointAngles.j4 += (this.targetJointAngles.j4 - this.jointAngles.j4) * lerpSpeed;
-            this.jointAngles.j5 += (this.targetJointAngles.j5 - this.jointAngles.j5) * lerpSpeed;
-            this.jointAngles.j6 += (this.targetJointAngles.j6 - this.jointAngles.j6) * lerpSpeed;
 
-            // Apply to 3D Hierarchical Joints
+            // Apply to 3D Joints
             if (this.joints.turntable) this.joints.turntable.rotation.y = this.jointAngles.j1;
             if (this.joints.shoulder) this.joints.shoulder.rotation.x = this.jointAngles.j2;
             if (this.joints.elbow) this.joints.elbow.rotation.x = this.jointAngles.j3;
-            if (this.joints.forearm) this.joints.forearm.rotation.y = this.jointAngles.j4;
-            if (this.joints.wrist) this.joints.wrist.rotation.x = this.jointAngles.j5;
+            if (this.joints.wrist) this.joints.wrist.rotation.x = this.jointAngles.j4;
 
-            // Gripper Finger Jaw Translation
+            // Gripper Finger Motion
             this.joints.gripper.gap += (this.joints.gripper.targetGap - this.joints.gripper.gap) * 8.0 * delta;
             if (this.joints.gripper.leftFinger && this.joints.gripper.rightFinger) {
                 this.joints.gripper.leftFinger.position.x = -this.joints.gripper.gap;
@@ -898,16 +726,15 @@ class RobotWorkcell {
             }
         }
 
-        // Camera gentle tracking
+        // Camera smoothly frames robot
         this.camera.position.lerp(this.cameraPos, 0.05);
         this.camera.lookAt(this.cameraLookAt);
 
-        // Render Frame
         if (this.renderer && this.scene && this.camera) {
             this.renderer.render(this.scene, this.camera);
         }
 
-        // Telemetry readout for UI Teach Pendant
+        // Telemetry Update
         if (this.onTelemetryUpdate) {
             this.onTelemetryUpdate({
                 j1: THREE.MathUtils.radToDeg(this.jointAngles.j1).toFixed(1),
