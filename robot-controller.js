@@ -693,18 +693,22 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
-    window.toggleCardInspect = function(forceAction) {
+    window.toggleCardInspect = function(actionOrEvent) {
+        if (actionOrEvent && typeof actionOrEvent.stopPropagation === 'function') {
+            actionOrEvent.stopPropagation();
+        }
+
         const stage = document.getElementById('robot-front-stage');
         const btn = document.getElementById('dockInspectBtn');
         if (!stage) return;
 
         let shouldMinimize;
-        if (forceAction === 'expand') {
+        if (actionOrEvent === 'expand') {
             shouldMinimize = false;
-        } else if (forceAction === 'minimize') {
+        } else if (actionOrEvent === 'minimize') {
             shouldMinimize = true;
         } else {
-            // Default toggle: if currently minimized, clicking re-opens/expands it
+            // Default toggle: if currently minimized, expand; if open, minimize
             shouldMinimize = !stage.classList.contains('minimized-dock');
         }
 
@@ -727,12 +731,24 @@ document.addEventListener('DOMContentLoaded', () => {
      * (the dock bracket, indicator, title, or button) re-opens it immediately.
      */
     const frontStage = document.getElementById('robot-front-stage');
+    const dockInspectBtn = document.getElementById('dockInspectBtn');
+
+    if (dockInspectBtn) {
+        // Fast touch response on mobile without 300ms delay or double fire
+        dockInspectBtn.addEventListener('touchend', (e) => {
+            if (e.cancelable) e.preventDefault();
+            e.stopPropagation();
+            window.toggleCardInspect();
+        }, { passive: false });
+    }
+
     if (frontStage) {
         let dockTouchStartX = 0;
         let dockTouchStartY = 0;
         let dockTouchMoved = false;
 
         frontStage.addEventListener('touchstart', (e) => {
+            if (e.target && e.target.closest('#dockInspectBtn')) return;
             if (frontStage.classList.contains('minimized-dock') && e.touches.length > 0) {
                 const t = e.touches[0];
                 dockTouchStartX = t.clientX;
@@ -742,6 +758,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }, { passive: true });
 
         frontStage.addEventListener('touchmove', (e) => {
+            if (e.target && e.target.closest('#dockInspectBtn')) return;
             if (frontStage.classList.contains('minimized-dock') && e.touches.length > 0) {
                 const t = e.touches[0];
                 if (Math.hypot(t.clientX - dockTouchStartX, t.clientY - dockTouchStartY) > 10) {
@@ -751,6 +768,8 @@ document.addEventListener('DOMContentLoaded', () => {
         }, { passive: true });
 
         frontStage.addEventListener('touchend', (e) => {
+            // If the user tapped the inspect button itself, ignore here
+            if (e.target && e.target.closest('#dockInspectBtn')) return;
             if (frontStage.classList.contains('minimized-dock') && !dockTouchMoved) {
                 if (e.cancelable) e.preventDefault();
                 e.stopPropagation();
@@ -759,6 +778,11 @@ document.addEventListener('DOMContentLoaded', () => {
         }, { passive: false });
 
         frontStage.addEventListener('click', (e) => {
+            // CRITICAL: If the user clicked the button itself, do not handle here
+            // (Otherwise the button's minimize action gets immediately reversed!)
+            if (e.target && e.target.closest('#dockInspectBtn')) {
+                return;
+            }
             if (frontStage.classList.contains('minimized-dock')) {
                 e.stopPropagation();
                 window.toggleCardInspect('expand');
