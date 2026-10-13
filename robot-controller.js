@@ -44,6 +44,14 @@ document.addEventListener('DOMContentLoaded', () => {
     hideFrontStageSection();
     highlightActivePendantButton(-1);
 
+    // Mobile discovery hint:
+    if (window.innerWidth <= 768) {
+        const hint = document.createElement('div');
+        hint.className = 'mobile-workcell-hint';
+        hint.innerHTML = '<span>👆</span> Tap briefcase to open • <span>↕</span> Swipe to scrub';
+        document.body.appendChild(hint);
+    }
+
     // Support URL parameters for automated verification (?bay=1&inspect=true&progress=0.5)
     const urlParams = new URLSearchParams(window.location.search);
     const inspectParam = urlParams.get('inspect');
@@ -93,11 +101,12 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!isNaN(bIdx)) {
             setTimeout(() => {
                 const cfg = workcell.bayConfigs[bIdx];
-                const pose = workcell.solveIK(cfg.pos[0], cfg.handleY, cfg.pos[2]);
+                const pose = workcell.solveIK(cfg.pos[0], cfg.handleY, cfg.pos[2], cfg.rotY);
                 workcell.jointAngles.j1 = pose.j1;
                 workcell.jointAngles.j2 = pose.j2;
                 workcell.jointAngles.j3 = pose.j3;
                 workcell.jointAngles.j4 = pose.j4;
+                workcell.jointAngles.j6 = pose.j6 || 0;
                 workcell.joints.gripper.targetGap = 0.075;
                 workcell.joints.gripper.gap = 0.075;
                 workcell.statusText = `CLAMPED AT BAY [${cfg.bayNum} // ${cfg.name.toUpperCase()}]`;
@@ -135,6 +144,9 @@ document.addEventListener('DOMContentLoaded', () => {
                     <div class="tp-led tp-led-jog" id="tp-led-jog" title="Manual Jog Mode">
                         <span class="led-pip"></span> JOG
                     </div>
+                    <div class="tp-led tp-led-limit" id="tp-led-limit" title="Dynamic Collision Limit Active">
+                        <span class="led-pip"></span> LIMIT
+                    </div>
                     <div class="tp-led tp-led-estop" id="tp-led-estop" title="Emergency Stop">
                         <span class="led-pip"></span> E-STOP
                     </div>
@@ -162,7 +174,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 <!-- Section Workpiece Selector Buttons -->
                 <div class="tp-section-label">WORKPIECE SELECTOR (CLICK TO DRIVE ROBOT):</div>
                 <div class="tp-button-grid">
-                    <button class="tp-btn tp-workpiece-btn active" data-index="0">0: HOME</button>
+                    <button class="tp-btn tp-workpiece-btn" data-index="0">0: HOME</button>
                     <button class="tp-btn tp-workpiece-btn" data-index="1">1: ABOUT</button>
                     <button class="tp-btn tp-workpiece-btn" data-index="2">2: EXPERT</button>
                     <button class="tp-btn tp-workpiece-btn" data-index="3">3: LEAD</button>
@@ -208,6 +220,12 @@ document.addEventListener('DOMContentLoaded', () => {
                         <div class="tp-jog-row tp-grip-row">
                             <span class="jog-label">GRIPPER:</span>
                             <button class="tp-jog-btn tp-grip-btn" id="jog-grip-toggle">CLAMP / OPEN JAWS</button>
+                        </div>
+                        <div class="tp-safety-toggle-row">
+                            <button class="tp-btn tp-collision-toggle-btn" id="tp-collision-toggle-btn" title="Toggle 3D Dynamic Collision Safety Envelopes">
+                                🛡️ COLLISION MODEL: OFF
+                            </button>
+                            <div class="tp-safety-pill">DCS ACTIVE // SELF-COLLISION PREVENTED</div>
                         </div>
                     </div>
                 </div>
@@ -289,6 +307,16 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         }
 
+        // 3D Collision Model Visualization Toggle Button
+        const collToggleBtn = pendant.querySelector('#tp-collision-toggle-btn');
+        if (collToggleBtn) {
+            collToggleBtn.addEventListener('click', () => {
+                const isVisible = workcell.toggleCollisionModel();
+                collToggleBtn.textContent = isVisible ? '🛡️ COLLISION MODEL: ON' : '🛡️ COLLISION MODEL: OFF';
+                collToggleBtn.classList.toggle('active', isVisible);
+            });
+        }
+
         // Emergency Stop Button
         const estopBtn = pendant.querySelector('#tp-estop-btn');
         estopBtn.addEventListener('click', () => {
@@ -336,7 +364,23 @@ document.addEventListener('DOMContentLoaded', () => {
         const lcdGrip = document.getElementById('lcd-grip');
         const lcdBay = document.getElementById('lcd-bay');
 
-        if (lcdStatus) lcdStatus.textContent = data.status;
+        const limitLed = document.getElementById('tp-led-limit');
+        if (limitLed) {
+            if (data.isAtDynamicLimit) {
+                limitLed.classList.add('active');
+            } else {
+                limitLed.classList.remove('active');
+            }
+        }
+
+        if (lcdStatus) {
+            lcdStatus.textContent = data.status;
+            if (data.isAtDynamicLimit) {
+                lcdStatus.style.color = '#f97316';
+            } else {
+                lcdStatus.style.color = '#86efac';
+            }
+        }
         if (lcdJ1) lcdJ1.textContent = `J1: ${data.j1}°`;
         if (lcdJ2) lcdJ2.textContent = `J2: ${data.j2}°`;
         if (lcdJ3) lcdJ3.textContent = `J3: ${data.j3}°`;
@@ -353,50 +397,77 @@ document.addEventListener('DOMContentLoaded', () => {
      */
     function hideFrontStageSection() {
         const stageCard = document.getElementById('robot-front-stage');
+        const stageBeam = document.getElementById('robot-stage-beam');
         if (!stageCard) return;
+
         stageCard.classList.remove('expanded');
         stageCard.classList.add('docked-hidden');
-        document.querySelectorAll('.section, .hero').forEach(sec => {
-            sec.classList.add('robot-mode-hidden');
-            sec.classList.remove('robot-mode-active');
-        });
+        if (stageBeam) {
+            stageBeam.classList.remove('expanded');
+            stageBeam.classList.add('docked-hidden');
+        }
     }
 
     function displayFrontStageSection(sectionId, index) {
         if (viewMode !== 'robot') return;
 
         const stageCard = document.getElementById('robot-front-stage');
+        const stageBeam = document.getElementById('robot-stage-beam');
         if (!stageCard) return;
 
-        // Hide all original sections in standard flow while in robot mode
+        // 1. Immediately emerge the stage card and beam (0.3s CSS transition)
+        stageCard.classList.remove('docked-hidden', 'transitioning');
+        stageCard.classList.add('expanded');
+        if (stageBeam) {
+            stageBeam.classList.remove('docked-hidden', 'transitioning');
+            stageBeam.classList.add('expanded');
+        }
+
+        // 2. Hide all other sections, show target section inside front stage
         document.querySelectorAll('.section, .hero').forEach(sec => {
             sec.classList.add('robot-mode-hidden');
             sec.classList.remove('robot-mode-active');
         });
 
-        // Show target section inside Front Stage
         const targetSection = document.getElementById(sectionId);
         if (targetSection) {
             targetSection.classList.remove('robot-mode-hidden');
             targetSection.classList.add('robot-mode-active');
-            stageCard.classList.remove('docked-hidden');
-            stageCard.classList.add('expanded');
+        }
 
+        // 3. Update styling and animations inside safe try-catch
+        try {
             const dockTitle = document.getElementById('dock-active-title');
-            if (dockTitle && workcell && workcell.bayConfigs && workcell.bayConfigs[index]) {
-                dockTitle.textContent = `ACTIVE TOPIC: [${workcell.bayConfigs[index].bayNum}] ${workcell.bayConfigs[index].name.toUpperCase()}`;
+            if (workcell && workcell.bayConfigs && workcell.bayConfigs[index]) {
+                const cfg = workcell.bayConfigs[index];
+                if (dockTitle) {
+                    dockTitle.textContent = `ACTIVE TOPIC: [${cfg.bayNum}] ${cfg.name.toUpperCase()}`;
+                }
+                const hexColor = '#' + cfg.color.toString(16).padStart(6, '0');
+                stageCard.style.setProperty('--accent-color', hexColor);
+                stageCard.style.setProperty('--accent-glow', hexColor + '55');
+                stageCard.style.borderTopColor = hexColor;
+                stageCard.style.borderBottomColor = hexColor;
+                stageCard.style.boxShadow = `0 40px 95px rgba(0, 0, 0, 0.92), 0 0 45px ${hexColor}40`;
+
+                if (stageBeam) {
+                    stageBeam.style.setProperty('--accent-glow', hexColor + '60');
+                }
             }
 
-            // Scroll front stage card to top
+            // Scroll front stage card to top for newly opened dossier
             stageCard.scrollTop = 0;
 
-            // Trigger animations (counters, skill bars) if present in this section
-            if (typeof animateSkillBars === 'function' && targetSection.querySelector('.skill-bars')) {
-                animateSkillBars();
+            if (targetSection) {
+                if (typeof animateSkillBars === 'function' && targetSection.querySelector('.skill-bars')) {
+                    animateSkillBars();
+                }
+                if (typeof animateCounters === 'function' && targetSection.querySelector('[data-count]')) {
+                    animateCounters(targetSection);
+                }
             }
-            if (typeof animateCounters === 'function' && targetSection.querySelector('[data-count]')) {
-                animateCounters(targetSection);
-            }
+        } catch (err) {
+            console.error('Error decorating front stage card:', err);
         }
     }
 
@@ -414,32 +485,133 @@ document.addEventListener('DOMContentLoaded', () => {
      * Mouse Wheel Continuous Scrub Driver:
      * Directly scrubs robot kinematics across sections.
      * Stopping scrolling immediately freezes the robot in mid-motion!
+     * Never speeds up or interrupts the set 0.3s emergence/collapse animation!
      */
     window.addEventListener('wheel', (e) => {
         if (viewMode !== 'robot' || workcell.isEStopped) return;
 
         const stageCard = document.getElementById('robot-front-stage');
-        // If user is reading an expanded card that has internal scroll:
-        if (stageCard && stageCard.classList.contains('expanded') && !stageCard.classList.contains('minimized-dock')) {
-            const isAtBottom = stageCard.scrollHeight - stageCard.scrollTop <= stageCard.clientHeight + 10;
-            const isAtTop = stageCard.scrollTop <= 10;
-
-            if (e.deltaY > 0 && !isAtBottom) return; // Allow reading down text
-            if (e.deltaY < 0 && !isAtTop) return;    // Allow reading up text
-        }
+        const isDossierOpen = stageCard && stageCard.classList.contains('expanded') && !stageCard.classList.contains('docked-hidden') && !stageCard.classList.contains('minimized-dock');
 
         // Handle deltaMode (0 = pixels, 1 = lines, 2 = pages)
         let rawDelta = e.deltaY;
         if (e.deltaMode === 1) rawDelta *= 33;
         else if (e.deltaMode === 2) rawDelta *= 100;
 
-        // Clamp single event impulse so a fast flick/trackpad fling cannot skip past stages
+        if (isDossierOpen) {
+            const hasScrollableContent = stageCard.scrollHeight > stageCard.clientHeight + 10;
+            if (hasScrollableContent) {
+                const maxScroll = stageCard.scrollHeight - stageCard.clientHeight;
+                const isAtBottom = stageCard.scrollTop >= maxScroll - 15;
+                const isAtTop = stageCard.scrollTop <= 10;
+                const isHoveringDossier = stageCard.contains(e.target);
+
+                // Scrolling down inside or at the side of an open popup:
+                if (rawDelta > 0 && !isAtBottom) {
+                    if (!isHoveringDossier) {
+                        stageCard.scrollTop += rawDelta;
+                    }
+                    return; // Consumed by scrolling the popup
+                }
+
+                // Scrolling up inside or at the side of an open popup:
+                if (rawDelta < 0 && !isAtTop) {
+                    if (!isHoveringDossier) {
+                        stageCard.scrollTop += rawDelta;
+                    }
+                    return; // Consumed by scrolling the popup
+                }
+            }
+        }
+
+        // Scrub sensitivity: ~0.020 progress per mouse notch => ~45 deliberate scrolls per section
+        // Guarantees that approaching, clamping, and lifting each require at least 1-2 distinct scrolls
+        const scrubSensitivity = 0.00020;
         const maxNotchDelta = 100;
         const clampedDelta = Math.sign(rawDelta) * Math.min(maxNotchDelta, Math.abs(rawDelta));
-
-        // Scrub sensitivity: ~0.028 progress per mouse notch => ~35 deliberate scrolls per section
-        const scrubSensitivity = 0.00028;
         workcell.applyScrollDelta(clampedDelta * scrubSensitivity);
+    }, { passive: true });
+
+    /**
+     * Mobile Touch Gestures:
+     * - Vertical Swipe: directly scrubs robot kinematics like mouse wheel!
+     * - Tap on 3D Briefcase: dispatches the robot arm directly to that section!
+     */
+    let touchStartY = 0;
+    let touchStartX = 0;
+    let lastTouchY = 0;
+    let touchStartTime = 0;
+    let touchMoved = false;
+
+    window.addEventListener('touchstart', (e) => {
+        if (viewMode !== 'robot' || workcell.isEStopped) return;
+        if (!e.touches || e.touches.length === 0) return;
+
+        const touch = e.touches[0];
+        touchStartX = touch.clientX;
+        touchStartY = touch.clientY;
+        lastTouchY = touch.clientY;
+        touchStartTime = performance.now();
+        touchMoved = false;
+    }, { passive: true });
+
+    window.addEventListener('touchmove', (e) => {
+        if (viewMode !== 'robot' || workcell.isEStopped) return;
+        if (!e.touches || e.touches.length === 0) return;
+
+        const stageCard = document.getElementById('robot-front-stage');
+        const isDossierOpen = stageCard && stageCard.classList.contains('expanded') && !stageCard.classList.contains('docked-hidden') && !stageCard.classList.contains('minimized-dock');
+
+        const touch = e.touches[0];
+        const deltaY = lastTouchY - touch.clientY;
+        const totalDist = Math.hypot(touch.clientX - touchStartX, touch.clientY - touchStartY);
+
+        if (totalDist > 8) {
+            touchMoved = true;
+        }
+
+        // If touching inside an open, scrollable popup card, let native vertical scrolling handle it
+        if (isDossierOpen && stageCard.contains(e.target)) {
+            const hasScrollableContent = stageCard.scrollHeight > stageCard.clientHeight + 10;
+            if (hasScrollableContent) {
+                const maxScroll = stageCard.scrollHeight - stageCard.clientHeight;
+                const isAtBottom = stageCard.scrollTop >= maxScroll - 15;
+                const isAtTop = stageCard.scrollTop <= 10;
+
+                if ((deltaY > 0 && !isAtBottom) || (deltaY < 0 && !isAtTop)) {
+                    lastTouchY = touch.clientY;
+                    return;
+                }
+            }
+        }
+
+        // Outside popup card: touch drag scrubs the robot kinematics
+        lastTouchY = touch.clientY;
+        const touchSensitivity = 0.00028;
+        workcell.applyScrollDelta(deltaY * touchSensitivity);
+
+        // Prevent pull-to-refresh or page bouncing when scrubbing the 3D cell
+        if (e.cancelable && !isDossierOpen) {
+            e.preventDefault();
+        }
+    }, { passive: false });
+
+    window.addEventListener('touchend', (e) => {
+        if (viewMode !== 'robot' || workcell.isEStopped) return;
+
+        const stageCard = document.getElementById('robot-front-stage');
+        if (stageCard && stageCard.contains(e.target)) return;
+
+        const dt = performance.now() - touchStartTime;
+        if (!touchMoved && dt < 350) {
+            // It was a quick tap! Check if a 3D briefcase was tapped:
+            if (workcell && typeof workcell.getIntersectedBay === 'function') {
+                const hitIndex = workcell.getIntersectedBay(touchStartX, touchStartY);
+                if (hitIndex !== null) {
+                    workcell.goToSection(hitIndex);
+                }
+            }
+        }
     }, { passive: true });
 
     /**
@@ -450,6 +622,7 @@ document.addEventListener('DOMContentLoaded', () => {
         link.addEventListener('click', (e) => {
             if (viewMode === 'robot') {
                 e.preventDefault();
+                e.stopPropagation();
                 const targetId = link.getAttribute('href').substring(1);
                 const targetIdx = sectionIds.indexOf(targetId);
                 if (targetIdx !== -1) {
@@ -466,18 +639,40 @@ document.addEventListener('DOMContentLoaded', () => {
         viewMode = mode;
         const appContainer = document.getElementById('robot-app-container');
         const pendant = document.getElementById('teach-pendant');
+        const stageCard = document.getElementById('robot-front-stage');
+        const stageBeam = document.getElementById('robot-stage-beam');
+        const btn = document.getElementById('viewModeToggle');
+
+        const hint = document.querySelector('.mobile-workcell-hint');
 
         if (mode === 'classic') {
             document.body.classList.add('classic-view-mode');
             if (appContainer) appContainer.style.display = 'none';
             if (pendant) pendant.style.display = 'none';
+            if (stageBeam) stageBeam.style.display = 'none';
+            if (hint) hint.style.display = 'none';
+            if (stageCard) {
+                stageCard.classList.remove('docked-hidden', 'transitioning', 'minimized-dock');
+                stageCard.classList.add('expanded');
+            }
             document.querySelectorAll('.section, .hero').forEach(sec => {
                 sec.classList.remove('robot-mode-hidden', 'robot-mode-active');
             });
+            if (btn) {
+                btn.innerHTML = '<span>🤖</span> Robot Cell';
+            }
         } else {
             document.body.classList.remove('classic-view-mode');
             if (appContainer) appContainer.style.display = 'block';
             if (pendant) pendant.style.display = 'flex';
+            if (stageBeam) stageBeam.style.display = '';
+            if (hint) hint.style.display = 'flex';
+            if (btn) {
+                btn.innerHTML = '<span>📄</span> Classic View';
+            }
+            if (workcell && typeof workcell.onResize === 'function') {
+                workcell.onResize();
+            }
             displayFrontStageSection(sectionIds[currentSectionIndex], currentSectionIndex);
         }
     };
@@ -486,10 +681,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const isClassic = document.body.classList.contains('classic-view-mode');
         const newMode = isClassic ? 'robot' : 'classic';
         window.setRobotViewMode(newMode);
-        const btn = document.getElementById('viewModeToggle');
-        if (btn) {
-            btn.innerHTML = newMode === 'robot' ? '<span>🤖</span> Robot Cell' : '<span>📄</span> Classic View';
-        }
     };
 
     window.toggleDockExpand = function() {
@@ -502,13 +693,76 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
-    window.toggleCardInspect = function() {
+    window.toggleCardInspect = function(forceAction) {
         const stage = document.getElementById('robot-front-stage');
         const btn = document.getElementById('dockInspectBtn');
         if (!stage) return;
-        stage.classList.toggle('minimized-dock');
-        if (btn) {
-            btn.textContent = stage.classList.contains('minimized-dock') ? '📄 View Topic Card' : '👁 Inspect 3D Cell';
+
+        let shouldMinimize;
+        if (forceAction === 'expand') {
+            shouldMinimize = false;
+        } else if (forceAction === 'minimize') {
+            shouldMinimize = true;
+        } else {
+            // Default toggle: if currently minimized, clicking re-opens/expands it
+            shouldMinimize = !stage.classList.contains('minimized-dock');
+        }
+
+        if (shouldMinimize) {
+            stage.classList.add('minimized-dock');
+            if (btn) btn.textContent = '📄 View Topic Card';
+        } else {
+            stage.classList.remove('minimized-dock');
+            if (btn) btn.textContent = '👁 Inspect 3D Cell';
         }
     };
+
+    window.toggleFrontStageDock = function() {
+        window.toggleCardInspect();
+    };
+
+    /**
+     * Re-open Minimized Dock Pop-up on Any Click or Tap:
+     * When #robot-front-stage is minimized, clicking/tapping anywhere on the bar
+     * (the dock bracket, indicator, title, or button) re-opens it immediately.
+     */
+    const frontStage = document.getElementById('robot-front-stage');
+    if (frontStage) {
+        let dockTouchStartX = 0;
+        let dockTouchStartY = 0;
+        let dockTouchMoved = false;
+
+        frontStage.addEventListener('touchstart', (e) => {
+            if (frontStage.classList.contains('minimized-dock') && e.touches.length > 0) {
+                const t = e.touches[0];
+                dockTouchStartX = t.clientX;
+                dockTouchStartY = t.clientY;
+                dockTouchMoved = false;
+            }
+        }, { passive: true });
+
+        frontStage.addEventListener('touchmove', (e) => {
+            if (frontStage.classList.contains('minimized-dock') && e.touches.length > 0) {
+                const t = e.touches[0];
+                if (Math.hypot(t.clientX - dockTouchStartX, t.clientY - dockTouchStartY) > 10) {
+                    dockTouchMoved = true;
+                }
+            }
+        }, { passive: true });
+
+        frontStage.addEventListener('touchend', (e) => {
+            if (frontStage.classList.contains('minimized-dock') && !dockTouchMoved) {
+                if (e.cancelable) e.preventDefault();
+                e.stopPropagation();
+                window.toggleCardInspect('expand');
+            }
+        }, { passive: false });
+
+        frontStage.addEventListener('click', (e) => {
+            if (frontStage.classList.contains('minimized-dock')) {
+                e.stopPropagation();
+                window.toggleCardInspect('expand');
+            }
+        });
+    }
 });

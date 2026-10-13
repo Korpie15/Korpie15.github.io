@@ -2834,6 +2834,15 @@ body:not(.classic-view-mode) .hero .scroll-indicator {
     position: absolute;
     top: 0;
     left: 0;
+    pointer-events: auto;
+}
+
+#robot-canvas-container canvas {
+    width: 100% !important;
+    height: 100% !important;
+    display: block;
+    pointer-events: auto;
+    touch-action: none;
 }
 
 /* Center Stage Workpiece (Held by Robot Gripper in Middle of Page) */
@@ -2841,46 +2850,150 @@ body:not(.classic-view-mode) .hero .scroll-indicator {
     position: fixed;
     top: 145px;
     left: 50%;
-    transform: translateX(-50%) translateY(30px) scale(0.95);
+    transform-origin: 50% 100%;
+    transform: translateX(-50%) translateY(180px) scale(0.22, 0.02);
     opacity: 0;
     pointer-events: none;
+    visibility: hidden;
     width: min(940px, 92vw);
     max-height: calc(100vh - 175px);
-    background: rgba(15, 23, 42, 0.95);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
+    background: rgba(10, 16, 30, 0.96);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
     border: 2px solid #334155;
-    border-top: 3px solid #f59e0b;
-    border-radius: 14px;
-    box-shadow: 0 35px 80px rgba(0, 0, 0, 0.85), 0 0 0 1px rgba(245, 158, 11, 0.2);
+    border-top: 4px solid var(--accent-color, #f59e0b);
+    border-bottom: 3px solid var(--accent-color, #f59e0b);
+    border-radius: 16px;
+    box-shadow: 0 35px 85px rgba(0, 0, 0, 0.88), 0 0 30px rgba(0, 0, 0, 0.4);
     z-index: 100;
     overflow-y: auto;
     padding: 1.5rem 2.5rem 2.5rem;
-    transition: opacity 0.35s ease, transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+    filter: blur(6px) brightness(1.4);
+    transition: opacity 0.65s cubic-bezier(0.22, 1, 0.36, 1), transform 0.85s cubic-bezier(0.22, 1, 0.36, 1), filter 0.75s ease, visibility 0.85s;
     scrollbar-width: thin;
-    scrollbar-color: #f59e0b #1e293b;
+    scrollbar-color: var(--accent-color, #f59e0b) #1e293b;
 }
 
 #robot-front-stage.expanded:not(.docked-hidden) {
-    opacity: 1;
-    pointer-events: auto;
-    transform: translateX(-50%) translateY(0) scale(1);
+    opacity: 1 !important;
+    pointer-events: auto !important;
+    visibility: visible !important;
+    transform-origin: 50% 100% !important;
+    transform: translateX(-50%) translateY(0) scale(1, 1) !important;
+    filter: blur(0px) brightness(1) !important;
+    box-shadow: 0 40px 95px rgba(0, 0, 0, 0.92), 0 0 45px var(--accent-glow, rgba(245, 158, 11, 0.25)) !important;
 }
 
-#robot-front-stage.transitioning,
-#robot-front-stage.docked-hidden {
+#robot-front-stage.docked-hidden,
+#robot-front-stage.transitioning {
     opacity: 0 !important;
-    transform: translateX(-50%) scale(0.92) translateY(30px) !important;
+    transform-origin: 50% 100% !important;
+    transform: translateX(-50%) translateY(180px) scale(0.22, 0.02) !important;
+    filter: blur(6px) brightness(1.4) !important;
     pointer-events: none !important;
+    visibility: hidden !important;
+    transition: opacity 0.45s ease, transform 0.60s cubic-bezier(0.3, 0, 0.8, 0.15), filter 0.50s ease, visibility 0.60s !important;
+}
+
+/* Holographic Projection Beam (Connects Briefcase Mouth to Dossier Popup) */
+.robot-stage-beam {
+    position: fixed;
+    bottom: 32px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: min(840px, 86vw);
+    height: 140px;
+    background: linear-gradient(to top, var(--accent-glow, rgba(245, 158, 11, 0.45)) 0%, transparent 100%);
+    clip-path: polygon(0% 0%, 100% 0%, 72% 100%, 28% 100%);
+    pointer-events: none;
+    z-index: 99;
+    opacity: 0;
+    filter: blur(4px);
+    transition: opacity 0.75s cubic-bezier(0.22, 1, 0.36, 1), height 0.75s ease;
+}
+
+.robot-stage-beam.expanded:not(.docked-hidden) {
+    opacity: 0.9;
+    height: 220px;
+}
+
+.robot-stage-beam.docked-hidden {
+    opacity: 0 !important;
+}
+
+#robot-front-stage.minimized-dock ~ .robot-stage-beam,
+body.classic-view-mode .robot-stage-beam {
+    display: none !important;
 }
 
 #robot-front-stage.minimized-dock {
-    top: auto;
-    bottom: 25px;
-    max-height: 52px;
-    padding: 0.6rem 1.5rem;
-    overflow: hidden;
-    cursor: pointer;
+    top: auto !important;
+    bottom: 22px !important;
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+    width: min(650px, 92vw) !important;
+    max-height: 56px !important;
+    height: 56px !important;
+    padding: 0 1.2rem !important;
+    overflow: hidden !important;
+    cursor: pointer !important;
+    background: rgba(15, 23, 42, 0.96) !important;
+    border: 2px solid #f59e0b !important;
+    border-radius: 28px !important;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.85), 0 0 20px rgba(245, 158, 11, 0.35) !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    z-index: 100 !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+    pointer-events: auto !important;
+    filter: none !important;
+    touch-action: manipulation !important;
+    user-select: none !important;
+    -webkit-user-select: none !important;
+    transition: all 0.25s cubic-bezier(0.22, 1, 0.36, 1) !important;
+}
+
+#robot-front-stage.minimized-dock:hover {
+    background: rgba(30, 41, 59, 0.98) !important;
+    border-color: #fbbf24 !important;
+    box-shadow: 0 10px 35px rgba(0, 0, 0, 0.9), 0 0 25px rgba(245, 158, 11, 0.5) !important;
+    transform: translateX(-50%) translateY(-2px) !important;
+}
+
+#robot-front-stage.minimized-dock .gripper-dock-bracket {
+    margin: 0 !important;
+    padding: 0 !important;
+    background: transparent !important;
+    border: none !important;
+    width: 100% !important;
+    position: static !important;
+    cursor: pointer !important;
+    pointer-events: auto !important;
+}
+
+#robot-front-stage.minimized-dock .gripper-mount-fixture {
+    display: none !important;
+}
+
+#robot-front-stage.minimized-dock .stage-dock-header {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    width: 100% !important;
+    cursor: pointer !important;
+    pointer-events: auto !important;
+}
+
+#robot-front-stage.minimized-dock .stage-dock-title {
+    cursor: pointer !important;
+    pointer-events: auto !important;
+}
+
+#robot-front-stage.minimized-dock .stage-dock-meta {
+    cursor: pointer !important;
+    pointer-events: auto !important;
 }
 
 #robot-front-stage.minimized-dock .section,
@@ -2893,8 +3006,8 @@ body:not(.classic-view-mode) .hero .scroll-indicator {
     border: 1px solid #475569;
     color: #cbd5e1;
     font-size: 0.72rem;
-    padding: 0.2rem 0.5rem;
-    border-radius: 4px;
+    padding: 0.25rem 0.6rem;
+    border-radius: 6px;
     cursor: pointer;
     transition: all 0.2s;
     font-family: monospace;
@@ -3051,12 +3164,21 @@ body:not(.classic-view-mode) #robot-front-stage .hero.robot-mode-active .hero-co
 
 /* Classic view mode fallback */
 body.classic-view-mode #robot-app-container,
-body.classic-view-mode #teach-pendant {
+body.classic-view-mode #teach-pendant,
+body.classic-view-mode .robot-stage-beam,
+body.classic-view-mode .gripper-dock-bracket,
+body.classic-view-mode .stage-dock-header {
     display: none !important;
 }
 
-body.classic-view-mode #robot-front-stage {
+body.classic-view-mode #robot-front-stage,
+body.classic-view-mode #robot-front-stage.docked-hidden,
+body.classic-view-mode #robot-front-stage.transitioning,
+body.classic-view-mode #robot-front-stage.expanded,
+body.classic-view-mode #robot-front-stage.minimized-dock {
     position: static !important;
+    top: auto !important;
+    left: auto !important;
     max-height: none !important;
     background: transparent !important;
     border: none !important;
@@ -3065,10 +3187,39 @@ body.classic-view-mode #robot-front-stage {
     width: 100% !important;
     transform: none !important;
     overflow: visible !important;
+    opacity: 1 !important;
+    pointer-events: auto !important;
+    visibility: visible !important;
+    filter: none !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    transition: none !important;
 }
 
-body.classic-view-mode .stage-dock-header {
-    display: none !important;
+body.classic-view-mode .section,
+body.classic-view-mode .hero {
+    display: block !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+    pointer-events: auto !important;
+    transform: none !important;
+}
+
+body.classic-view-mode #robot-front-stage .section {
+    padding: 6rem 2rem !important;
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+}
+
+body.classic-view-mode #robot-front-stage .container {
+    max-width: 1360px !important;
+    padding: 0 2rem !important;
+}
+
+body.classic-view-mode #robot-front-stage .hero {
+    min-height: 100vh !important;
+    padding: 8rem 2rem 4rem !important;
 }
 
 /* Mode Switch Button in Navbar */
@@ -3251,6 +3402,15 @@ body.classic-view-mode .stage-dock-header {
     animation: estopBlink 0.6s infinite alternate;
 }
 
+.tp-led-limit.active {
+    color: #f97316;
+}
+.tp-led-limit.active .led-pip {
+    background: #ea580c;
+    box-shadow: 0 0 10px #ea580c;
+    animation: estopBlink 0.5s infinite alternate;
+}
+
 @keyframes estopBlink {
     from { opacity: 0.4; }
     to { opacity: 1; }
@@ -3393,6 +3553,51 @@ body.classic-view-mode .stage-dock-header {
     color: #93c5fd;
 }
 
+.tp-safety-toggle-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.4rem;
+    margin-top: 0.4rem;
+    padding-top: 0.35rem;
+    border-top: 1px dashed #27272a;
+}
+
+.tp-collision-toggle-btn {
+    flex: 1;
+    background: #182030;
+    border: 1px solid #3b82f6;
+    color: #93c5fd;
+    font-size: 0.65rem;
+    font-weight: bold;
+    padding: 0.35rem 0.4rem;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.tp-collision-toggle-btn:hover {
+    background: #1e293b;
+    border-color: #60a5fa;
+    color: #bfdbfe;
+}
+
+.tp-collision-toggle-btn.active {
+    background: #0284c7;
+    border-color: #38bdf8;
+    color: #ffffff;
+    box-shadow: 0 0 8px rgba(56, 189, 248, 0.5);
+}
+
+.tp-safety-pill {
+    font-size: 0.55rem;
+    color: #10b981;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-align: right;
+    line-height: 1.2;
+}
+
 /* Safety Row & Emergency Stop Button */
 .tp-safety-row {
     display: flex;
@@ -3454,6 +3659,113 @@ body.classic-view-mode .stage-dock-header {
         bottom: 12px;
         right: 12px;
         width: 290px;
+    }
+}
+
+@media (max-width: 768px) {
+    /* Hide industrial teach pendant on phones - mobile users tap briefcases directly or swipe! */
+    .teach-pendant {
+        display: none !important;
+    }
+
+    #robot-front-stage {
+        top: 60px;
+        width: 95vw;
+        max-height: calc(100vh - 75px);
+        padding: 0.9rem 0.9rem 1.5rem;
+        border-radius: 12px;
+    }
+
+    #robot-front-stage .container {
+        padding: 0.4rem 0.4rem 1.2rem !important;
+    }
+
+    .gripper-dock-bracket {
+        margin: -0.9rem -0.9rem 0.9rem -0.9rem;
+        padding: 0.4rem 0.6rem;
+    }
+
+    .clamp-handle-bar {
+        width: 100px;
+        height: 10px;
+    }
+
+    .stage-dock-header {
+        font-size: 0.75rem;
+    }
+
+    .view-mode-toggle {
+        padding: 0.25rem 0.5rem;
+        font-size: 0.75rem;
+        margin-left: 0.4rem;
+    }
+
+    /* Prominent, touch-friendly minimized dock pill on mobile */
+    #robot-front-stage.minimized-dock {
+        bottom: 16px !important;
+        width: 94vw !important;
+        height: 52px !important;
+        padding: 0 0.9rem !important;
+        border-radius: 26px !important;
+        cursor: pointer !important;
+        pointer-events: auto !important;
+        touch-action: manipulation !important;
+        z-index: 100 !important;
+    }
+
+    #robot-front-stage.minimized-dock .stage-dock-meta > span {
+        display: none !important;
+    }
+
+    #robot-front-stage.minimized-dock .dock-inspect-btn {
+        padding: 0.35rem 0.75rem !important;
+        font-size: 0.78rem !important;
+        background: #f59e0b !important;
+        color: #0f172a !important;
+        font-weight: 700 !important;
+        border: none !important;
+        border-radius: 16px !important;
+        cursor: pointer !important;
+        pointer-events: auto !important;
+    }
+
+    #robot-front-stage.minimized-dock .stage-dock-title {
+        font-size: 0.75rem !important;
+        cursor: pointer !important;
+    }
+
+    body:has(#robot-front-stage.minimized-dock) .mobile-workcell-hint {
+        bottom: 78px;
+    }
+
+    .mobile-workcell-hint {
+        position: fixed;
+        bottom: 16px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: rgba(15, 23, 42, 0.88);
+        border: 1px solid rgba(245, 158, 11, 0.5);
+        color: #f1f5f9;
+        font-size: 0.72rem;
+        font-family: monospace;
+        padding: 0.45rem 1rem;
+        border-radius: 20px;
+        pointer-events: none;
+        z-index: 50;
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.6);
+        animation: hintFadeInOut 7s forwards;
+    }
+
+    @keyframes hintFadeInOut {
+        0% { opacity: 0; transform: translateX(-50%) translateY(12px); }
+        12% { opacity: 1; transform: translateX(-50%) translateY(0); }
+        82% { opacity: 1; transform: translateX(-50%) translateY(0); }
+        100% { opacity: 0; transform: translateX(-50%) translateY(12px); pointer-events: none; }
     }
 }
 

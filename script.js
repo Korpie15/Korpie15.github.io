@@ -33,16 +33,18 @@ document.querySelectorAll('.nav-link').forEach(link => {
     });
 });
 
-// Smooth scroll for navigation links
+// Smooth scroll for navigation links (active in Classic View mode)
 document.querySelectorAll('a[href^="#"]').forEach(anchor => {
     anchor.addEventListener('click', function (e) {
-        e.preventDefault();
-        const target = document.querySelector(this.getAttribute('href'));
-        if (target) {
-            target.scrollIntoView({
-                behavior: 'smooth',
-                block: 'start'
-            });
+        if (document.body.classList.contains('classic-view-mode')) {
+            e.preventDefault();
+            const target = document.querySelector(this.getAttribute('href'));
+            if (target) {
+                target.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'start'
+                });
+            }
         }
     });
 });
