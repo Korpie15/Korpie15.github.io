@@ -222,9 +222,6 @@ document.addEventListener('DOMContentLoaded', () => {
                             <button class="tp-jog-btn tp-grip-btn" id="jog-grip-toggle">CLAMP / OPEN JAWS</button>
                         </div>
                         <div class="tp-safety-toggle-row">
-                            <button class="tp-btn tp-collision-toggle-btn" id="tp-collision-toggle-btn" title="Toggle 3D Dynamic Collision Safety Envelopes">
-                                🛡️ COLLISION MODEL: OFF
-                            </button>
                             <div class="tp-safety-pill">DCS ACTIVE // SELF-COLLISION PREVENTED</div>
                         </div>
                     </div>
@@ -307,15 +304,6 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         }
 
-        // 3D Collision Model Visualization Toggle Button
-        const collToggleBtn = pendant.querySelector('#tp-collision-toggle-btn');
-        if (collToggleBtn) {
-            collToggleBtn.addEventListener('click', () => {
-                const isVisible = workcell.toggleCollisionModel();
-                collToggleBtn.textContent = isVisible ? '🛡️ COLLISION MODEL: ON' : '🛡️ COLLISION MODEL: OFF';
-                collToggleBtn.classList.toggle('active', isVisible);
-            });
-        }
 
         // Emergency Stop Button
         const estopBtn = pendant.querySelector('#tp-estop-btn');

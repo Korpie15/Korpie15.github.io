@@ -3556,37 +3556,11 @@ body.classic-view-mode #robot-front-stage .hero {
 .tp-safety-toggle-row {
     display: flex;
     align-items: center;
-    justify-content: space-between;
+    justify-content: center;
     gap: 0.4rem;
     margin-top: 0.4rem;
     padding-top: 0.35rem;
     border-top: 1px dashed #27272a;
-}
-
-.tp-collision-toggle-btn {
-    flex: 1;
-    background: #182030;
-    border: 1px solid #3b82f6;
-    color: #93c5fd;
-    font-size: 0.65rem;
-    font-weight: bold;
-    padding: 0.35rem 0.4rem;
-    border-radius: 4px;
-    cursor: pointer;
-    transition: all 0.2s;
-}
-
-.tp-collision-toggle-btn:hover {
-    background: #1e293b;
-    border-color: #60a5fa;
-    color: #bfdbfe;
-}
-
-.tp-collision-toggle-btn.active {
-    background: #0284c7;
-    border-color: #38bdf8;
-    color: #ffffff;
-    box-shadow: 0 0 8px rgba(56, 189, 248, 0.5);
 }
 
 .tp-safety-pill {
@@ -3594,7 +3568,7 @@ body.classic-view-mode #robot-front-stage .hero {
     color: #10b981;
     font-weight: 700;
     letter-spacing: 0.05em;
-    text-align: right;
+    text-align: center;
     line-height: 1.2;
 }
 
