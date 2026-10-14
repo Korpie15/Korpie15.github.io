@@ -661,7 +661,28 @@ document.addEventListener('DOMContentLoaded', () => {
                 btn.innerHTML = '<span>🤖</span> Robot Cell';
             }
         } else {
+            // Switching from Classic Mode -> Robot Cell Mode:
+            // Detect which section is currently scrolled into view so the robot cell opens that same section!
+            let activeIdx = currentSectionIndex;
+            const scrollMiddle = window.scrollY + window.innerHeight * 0.4;
+            for (let i = 0; i < sectionIds.length; i++) {
+                const el = document.getElementById(sectionIds[i]);
+                if (el) {
+                    const top = el.offsetTop;
+                    const height = el.offsetHeight;
+                    if (scrollMiddle >= top && scrollMiddle < top + height) {
+                        activeIdx = i;
+                        break;
+                    }
+                }
+            }
+            if (activeIdx < 0 || activeIdx >= sectionIds.length) {
+                activeIdx = 0;
+            }
+
             document.body.classList.remove('classic-view-mode');
+            window.scrollTo({ top: 0, behavior: 'instant' });
+
             if (appContainer) appContainer.style.display = 'block';
             if (pendant) pendant.style.display = 'flex';
             if (stageBeam) stageBeam.style.display = '';
@@ -673,7 +694,14 @@ document.addEventListener('DOMContentLoaded', () => {
             if (workcell && typeof workcell.onResize === 'function') {
                 workcell.onResize();
             }
-            displayFrontStageSection(sectionIds[currentSectionIndex], currentSectionIndex);
+
+            // Immediately drive the robot workcell to this exact section and open the dossier!
+            currentSectionIndex = activeIdx;
+            if (workcell && typeof workcell.goToSection === 'function') {
+                workcell.goToSection(activeIdx);
+            } else {
+                displayFrontStageSection(sectionIds[activeIdx], activeIdx);
+            }
         }
     };
 

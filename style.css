@@ -1799,24 +1799,31 @@ body:not(.classic-view-mode) .hero .scroll-indicator {
 @media (max-width: 968px) {
     .nav-menu {
         position: fixed;
-        left: -100%;
+        right: -100%;
+        left: auto;
         top: 70px;
         flex-direction: column;
-        background: var(--bg-dark);
-        width: 100%;
+        background: rgba(15, 23, 42, 0.98);
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+        width: min(320px, 85vw);
+        height: calc(100vh - 70px);
         text-align: center;
-        transition: 0.3s;
-        box-shadow: var(--shadow-lg);
-        padding: 2rem 0;
+        transition: right 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+        box-shadow: -10px 0 30px rgba(0, 0, 0, 0.7);
+        padding: 2rem 1.5rem;
+        border-left: 1px solid rgba(245, 158, 11, 0.3);
+        z-index: 999;
     }
 
     .nav-menu.active {
-        left: 0;
+        right: 0;
+        left: auto;
     }
 
     .nav-toggle {
         display: flex;
-        margin-left: auto;
+        margin-left: 0.8rem;
     }
 
     .about-content {
@@ -3167,7 +3174,13 @@ body.classic-view-mode #robot-app-container,
 body.classic-view-mode #teach-pendant,
 body.classic-view-mode .robot-stage-beam,
 body.classic-view-mode .gripper-dock-bracket,
-body.classic-view-mode .stage-dock-header {
+body.classic-view-mode .stage-dock-header,
+body.classic-view-mode #mobile-workcell-controls,
+body.classic-view-mode .mobile-workcell-controls,
+body.classic-view-mode #mobile-safety-sign,
+body.classic-view-mode .mobile-safety-sign,
+body.classic-view-mode .blue-mandatory-sign,
+body.classic-view-mode .osha-danger-sign {
     display: none !important;
 }
 
@@ -3236,7 +3249,8 @@ body.classic-view-mode #robot-front-stage .hero {
     font-weight: 600;
     cursor: pointer;
     transition: all 0.2s ease;
-    margin-left: 0.8rem;
+    margin-left: auto;
+    margin-right: 1.5rem;
 }
 
 .view-mode-toggle:hover {
@@ -3871,9 +3885,10 @@ body.classic-view-mode .blue-mandatory-sign {
     }
 
     .view-mode-toggle {
-        padding: 0.25rem 0.5rem;
+        padding: 0.25rem 0.55rem;
         font-size: 0.75rem;
-        margin-left: 0.4rem;
+        margin-left: auto;
+        margin-right: 0.2rem;
     }
 
     /* Prominent, touch-friendly minimized dock on mobile */
@@ -3929,8 +3944,12 @@ body.classic-view-mode .blue-mandatory-sign {
     }
 
     /* 2. Tactile Mobile Workcell Navigation Controls at Bottom */
-    .mobile-workcell-controls {
+    body:not(.classic-view-mode) .mobile-workcell-controls {
         display: flex !important;
+    }
+
+    .mobile-workcell-controls {
+        display: none;
         align-items: center;
         justify-content: center;
         gap: 16px;
