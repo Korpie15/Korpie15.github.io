@@ -2355,6 +2355,53 @@ class RobotWorkcell {
     }
 
     /**
+     * Hold-To-Run Jog Controller:
+     * While button is held, robot arm continuously runs through motion.
+     * Releasing immediately freezes the robot arm in place!
+     */
+    runHoldJog(direction, dt = 0.016) {
+        if (this.isEStopped) return;
+        if (this.activeTween) {
+            this.activeTween.kill();
+            this.activeTween = null;
+        }
+        if (this.directTransfer) {
+            this.directTransfer = null;
+            this.targetProgress = this.currentProgress;
+        }
+
+        this.manualGripperGap = null;
+        if (this.jogOffsets) {
+            this.jogOffsets.j1 = 0;
+            this.jogOffsets.j2 = 0;
+            this.jogOffsets.j3 = 0;
+            this.jogOffsets.j4 = 0;
+            this.jogOffsets.j5 = 0;
+            this.jogOffsets.j6 = 0;
+        }
+
+        this.lastScrollTimestamp = performance.now();
+
+        const speed = 0.42;
+        const delta = direction * speed * dt;
+        const maxBufferAhead = 0.06;
+        const newTarget = this.targetProgress + delta;
+
+        this.targetProgress = Math.max(
+            0,
+            Math.min(
+                this.maxProgress,
+                Math.max(this.currentProgress - maxBufferAhead, Math.min(this.currentProgress + maxBufferAhead, newTarget))
+            )
+        );
+        this.statusText = `HOLD TO RUN // ${direction > 0 ? 'FWD' : 'REV'} // PROGRESS: ${(this.targetProgress / this.maxProgress * 100).toFixed(0)}%`;
+    }
+
+    stopHoldJog() {
+        this.targetProgress = this.currentProgress;
+    }
+
+    /**
      * Direct Dossier Dispatch:
      * When clicking a Teach Pendant button or Navbar link:
      * Physical, deliberate industrial motion:

@@ -798,23 +798,27 @@ document.addEventListener('DOMContentLoaded', () => {
                         <span class="osha-danger-title">DANGER</span>
                     </div>
                 </div>
-                <!-- Bottom White Message Area -->
+                <!-- Bottom White Message Area (3-line format matching OSHA reference) -->
                 <div class="osha-body">
                     <div class="osha-line-1">TAP ON A BRIEFCASE</div>
-                    <div class="osha-line-2">TO OPEN DOSSIER</div>
+                    <div class="osha-line-2">TO AUTO OPEN</div>
+                    <div class="osha-line-3">HOLD PREV / NEXT TO RUN</div>
                 </div>
             </div>
         `;
         document.body.appendChild(safetySign);
 
-        // 2. Mobile Forward/Backward Navigation Controls at Bottom
+        // 2. Mobile Hold-To-Run Navigation Controls at Bottom
         const controls = document.createElement('div');
         controls.id = 'mobile-workcell-controls';
         controls.className = 'mobile-workcell-controls';
         controls.innerHTML = `
-            <button id="mobileNavPrev" class="mobile-nav-btn prev-btn" aria-label="Previous Briefcase">
+            <button id="mobileNavPrev" class="mobile-nav-btn prev-btn" aria-label="Hold to run backward">
                 <span class="btn-arrow">◀</span>
-                <span class="btn-text">PREV</span>
+                <div class="btn-label-group">
+                    <span class="btn-text">PREV</span>
+                    <span class="btn-subtext">HOLD</span>
+                </div>
             </button>
             <div id="mobileBayBadge" class="mobile-bay-badge" title="Tap to view/inspect topic card">
                 <span class="bay-led-dot"></span>
@@ -823,38 +827,78 @@ document.addEventListener('DOMContentLoaded', () => {
                     <span id="mobileBayTitle" class="mobile-bay-title">SELECT BRIEFCASE</span>
                 </div>
             </div>
-            <button id="mobileNavNext" class="mobile-nav-btn next-btn" aria-label="Next Briefcase">
-                <span class="btn-text">NEXT</span>
+            <button id="mobileNavNext" class="mobile-nav-btn next-btn" aria-label="Hold to run forward">
+                <div class="btn-label-group">
+                    <span class="btn-text">NEXT</span>
+                    <span class="btn-subtext">HOLD</span>
+                </div>
                 <span class="btn-arrow">▶</span>
             </button>
         `;
         document.body.appendChild(controls);
 
-        // Wire up Prev Button
-        const prevBtn = controls.querySelector('#mobileNavPrev');
-        if (prevBtn) {
-            prevBtn.addEventListener('click', (e) => {
-                e.preventDefault();
-                e.stopPropagation();
+        // Industrial Hold-To-Run Driver:
+        // Runs robot arm continuously while button is held down.
+        // Releasing freezes the arm instantly right where it is!
+        function bindHoldToRun(btn, direction) {
+            if (!btn) return;
+            let animId = null;
+            let lastTime = null;
+            let isHolding = false;
+
+            function runStep(now) {
+                if (!isHolding) return;
+                if (lastTime !== null) {
+                    const dt = Math.min(0.05, (now - lastTime) / 1000);
+                    if (workcell && typeof workcell.runHoldJog === 'function') {
+                        workcell.runHoldJog(direction, dt);
+                    }
+                }
+                lastTime = now;
+                animId = requestAnimationFrame(runStep);
+            }
+
+            function startHold(e) {
+                if (e.button !== undefined && e.button !== 0) return;
                 if (workcell.isEStopped) return;
-                const total = sectionIds.length;
-                let target = (currentSectionIndex <= 0) ? total - 1 : currentSectionIndex - 1;
-                workcell.goToSection(target);
-            });
+                if (isHolding) return;
+                isHolding = true;
+                lastTime = performance.now();
+                btn.classList.add('holding');
+                if (btn.setPointerCapture && e.pointerId !== undefined) {
+                    try { btn.setPointerCapture(e.pointerId); } catch (err) {}
+                }
+                animId = requestAnimationFrame(runStep);
+            }
+
+            function stopHold(e) {
+                if (!isHolding) return;
+                isHolding = false;
+                btn.classList.remove('holding');
+                if (animId) {
+                    cancelAnimationFrame(animId);
+                    animId = null;
+                }
+                lastTime = null;
+                if (workcell && typeof workcell.stopHoldJog === 'function') {
+                    workcell.stopHoldJog();
+                }
+                if (btn.releasePointerCapture && e && e.pointerId !== undefined) {
+                    try { btn.releasePointerCapture(e.pointerId); } catch (err) {}
+                }
+            }
+
+            btn.addEventListener('pointerdown', startHold);
+            btn.addEventListener('pointerup', stopHold);
+            btn.addEventListener('pointercancel', stopHold);
+            btn.addEventListener('pointerleave', stopHold);
+            btn.addEventListener('contextmenu', (e) => e.preventDefault());
         }
 
-        // Wire up Next Button
+        const prevBtn = controls.querySelector('#mobileNavPrev');
         const nextBtn = controls.querySelector('#mobileNavNext');
-        if (nextBtn) {
-            nextBtn.addEventListener('click', (e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                if (workcell.isEStopped) return;
-                const total = sectionIds.length;
-                let target = (currentSectionIndex < 0 || currentSectionIndex >= total - 1) ? 0 : currentSectionIndex + 1;
-                workcell.goToSection(target);
-            });
-        }
+        bindHoldToRun(prevBtn, -1);
+        bindHoldToRun(nextBtn, 1);
 
         // Wire up Center Badge: Tap to toggle inspect / expand front stage card
         const bayBadge = controls.querySelector('#mobileBayBadge');

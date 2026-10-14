@@ -3786,14 +3786,21 @@ body.classic-view-mode #robot-front-stage .hero {
     }
 
     .osha-line-1,
-    .osha-line-2 {
+    .osha-line-2,
+    .osha-line-3 {
         font-family: Arial, Helvetica, sans-serif;
         font-weight: 900;
-        font-size: 0.82rem;
+        font-size: 0.76rem;
         line-height: 1.22;
         color: #000000;
         letter-spacing: 0.4px;
         text-transform: uppercase;
+    }
+
+    .osha-line-3 {
+        font-size: 0.65rem;
+        color: #b91c1c;
+        margin-top: 1px;
     }
 
     /* 2. Tactile Mobile Workcell Navigation Controls at Bottom */
@@ -3830,7 +3837,7 @@ body.classic-view-mode #robot-front-stage .hero {
         align-items: center;
         justify-content: center;
         gap: 6px;
-        min-width: 82px;
+        min-width: 84px;
         height: 44px;
         padding: 0 10px;
         background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%);
@@ -3842,16 +3849,37 @@ body.classic-view-mode #robot-front-stage .hero {
         font-weight: 800;
         letter-spacing: 0.5px;
         cursor: pointer;
+        user-select: none;
         box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.1);
-        transition: transform 0.1s ease, background 0.2s ease, border-color 0.2s ease;
+        transition: transform 0.1s ease, background 0.15s ease, border-color 0.15s ease;
         -webkit-tap-highlight-color: transparent;
     }
 
+    .btn-label-group {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        line-height: 1.05;
+    }
+
+    .btn-subtext {
+        font-size: 0.52rem;
+        font-weight: 800;
+        letter-spacing: 0.6px;
+        color: rgba(245, 158, 11, 0.75);
+    }
+
+    .mobile-nav-btn.holding,
     .mobile-nav-btn:active {
         transform: scale(0.94);
         background: #f59e0b;
         color: #0f172a;
-        box-shadow: 0 0 15px rgba(245, 158, 11, 0.6);
+        box-shadow: 0 0 18px rgba(245, 158, 11, 0.75);
+    }
+
+    .mobile-nav-btn.holding .btn-subtext,
+    .mobile-nav-btn:active .btn-subtext {
+        color: #0f172a;
     }
 
     .mobile-nav-btn .btn-arrow {
