@@ -2382,9 +2382,10 @@ class RobotWorkcell {
 
         this.lastScrollTimestamp = performance.now();
 
-        const speed = 0.42;
+        // Speed: 0.145 units/s (matches ~7.0s auto pick-and-place transfer duration)
+        const speed = 0.145;
         const delta = direction * speed * dt;
-        const maxBufferAhead = 0.06;
+        const maxBufferAhead = 0.04;
         const newTarget = this.targetProgress + delta;
 
         this.targetProgress = Math.max(

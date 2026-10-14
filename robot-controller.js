@@ -820,13 +820,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     <span class="btn-subtext">HOLD</span>
                 </div>
             </button>
-            <div id="mobileBayBadge" class="mobile-bay-badge" title="Tap to view/inspect topic card">
-                <span class="bay-led-dot"></span>
-                <div class="bay-text-group">
-                    <span id="mobileBayNum" class="mobile-bay-num">STANDBY</span>
-                    <span id="mobileBayTitle" class="mobile-bay-title">SELECT BRIEFCASE</span>
-                </div>
-            </div>
             <button id="mobileNavNext" class="mobile-nav-btn next-btn" aria-label="Hold to run forward">
                 <div class="btn-label-group">
                     <span class="btn-text">NEXT</span>
@@ -861,6 +854,7 @@ document.addEventListener('DOMContentLoaded', () => {
             function startHold(e) {
                 if (e.button !== undefined && e.button !== 0) return;
                 if (workcell.isEStopped) return;
+                if (e.cancelable) e.preventDefault(); // Prevents iOS/mobile text selection and magnifier callout
                 if (isHolding) return;
                 isHolding = true;
                 lastTime = performance.now();
@@ -899,54 +893,9 @@ document.addEventListener('DOMContentLoaded', () => {
         const nextBtn = controls.querySelector('#mobileNavNext');
         bindHoldToRun(prevBtn, -1);
         bindHoldToRun(nextBtn, 1);
-
-        // Wire up Center Badge: Tap to toggle inspect / expand front stage card
-        const bayBadge = controls.querySelector('#mobileBayBadge');
-        if (bayBadge) {
-            bayBadge.addEventListener('click', (e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                if (currentSectionIndex >= 0) {
-                    const stage = document.getElementById('robot-front-stage');
-                    if (stage) {
-                        if (stage.classList.contains('minimized-dock')) {
-                            stage.classList.remove('minimized-dock');
-                            stage.classList.add('expanded');
-                            const inspectBtn = document.getElementById('dockInspectBtn');
-                            if (inspectBtn) inspectBtn.textContent = '👁 Inspect 3D Cell';
-                        } else if (stage.classList.contains('expanded')) {
-                            stage.classList.remove('expanded');
-                            stage.classList.add('minimized-dock');
-                            const inspectBtn = document.getElementById('dockInspectBtn');
-                            if (inspectBtn) inspectBtn.textContent = '📄 View Topic Card';
-                        } else {
-                            displayFrontStageSection(sectionIds[currentSectionIndex], currentSectionIndex);
-                        }
-                    }
-                } else {
-                    workcell.goToSection(0);
-                }
-            });
-        }
-
-        updateMobileControls(currentSectionIndex);
     }
 
     function updateMobileControls(index) {
-        const bayNum = document.getElementById('mobileBayNum');
-        const bayTitle = document.getElementById('mobileBayTitle');
-        const badge = document.getElementById('mobileBayBadge');
-        if (!bayNum || !bayTitle) return;
-
-        if (index >= 0 && index < workcell.bayConfigs.length) {
-            const cfg = workcell.bayConfigs[index];
-            bayNum.textContent = `BAY [${cfg.bayNum}]`;
-            bayTitle.textContent = cfg.name.toUpperCase();
-            if (badge) badge.classList.add('active');
-        } else {
-            bayNum.textContent = 'STANDBY';
-            bayTitle.textContent = 'SELECT BRIEFCASE';
-            if (badge) badge.classList.remove('active');
-        }
+        // Badge removed per user request
     }
 });
