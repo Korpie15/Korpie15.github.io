@@ -798,28 +798,42 @@ document.addEventListener('DOMContentLoaded', () => {
     function createMobileWorkcellUI() {
         if (document.getElementById('mobile-safety-sign')) return;
 
-        // 1. Prominent Industrial OSHA DANGER Safety Sign at Top
+        // 1. Prominent Industrial Blue Mandatory Safety Sign at Top
         const safetySign = document.createElement('div');
         safetySign.id = 'mobile-safety-sign';
-        safetySign.className = 'mobile-safety-sign osha-danger-sign';
+        safetySign.className = 'mobile-safety-sign blue-mandatory-sign osha-danger-sign';
         safetySign.innerHTML = `
-            <div class="osha-inner-frame">
-                <!-- Top Black Header with Red Oval -->
-                <div class="osha-header">
-                    <div class="osha-oval-badge">
-                        <span class="osha-danger-title">DANGER</span>
+            <div class="mandatory-inner-frame">
+                <!-- Top Blue Header with Mandatory Badge -->
+                <div class="mandatory-header">
+                    <span class="mandatory-title">MANDATORY</span>
+                </div>
+                <!-- Main Sign Content Area -->
+                <div class="mandatory-body">
+                    <!-- Circular Blue Pictogram Badge -->
+                    <div class="mandatory-icon-badge" aria-hidden="true">
+                        <!-- Hand / Direct Action Touch Symbol -->
+                        <svg class="mandatory-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M18 11V6a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v0"/>
+                            <path d="M14 10V4a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v2"/>
+                            <path d="M10 10.5V6a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v8"/>
+                            <path d="M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.86-5.99-2.34l-3.6-3.6a2 2 0 0 1 2.83-2.83L7 15"/>
+                        </svg>
                     </div>
-                </div>
-                <!-- Desktop Message (Scroll or Click Briefcase) -->
-                <div class="osha-body osha-desktop-body">
-                    <div class="osha-line-1">SCROLL OR CLICK</div>
-                    <div class="osha-line-2">A BRIEFCASE</div>
-                </div>
-                <!-- Mobile Message (Tap Briefcase / Hold Prev/Next) -->
-                <div class="osha-body osha-mobile-body">
-                    <div class="osha-line-1">TAP ON A BRIEFCASE</div>
-                    <div class="osha-line-2">TO AUTO OPEN</div>
-                    <div class="osha-line-3">HOLD PREV / NEXT TO RUN</div>
+                    <!-- Instruction Message Area -->
+                    <div class="mandatory-msg-box">
+                        <!-- Desktop Instructions -->
+                        <div class="mandatory-text mandatory-desktop-text osha-desktop-body">
+                            <div class="mandatory-line-1">SCROLL OR CLICK</div>
+                            <div class="mandatory-line-2">A BRIEFCASE</div>
+                        </div>
+                        <!-- Mobile Instructions -->
+                        <div class="mandatory-text mandatory-mobile-text osha-mobile-body">
+                            <div class="mandatory-line-1">TAP A BRIEFCASE</div>
+                            <div class="mandatory-line-2">TO AUTO OPEN</div>
+                            <div class="mandatory-line-sub">HOLD PREV / NEXT TO RUN</div>
+                        </div>
+                    </div>
                 </div>
             </div>
         `;
