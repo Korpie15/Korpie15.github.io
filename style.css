@@ -3674,13 +3674,13 @@ body.classic-view-mode #robot-front-stage .hero {
         margin-left: 0.4rem;
     }
 
-    /* Prominent, touch-friendly minimized dock pill on mobile */
+    /* Prominent, touch-friendly minimized dock pill on mobile (sits cleanly above bottom nav controls) */
     #robot-front-stage.minimized-dock {
-        bottom: 16px !important;
+        bottom: 74px !important;
         width: 94vw !important;
-        height: 52px !important;
+        height: 50px !important;
         padding: 0 0.9rem !important;
-        border-radius: 26px !important;
+        border-radius: 25px !important;
         cursor: pointer !important;
         pointer-events: auto !important;
         touch-action: manipulation !important;
@@ -3708,38 +3708,498 @@ body.classic-view-mode #robot-front-stage .hero {
         cursor: pointer !important;
     }
 
-    body:has(#robot-front-stage.minimized-dock) .mobile-workcell-hint {
-        bottom: 78px;
-    }
-
-    .mobile-workcell-hint {
+    /* 1. Constant, Prominent Industrial Safety Sign at Top of Screen */
+    .mobile-safety-sign {
+        display: block !important;
         position: fixed;
-        bottom: 16px;
+        top: 66px;
         left: 50%;
         transform: translateX(-50%);
-        background: rgba(15, 23, 42, 0.88);
-        border: 1px solid rgba(245, 158, 11, 0.5);
-        color: #f1f5f9;
-        font-size: 0.72rem;
-        font-family: monospace;
-        padding: 0.45rem 1rem;
-        border-radius: 20px;
-        pointer-events: none;
-        z-index: 50;
-        backdrop-filter: blur(8px);
-        -webkit-backdrop-filter: blur(8px);
-        display: flex;
-        align-items: center;
-        gap: 0.4rem;
-        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.6);
-        animation: hintFadeInOut 7s forwards;
+        width: calc(100% - 24px);
+        max-width: 420px;
+        background: rgba(10, 15, 26, 0.94);
+        border: 2px solid #f59e0b;
+        border-radius: 8px;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.7), 0 0 18px rgba(245, 158, 11, 0.25);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        z-index: 55;
+        overflow: hidden;
+        pointer-events: auto;
+        transition: opacity 0.3s ease, transform 0.3s ease;
     }
 
-    @keyframes hintFadeInOut {
-        0% { opacity: 0; transform: translateX(-50%) translateY(12px); }
-        12% { opacity: 1; transform: translateX(-50%) translateY(0); }
-        82% { opacity: 1; transform: translateX(-50%) translateY(0); }
-        100% { opacity: 0; transform: translateX(-50%) translateY(12px); pointer-events: none; }
+    body:has(#robot-front-stage.expanded:not(.minimized-dock):not(.docked-hidden)) .mobile-safety-sign {
+        opacity: 0;
+        pointer-events: none;
+        transform: translateX(-50%) translateY(-10px);
     }
+
+    .safety-sign-header {
+        background: #f59e0b;
+        color: #0a0f1a;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        padding: 4px 8px;
+        font-family: monospace;
+        font-weight: 900;
+        font-size: 0.68rem;
+        letter-spacing: 0.5px;
+    }
+
+    .safety-stripe {
+        flex: 1;
+        height: 6px;
+        background: repeating-linear-gradient(
+            45deg,
+            #0a0f1a,
+            #0a0f1a 5px,
+            #f59e0b 5px,
+            #f59e0b 10px
+        );
+        opacity: 0.4;
+    }
+
+    .safety-header-text {
+        white-space: nowrap;
+    }
+
+    .safety-sign-body {
+        padding: 6px 10px 5px;
+        text-align: center;
+    }
+
+    .safety-main-text {
+        font-size: 0.78rem;
+        font-weight: 800;
+        color: #ffffff;
+        letter-spacing: 0.5px;
+        text-transform: uppercase;
+        margin-bottom: 2px;
+    }
+
+    .safety-sub-text {
+        font-size: 0.62rem;
+        font-family: monospace;
+        color: #94a3b8;
+        letter-spacing: 0.3px;
+    }
+
+    .safety-sign-hazard-bar {
+        height: 4px;
+        background: repeating-linear-gradient(
+            -45deg,
+            #f59e0b,
+            #f59e0b 6px,
+            #0a0f1a 6px,
+            #0a0f1a 12px
+        );
+    }
+
+    /* 2. Tactile Mobile Workcell Navigation Controls at Bottom */
+    .mobile-workcell-controls {
+        display: flex !important;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+        position: fixed;
+        bottom: 14px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: calc(100% - 24px);
+        max-width: 420px;
+        background: rgba(10, 15, 26, 0.94);
+        border: 1px solid rgba(245, 158, 11, 0.5);
+        border-radius: 16px;
+        padding: 6px 8px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8), 0 0 20px rgba(245, 158, 11, 0.2);
+        backdrop-filter: blur(14px);
+        -webkit-backdrop-filter: blur(14px);
+        z-index: 60;
+        touch-action: manipulation;
+        transition: opacity 0.3s ease;
+    }
+
+    body:has(#robot-front-stage.expanded:not(.minimized-dock):not(.docked-hidden)) .mobile-workcell-controls {
+        opacity: 0.35;
+        pointer-events: none;
+    }
+
+    .mobile-nav-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        min-width: 82px;
+        height: 44px;
+        padding: 0 10px;
+        background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%);
+        border: 1px solid rgba(245, 158, 11, 0.6);
+        border-radius: 10px;
+        color: #f59e0b;
+        font-family: monospace;
+        font-size: 0.78rem;
+        font-weight: 800;
+        letter-spacing: 0.5px;
+        cursor: pointer;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+        transition: transform 0.1s ease, background 0.2s ease, border-color 0.2s ease;
+        -webkit-tap-highlight-color: transparent;
+    }
+
+    .mobile-nav-btn:active {
+        transform: scale(0.94);
+        background: #f59e0b;
+        color: #0f172a;
+        box-shadow: 0 0 15px rgba(245, 158, 11, 0.6);
+    }
+
+    .mobile-nav-btn .btn-arrow {
+        font-size: 0.85rem;
+    }
+
+    .mobile-bay-badge {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        padding: 4px 6px;
+        background: rgba(15, 23, 42, 0.85);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 8px;
+        cursor: pointer;
+        user-select: none;
+        -webkit-tap-highlight-color: transparent;
+        transition: background 0.2s ease, border-color 0.2s ease;
+    }
+
+    .mobile-bay-badge:active {
+        background: rgba(245, 158, 11, 0.18);
+        border-color: rgba(245, 158, 11, 0.6);
+    }
+
+    .bay-led-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: #3b82f6;
+        box-shadow: 0 0 6px #3b82f6;
+        transition: background 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .mobile-bay-badge.active .bay-led-dot {
+        background: #10b981;
+        box-shadow: 0 0 8px #10b981;
+        animation: ledPulse 1.5s infinite;
+    }
+
+    @keyframes ledPulse {
+        0%, 100% { transform: scale(1); opacity: 1; }
+        50% { transform: scale(1.2); opacity: 0.6; }
+    }
+
+    .bay-text-group {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        overflow: hidden;
+    }
+
+    .mobile-bay-num {
+        font-size: 0.62rem;
+        font-family: monospace;
+        font-weight: 700;
+        color: #f59e0b;
+        letter-spacing: 0.5px;
+        line-height: 1;
+    }
+
+    .mobile-bay-title {
+        font-size: 0.72rem;
+        font-weight: 800;
+        color: #f8fafc;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 140px;
+        line-height: 1.3;
+        margin-top: 1px;
+    }
+}
+
+/* ==========================================================================
+   INDUSTRIAL AUTOMATION PRELOADER // KINEMATICS CALIBRATOR
+   ========================================================================== */
+.industrial-loader {
+    position: fixed;
+    inset: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: 99999;
+    background-color: #070a13;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: opacity 0.5s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.5s ease, transform 0.5s ease;
+    overflow: hidden;
+}
+
+.industrial-loader.loader-finished {
+    opacity: 0;
+    visibility: hidden;
+    transform: scale(1.03);
+    pointer-events: none;
+}
+
+.loader-bg-overlay {
+    position: absolute;
+    inset: 0;
+    background: 
+        radial-gradient(circle at center, rgba(14, 165, 233, 0.12) 0%, transparent 65%),
+        linear-gradient(rgba(14, 165, 233, 0.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(14, 165, 233, 0.04) 1px, transparent 1px);
+    background-size: 100% 100%, 36px 36px, 36px 36px;
+    pointer-events: none;
+}
+
+.loader-container {
+    position: relative;
+    width: 90%;
+    max-width: 440px;
+    padding: 2.2rem 1.8rem;
+    background: rgba(13, 20, 36, 0.92);
+    border: 1px solid rgba(14, 165, 233, 0.35);
+    border-radius: 12px;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.8), 0 0 30px rgba(14, 165, 233, 0.15);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    z-index: 2;
+}
+
+/* Precision HUD Corner Brackets */
+.hud-bracket {
+    position: absolute;
+    width: 14px;
+    height: 14px;
+    border-color: #0ea5e9;
+    border-style: solid;
+    pointer-events: none;
+}
+.hud-tl { top: -2px; left: -2px; border-width: 2px 0 0 2px; }
+.hud-tr { top: -2px; right: -2px; border-width: 2px 2px 0 0; }
+.hud-bl { bottom: -2px; left: -2px; border-width: 0 0 2px 2px; }
+.hud-br { bottom: -2px; right: -2px; border-width: 0 2px 2px 0; }
+
+/* Rotating Robotic Servo / Gear Graphic */
+.loader-servo-graphic {
+    position: relative;
+    width: 110px;
+    height: 110px;
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.servo-outer-ring {
+    position: absolute;
+    inset: -6px;
+    border: 1px dashed rgba(14, 165, 233, 0.45);
+    border-radius: 50%;
+    animation: servoRotateCW 12s linear infinite;
+}
+
+.servo-axis-mark {
+    position: absolute;
+    font-size: 0.55rem;
+    font-family: monospace;
+    color: rgba(14, 165, 233, 0.7);
+}
+.axis-0 { top: -8px; left: 50%; transform: translateX(-50%); }
+.axis-90 { right: -12px; top: 50%; transform: translateY(-50%); }
+.axis-180 { bottom: -8px; left: 50%; transform: translateX(-50%); }
+.axis-270 { left: -14px; top: 50%; transform: translateY(-50%); }
+
+.servo-gear-teeth {
+    position: absolute;
+    inset: 4px;
+    border: 2px dotted rgba(245, 158, 11, 0.55);
+    border-radius: 50%;
+    animation: servoRotateCCW 8s linear infinite;
+}
+
+.servo-sweep-reticle {
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    background: conic-gradient(from 0deg, rgba(14, 165, 233, 0.35) 0deg, transparent 60deg, transparent 360deg);
+    animation: servoRotateCW 2.4s linear infinite;
+}
+
+.servo-svg-ring {
+    position: relative;
+    width: 90px;
+    height: 90px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.servo-svg-ring svg {
+    width: 100%;
+    height: 100%;
+    transform: rotate(-90deg);
+}
+
+.loader-track {
+    fill: none;
+    stroke: rgba(255, 255, 255, 0.08);
+    stroke-width: 6;
+}
+
+.loader-progress {
+    fill: none;
+    stroke: #0ea5e9;
+    stroke-width: 6;
+    stroke-linecap: round;
+    filter: drop-shadow(0 0 6px #0ea5e9);
+    transition: stroke-dashoffset 0.15s ease;
+}
+
+.servo-center-node {
+    position: absolute;
+    font-size: 1.8rem;
+    animation: nodePulse 2s ease-in-out infinite;
+}
+
+@keyframes servoRotateCW {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+@keyframes servoRotateCCW {
+    from { transform: rotate(360deg); }
+    to { transform: rotate(0deg); }
+}
+
+@keyframes nodePulse {
+    0%, 100% { transform: scale(1); filter: drop-shadow(0 0 4px rgba(14, 165, 233, 0.4)); }
+    50% { transform: scale(1.08); filter: drop-shadow(0 0 12px rgba(14, 165, 233, 0.8)); }
+}
+
+/* Telemetry Info */
+.loader-telemetry {
+    margin-bottom: 1.2rem;
+}
+
+.loader-system-id {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.65rem;
+    font-family: monospace;
+    font-weight: 700;
+    color: #f59e0b;
+    letter-spacing: 1px;
+    background: rgba(245, 158, 11, 0.12);
+    border: 1px solid rgba(245, 158, 11, 0.3);
+    padding: 0.2rem 0.6rem;
+    border-radius: 4px;
+    margin-bottom: 0.6rem;
+}
+
+.system-pulse-pip {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #10b981;
+    box-shadow: 0 0 6px #10b981;
+    animation: pipBlink 1.2s infinite;
+}
+
+@keyframes pipBlink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+}
+
+.loader-header-title {
+    font-size: 1.1rem;
+    font-weight: 800;
+    color: #f8fafc;
+    letter-spacing: 0.5px;
+    margin: 0 0 0.35rem 0;
+}
+
+.loader-step-text {
+    font-size: 0.72rem;
+    font-family: monospace;
+    color: #94a3b8;
+    letter-spacing: 0.5px;
+    min-height: 1.2rem;
+}
+
+/* Progress Bar */
+.loader-bar-section {
+    width: 100%;
+}
+
+.loader-bar-frame {
+    width: 100%;
+    height: 8px;
+    background: rgba(255, 255, 255, 0.08);
+    border-radius: 4px;
+    overflow: hidden;
+    position: relative;
+    border: 1px solid rgba(14, 165, 233, 0.3);
+}
+
+.loader-bar-fill {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, #0284c7, #0ea5e9, #38bdf8);
+    background-size: 20px 20px;
+    background-image: linear-gradient(
+        45deg,
+        rgba(255, 255, 255, 0.15) 25%,
+        transparent 25%,
+        transparent 50%,
+        rgba(255, 255, 255, 0.15) 50%,
+        rgba(255, 255, 255, 0.15) 75%,
+        transparent 75%,
+        transparent
+    );
+    box-shadow: 0 0 10px #0ea5e9;
+    transition: width 0.1s linear;
+    animation: barStripes 1s linear infinite;
+}
+
+@keyframes barStripes {
+    0% { background-position: 0 0; }
+    100% { background-position: 20px 0; }
+}
+
+.loader-footer-metrics {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 0.5rem;
+    font-size: 0.68rem;
+    font-family: monospace;
+}
+
+.metric-tag {
+    color: #64748b;
+}
+
+.metric-val {
+    color: #38bdf8;
+    font-weight: 700;
 }
 

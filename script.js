@@ -3,6 +3,96 @@
 // ============================================
 
 // ============================================
+// INDUSTRIAL AUTOMATION PRELOADER CONTROLLER
+// ============================================
+(function initIndustrialLoader() {
+    const loader = document.getElementById('industrial-loader');
+    if (!loader) return;
+
+    const fill = document.getElementById('loader-bar-fill');
+    const percentText = document.getElementById('loader-percent');
+    const stepText = document.getElementById('loader-step-text');
+    const circle = document.getElementById('loader-progress-circle');
+
+    let currentPercent = 10;
+    let targetPercent = 30;
+    let isDismissed = false;
+
+    const steps = [
+        { at: 10, text: 'ALLOCATING THREE.JS GPU CONTEXT...' },
+        { at: 35, text: 'FABRICATING BRIEFCASE ATTACHÉ CASES...' },
+        { at: 60, text: 'SOLVING INVERSE KINEMATICS (IK)...' },
+        { at: 80, text: 'SYNCHRONIZING INDUSTRIAL TELEMETRY...' },
+        { at: 95, text: 'WORKCELL ONLINE - STANDBY ENGAGED' },
+        { at: 100, text: 'SYSTEM OPERATIONAL // CELL READY' }
+    ];
+
+    const circumference = 2 * Math.PI * 42; // r=42 -> ~263.89
+    if (circle) {
+        circle.style.strokeDasharray = `${circumference}`;
+        circle.style.strokeDashoffset = `${circumference}`;
+    }
+
+    const interval = setInterval(() => {
+        if (currentPercent < targetPercent) {
+            currentPercent += (targetPercent - currentPercent) * 0.25 + 0.6;
+            if (currentPercent > targetPercent) currentPercent = targetPercent;
+        }
+
+        const pct = Math.min(100, Math.floor(currentPercent));
+        if (fill) fill.style.width = `${pct}%`;
+        if (percentText) percentText.textContent = `${pct < 10 ? '0' + pct : pct}%`;
+        if (circle) {
+            const offset = circumference - (pct / 100) * circumference;
+            circle.style.strokeDashoffset = `${offset}`;
+        }
+
+        for (let i = steps.length - 1; i >= 0; i--) {
+            if (pct >= steps[i].at) {
+                if (stepText) stepText.textContent = steps[i].text;
+                break;
+            }
+        }
+
+        if (isDismissed && pct >= 100) {
+            clearInterval(interval);
+            setTimeout(() => {
+                loader.classList.add('loader-finished');
+                setTimeout(() => {
+                    loader.style.display = 'none';
+                }, 600);
+            }, 250);
+        }
+    }, 35);
+
+    // Progression triggers
+    if (document.readyState === 'complete' || document.readyState === 'interactive') {
+        targetPercent = Math.max(targetPercent, 70);
+    } else {
+        document.addEventListener('DOMContentLoaded', () => {
+            targetPercent = Math.max(targetPercent, 70);
+        });
+    }
+
+    window.addEventListener('load', () => {
+        targetPercent = Math.max(targetPercent, 90);
+    });
+
+    window.dismissLoader = function() {
+        targetPercent = 100;
+        currentPercent = Math.max(currentPercent, 90);
+        isDismissed = true;
+    };
+
+    // Safety timeout: never block longer than 3.5 seconds
+    setTimeout(() => {
+        if (!isDismissed) {
+            window.dismissLoader();
+        }
+    }, 3500);
+})();
+
+// ============================================
 // SMOOTH SCROLLING & NAVBAR
 // ============================================
 

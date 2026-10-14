@@ -4,10 +4,64 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Aidan Korpar | Engineering ePortfolio</title>
-    <link rel="stylesheet" href="style.css?v=4.3">
+    <link rel="stylesheet" href="style.css?v=4.4">
     <link rel="icon" href="favicon.png" type="image/png">
 </head>
 <body>
+    <!-- Industrial Automation Preloader & Kinematics Calibrator -->
+    <div id="industrial-loader" class="industrial-loader">
+        <div class="loader-bg-overlay"></div>
+        <div class="loader-container">
+            <!-- Industrial Precision Corner Brackets -->
+            <div class="hud-bracket hud-tl"></div>
+            <div class="hud-bracket hud-tr"></div>
+            <div class="hud-bracket hud-bl"></div>
+            <div class="hud-bracket hud-br"></div>
+
+            <!-- Rotating Robotic Servo / Gear Graphic -->
+            <div class="loader-servo-graphic">
+                <div class="servo-outer-ring">
+                    <span class="servo-axis-mark axis-0">0°</span>
+                    <span class="servo-axis-mark axis-90">90°</span>
+                    <span class="servo-axis-mark axis-180">180°</span>
+                    <span class="servo-axis-mark axis-270">270°</span>
+                </div>
+                <div class="servo-gear-teeth"></div>
+                <div class="servo-sweep-reticle"></div>
+                <div class="servo-svg-ring">
+                    <svg viewBox="0 0 100 100">
+                        <circle class="loader-track" cx="50" cy="50" r="42"></circle>
+                        <circle id="loader-progress-circle" class="loader-progress" cx="50" cy="50" r="42"></circle>
+                    </svg>
+                    <div class="servo-center-node">
+                        <span class="node-icon">🦾</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Industrial System Telemetry Status -->
+            <div class="loader-telemetry">
+                <div class="loader-system-id">
+                    <span class="system-pulse-pip"></span>
+                    <span>AUTOMATION CELL // TP-6000 SYSTEM</span>
+                </div>
+                <h2 class="loader-header-title">CALIBRATING ROBOTIC CELL</h2>
+                <div id="loader-step-text" class="loader-step-text">INITIALIZING KINEMATICS ENGINE...</div>
+            </div>
+
+            <!-- Precision Progress Bar -->
+            <div class="loader-bar-section">
+                <div class="loader-bar-frame">
+                    <div id="loader-bar-fill" class="loader-bar-fill"></div>
+                </div>
+                <div class="loader-footer-metrics">
+                    <span class="metric-tag">STATUS: SYNCHRONIZING</span>
+                    <span id="loader-percent" class="metric-val">00%</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Animated Navigation -->
     <nav id="navbar" class="navbar">
         <div class="navbar-container">
@@ -86,8 +140,7 @@
                     Transforming complex engineering challenges into innovative automation solutions
                 </p>
                 <div class="hero-buttons">
-                    <a href="#about" class="btn btn-primary">Explore My Work</a>
-                    <a href="pdfs/Aidan Korpar Resume.pdf" download class="btn btn-secondary">Download Resume</a>
+                    <a href="pdfs/Aidan Korpar Resume.pdf" download class="btn btn-primary">Download Resume</a>
                 </div>
                 <div class="social-links">
                     <a href="https://www.linkedin.com/in/aidan-korpar" target="_blank" class="social-icon" aria-label="LinkedIn">
@@ -1227,8 +1280,8 @@
 
     <script src="three.min.js"></script>
     <script src="gsap.min.js"></script>
-    <script src="script.js?v=4.3"></script>
-    <script src="robot-arm.js?v=4.3"></script>
-    <script src="robot-controller.js?v=4.3"></script>
+    <script src="script.js?v=4.4"></script>
+    <script src="robot-arm.js?v=4.4"></script>
+    <script src="robot-controller.js?v=4.4"></script>
 </body>
 </html>

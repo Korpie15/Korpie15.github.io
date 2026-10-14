@@ -33,10 +33,12 @@ document.addEventListener('DOMContentLoaded', () => {
             highlightActivePendantButton(index);
             displayFrontStageSection(sectionId, index);
             updateNavMenuHighlight(sectionId);
+            updateMobileControls(index);
         } else {
             hideFrontStageSection();
             highlightActivePendantButton(-1);
             updateNavMenuHighlight('');
+            updateMobileControls(-1);
         }
     };
 
@@ -44,13 +46,8 @@ document.addEventListener('DOMContentLoaded', () => {
     hideFrontStageSection();
     highlightActivePendantButton(-1);
 
-    // Mobile discovery hint:
-    if (window.innerWidth <= 768) {
-        const hint = document.createElement('div');
-        hint.className = 'mobile-workcell-hint';
-        hint.innerHTML = '<span>👆</span> Tap briefcase to open • <span>↕</span> Swipe to scrub';
-        document.body.appendChild(hint);
-    }
+    // Create Mobile Workcell UI (Safety Sign Banner & Prev/Next Controls)
+    createMobileWorkcellUI();
 
     // Support URL parameters for automated verification (?bay=1&inspect=true&progress=0.5)
     const urlParams = new URLSearchParams(window.location.search);
@@ -631,14 +628,16 @@ document.addEventListener('DOMContentLoaded', () => {
         const stageBeam = document.getElementById('robot-stage-beam');
         const btn = document.getElementById('viewModeToggle');
 
-        const hint = document.querySelector('.mobile-workcell-hint');
+        const safetySign = document.getElementById('mobile-safety-sign');
+        const mobileControls = document.getElementById('mobile-workcell-controls');
 
         if (mode === 'classic') {
             document.body.classList.add('classic-view-mode');
             if (appContainer) appContainer.style.display = 'none';
             if (pendant) pendant.style.display = 'none';
             if (stageBeam) stageBeam.style.display = 'none';
-            if (hint) hint.style.display = 'none';
+            if (safetySign) safetySign.style.display = 'none';
+            if (mobileControls) mobileControls.style.display = 'none';
             if (stageCard) {
                 stageCard.classList.remove('docked-hidden', 'transitioning', 'minimized-dock');
                 stageCard.classList.add('expanded');
@@ -654,7 +653,8 @@ document.addEventListener('DOMContentLoaded', () => {
             if (appContainer) appContainer.style.display = 'block';
             if (pendant) pendant.style.display = 'flex';
             if (stageBeam) stageBeam.style.display = '';
-            if (hint) hint.style.display = 'flex';
+            if (safetySign) safetySign.style.display = '';
+            if (mobileControls) mobileControls.style.display = '';
             if (btn) {
                 btn.innerHTML = '<span>📄</span> Classic View';
             }
@@ -776,5 +776,130 @@ document.addEventListener('DOMContentLoaded', () => {
                 window.toggleCardInspect('expand');
             }
         });
+    }
+
+    /**
+     * Mobile Workcell Interface:
+     * 1. Constant, prominent Safety Sign banner at the top of the mobile screen.
+     * 2. Touch-friendly PREV / NEXT cycle buttons + active bay readout at the bottom.
+     */
+    function createMobileWorkcellUI() {
+        if (document.getElementById('mobile-safety-sign')) return;
+
+        // 1. Prominent Industrial Safety Sign at Top
+        const safetySign = document.createElement('div');
+        safetySign.id = 'mobile-safety-sign';
+        safetySign.className = 'mobile-safety-sign';
+        safetySign.innerHTML = `
+            <div class="safety-sign-header">
+                <span class="safety-stripe left"></span>
+                <span class="safety-header-text">⚠️ SAFETY NOTICE // OPERATOR INSTRUCTION ⚠️</span>
+                <span class="safety-stripe right"></span>
+            </div>
+            <div class="safety-sign-body">
+                <div class="safety-main-text">TAP ANY BRIEFCASE TO OPEN DOSSIER</div>
+                <div class="safety-sub-text">USE ◀ PREV / NEXT ▶ BUTTONS BELOW • SWIPE TO SCRUB</div>
+            </div>
+            <div class="safety-sign-hazard-bar"></div>
+        `;
+        document.body.appendChild(safetySign);
+
+        // 2. Mobile Forward/Backward Navigation Controls at Bottom
+        const controls = document.createElement('div');
+        controls.id = 'mobile-workcell-controls';
+        controls.className = 'mobile-workcell-controls';
+        controls.innerHTML = `
+            <button id="mobileNavPrev" class="mobile-nav-btn prev-btn" aria-label="Previous Briefcase">
+                <span class="btn-arrow">◀</span>
+                <span class="btn-text">PREV</span>
+            </button>
+            <div id="mobileBayBadge" class="mobile-bay-badge" title="Tap to view/inspect topic card">
+                <span class="bay-led-dot"></span>
+                <div class="bay-text-group">
+                    <span id="mobileBayNum" class="mobile-bay-num">STANDBY</span>
+                    <span id="mobileBayTitle" class="mobile-bay-title">SELECT BRIEFCASE</span>
+                </div>
+            </div>
+            <button id="mobileNavNext" class="mobile-nav-btn next-btn" aria-label="Next Briefcase">
+                <span class="btn-text">NEXT</span>
+                <span class="btn-arrow">▶</span>
+            </button>
+        `;
+        document.body.appendChild(controls);
+
+        // Wire up Prev Button
+        const prevBtn = controls.querySelector('#mobileNavPrev');
+        if (prevBtn) {
+            prevBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                if (workcell.isEStopped) return;
+                const total = sectionIds.length;
+                let target = (currentSectionIndex <= 0) ? total - 1 : currentSectionIndex - 1;
+                workcell.goToSection(target);
+            });
+        }
+
+        // Wire up Next Button
+        const nextBtn = controls.querySelector('#mobileNavNext');
+        if (nextBtn) {
+            nextBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                if (workcell.isEStopped) return;
+                const total = sectionIds.length;
+                let target = (currentSectionIndex < 0 || currentSectionIndex >= total - 1) ? 0 : currentSectionIndex + 1;
+                workcell.goToSection(target);
+            });
+        }
+
+        // Wire up Center Badge: Tap to toggle inspect / expand front stage card
+        const bayBadge = controls.querySelector('#mobileBayBadge');
+        if (bayBadge) {
+            bayBadge.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                if (currentSectionIndex >= 0) {
+                    const stage = document.getElementById('robot-front-stage');
+                    if (stage) {
+                        if (stage.classList.contains('minimized-dock')) {
+                            stage.classList.remove('minimized-dock');
+                            stage.classList.add('expanded');
+                            const inspectBtn = document.getElementById('dockInspectBtn');
+                            if (inspectBtn) inspectBtn.textContent = '👁 Inspect 3D Cell';
+                        } else if (stage.classList.contains('expanded')) {
+                            stage.classList.remove('expanded');
+                            stage.classList.add('minimized-dock');
+                            const inspectBtn = document.getElementById('dockInspectBtn');
+                            if (inspectBtn) inspectBtn.textContent = '📄 View Topic Card';
+                        } else {
+                            displayFrontStageSection(sectionIds[currentSectionIndex], currentSectionIndex);
+                        }
+                    }
+                } else {
+                    workcell.goToSection(0);
+                }
+            });
+        }
+
+        updateMobileControls(currentSectionIndex);
+    }
+
+    function updateMobileControls(index) {
+        const bayNum = document.getElementById('mobileBayNum');
+        const bayTitle = document.getElementById('mobileBayTitle');
+        const badge = document.getElementById('mobileBayBadge');
+        if (!bayNum || !bayTitle) return;
+
+        if (index >= 0 && index < workcell.bayConfigs.length) {
+            const cfg = workcell.bayConfigs[index];
+            bayNum.textContent = `BAY [${cfg.bayNum}]`;
+            bayTitle.textContent = cfg.name.toUpperCase();
+            if (badge) badge.classList.add('active');
+        } else {
+            bayNum.textContent = 'STANDBY';
+            bayTitle.textContent = 'SELECT BRIEFCASE';
+            if (badge) badge.classList.remove('active');
+        }
     }
 });

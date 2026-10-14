@@ -630,6 +630,9 @@ class RobotWorkcell {
             this.joints.gripper.rightFinger.position.x = this.joints.gripper.gap;
         }
         this.animate();
+        if (typeof window.dismissLoader === 'function') {
+            window.dismissLoader();
+        }
     }
 
     initThree() {
@@ -2817,35 +2820,40 @@ class RobotWorkcell {
 
         // Guaranteed Horizontal Coverage:
         // The outer perimeter briefcases span from X = -3.4m to X = +3.4m (6.8m total span).
-        // To ensure all 7 briefcases and the robot cell fit with comfortable breathing margins on phones:
-        // Target visible width at center: 9.8 meters!
+        // To ensure all 7 briefcases and the robot cell fit with generous breathing margins on all mobile devices:
         if (aspect < 1.0) {
             // Mobile Portrait (e.g. phones):
-            const camZ = 14.5;
-            const camY = 3.6;
+            const camZ = 16.2;
+            const camY = 3.9;
+            if (this.cameraPos) this.cameraPos.set(0, camY, camZ);
+            if (this.cameraLookAt) this.cameraLookAt.set(0, -0.05, 0);
+            this.camera.position.set(0, camY, camZ);
+            this.camera.lookAt(0, -0.05, 0);
+
+            // Compute vertical FOV so that horizontal width at center is guaranteed ~11.8m:
+            const halfWidth = 5.9; // 11.8m total span guarantees briefcases are never cut off
+            const tanH = halfWidth / camZ;
+            const tanV = tanH / aspect;
+            const vFovDeg = THREE.MathUtils.radToDeg(Math.atan(tanV) * 2);
+            this.camera.fov = Math.max(42, Math.min(88, vFovDeg));
+        } else if (aspect < 1.4) {
+            // Tablets / Square Viewports:
+            const camZ = 13.5;
+            const camY = 3.0;
+            if (this.cameraPos) this.cameraPos.set(0, camY, camZ);
+            if (this.cameraLookAt) this.cameraLookAt.set(0, 0.1, 0);
             this.camera.position.set(0, camY, camZ);
             this.camera.lookAt(0, 0.1, 0);
 
-            // Compute vertical FOV so that horizontal width at center is guaranteed ~9.8m:
-            const halfWidth = 4.9; // 9.8m total span
+            const halfWidth = 5.8;
             const tanH = halfWidth / camZ;
             const tanV = tanH / aspect;
             const vFovDeg = THREE.MathUtils.radToDeg(Math.atan(tanV) * 2);
-            this.camera.fov = Math.max(40, Math.min(85, vFovDeg));
-        } else if (aspect < 1.4) {
-            // Tablets / Square Viewports:
-            const camZ = 12.0;
-            const camY = 2.8;
-            this.camera.position.set(0, camY, camZ);
-            this.camera.lookAt(0, 0.2, 0);
-
-            const halfWidth = 5.2;
-            const tanH = halfWidth / camZ;
-            const tanV = tanH / aspect;
-            const vFovDeg = THREE.MathUtils.radToDeg(Math.atan(tanV) * 2);
-            this.camera.fov = Math.max(40, Math.min(65, vFovDeg));
+            this.camera.fov = Math.max(40, Math.min(75, vFovDeg));
         } else {
             // Widescreen Desktop:
+            if (this.cameraPos) this.cameraPos.set(0, 2.0, 9.6);
+            if (this.cameraLookAt) this.cameraLookAt.set(0, 0.3, 0);
             this.camera.position.set(0, 2.0, 9.6);
             this.camera.lookAt(0, 0.3, 0);
             this.camera.fov = 40;
