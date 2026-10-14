@@ -3708,24 +3708,23 @@ body.classic-view-mode #robot-front-stage .hero {
         cursor: pointer !important;
     }
 
-    /* 1. Constant, Prominent Industrial Safety Sign at Top of Screen */
-    .mobile-safety-sign {
+    /* 1. Constant, Authentic OSHA DANGER Safety Sign at Top of Screen */
+    .mobile-safety-sign.osha-danger-sign {
         display: block !important;
         position: fixed;
-        top: 66px;
+        top: 62px;
         left: 50%;
         transform: translateX(-50%);
-        width: calc(100% - 24px);
-        max-width: 420px;
-        background: rgba(10, 15, 26, 0.94);
-        border: 2px solid #f59e0b;
-        border-radius: 8px;
-        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.7), 0 0 18px rgba(245, 158, 11, 0.25);
-        backdrop-filter: blur(12px);
-        -webkit-backdrop-filter: blur(12px);
+        width: 240px;
+        background: #ffffff;
+        border: 2px solid #000000;
+        border-radius: 9px;
+        padding: 3px;
+        box-shadow: 0 10px 28px rgba(0, 0, 0, 0.8), 0 2px 8px rgba(0, 0, 0, 0.5);
         z-index: 55;
         overflow: hidden;
         pointer-events: auto;
+        user-select: none;
         transition: opacity 0.3s ease, transform 0.3s ease;
     }
 
@@ -3735,67 +3734,66 @@ body.classic-view-mode #robot-front-stage .hero {
         transform: translateX(-50%) translateY(-10px);
     }
 
-    .safety-sign-header {
-        background: #f59e0b;
-        color: #0a0f1a;
+    .osha-inner-frame {
+        border: 1.5px solid #000000;
+        border-radius: 6px;
+        background: #ffffff;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .osha-header {
+        background: #000000;
+        padding: 5px 8px;
         display: flex;
         align-items: center;
         justify-content: center;
-        gap: 6px;
-        padding: 4px 8px;
-        font-family: monospace;
-        font-weight: 900;
-        font-size: 0.68rem;
-        letter-spacing: 0.5px;
     }
 
-    .safety-stripe {
-        flex: 1;
-        height: 6px;
-        background: repeating-linear-gradient(
-            45deg,
-            #0a0f1a,
-            #0a0f1a 5px,
-            #f59e0b 5px,
-            #f59e0b 10px
-        );
-        opacity: 0.4;
+    .osha-oval-badge {
+        width: 100%;
+        max-width: 185px;
+        height: 35px;
+        background: #dc2626;
+        border: 2.5px solid #ffffff;
+        border-radius: 50% / 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
     }
 
-    .safety-header-text {
-        white-space: nowrap;
-    }
-
-    .safety-sign-body {
-        padding: 6px 10px 5px;
-        text-align: center;
-    }
-
-    .safety-main-text {
-        font-size: 0.78rem;
-        font-weight: 800;
+    .osha-danger-title {
         color: #ffffff;
-        letter-spacing: 0.5px;
+        font-family: 'Arial Black', Arial, Impact, sans-serif;
+        font-weight: 900;
+        font-size: 1.2rem;
+        letter-spacing: 2px;
+        line-height: 1;
         text-transform: uppercase;
-        margin-bottom: 2px;
+        margin-top: 1px;
     }
 
-    .safety-sub-text {
-        font-size: 0.62rem;
-        font-family: monospace;
-        color: #94a3b8;
-        letter-spacing: 0.3px;
+    .osha-body {
+        background: #ffffff;
+        padding: 7px 6px 6px;
+        text-align: center;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 1px;
     }
 
-    .safety-sign-hazard-bar {
-        height: 4px;
-        background: repeating-linear-gradient(
-            -45deg,
-            #f59e0b,
-            #f59e0b 6px,
-            #0a0f1a 6px,
-            #0a0f1a 12px
-        );
+    .osha-line-1,
+    .osha-line-2 {
+        font-family: Arial, Helvetica, sans-serif;
+        font-weight: 900;
+        font-size: 0.82rem;
+        line-height: 1.22;
+        color: #000000;
+        letter-spacing: 0.4px;
+        text-transform: uppercase;
     }
 
     /* 2. Tactile Mobile Workcell Navigation Controls at Bottom */

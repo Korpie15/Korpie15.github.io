@@ -2823,33 +2823,33 @@ class RobotWorkcell {
         // To ensure all 7 briefcases and the robot cell fit with generous breathing margins on all mobile devices:
         if (aspect < 1.0) {
             // Mobile Portrait (e.g. phones):
-            const camZ = 16.2;
-            const camY = 3.9;
-            if (this.cameraPos) this.cameraPos.set(0, camY, camZ);
-            if (this.cameraLookAt) this.cameraLookAt.set(0, -0.05, 0);
-            this.camera.position.set(0, camY, camZ);
-            this.camera.lookAt(0, -0.05, 0);
-
-            // Compute vertical FOV so that horizontal width at center is guaranteed ~11.8m:
-            const halfWidth = 5.9; // 11.8m total span guarantees briefcases are never cut off
-            const tanH = halfWidth / camZ;
-            const tanV = tanH / aspect;
-            const vFovDeg = THREE.MathUtils.radToDeg(Math.atan(tanV) * 2);
-            this.camera.fov = Math.max(42, Math.min(88, vFovDeg));
-        } else if (aspect < 1.4) {
-            // Tablets / Square Viewports:
-            const camZ = 13.5;
-            const camY = 3.0;
+            const camZ = 13.8;
+            const camY = 3.1;
             if (this.cameraPos) this.cameraPos.set(0, camY, camZ);
             if (this.cameraLookAt) this.cameraLookAt.set(0, 0.1, 0);
             this.camera.position.set(0, camY, camZ);
             this.camera.lookAt(0, 0.1, 0);
 
-            const halfWidth = 5.8;
+            // Compute vertical FOV so that horizontal width at center is guaranteed ~9.7m:
+            const halfWidth = 4.85; // Perfectly frames the cell and briefcases without cut-off or excess zoom-out
             const tanH = halfWidth / camZ;
             const tanV = tanH / aspect;
             const vFovDeg = THREE.MathUtils.radToDeg(Math.atan(tanV) * 2);
-            this.camera.fov = Math.max(40, Math.min(75, vFovDeg));
+            this.camera.fov = Math.max(40, Math.min(84, vFovDeg));
+        } else if (aspect < 1.4) {
+            // Tablets / Square Viewports:
+            const camZ = 12.2;
+            const camY = 2.8;
+            if (this.cameraPos) this.cameraPos.set(0, camY, camZ);
+            if (this.cameraLookAt) this.cameraLookAt.set(0, 0.1, 0);
+            this.camera.position.set(0, camY, camZ);
+            this.camera.lookAt(0, 0.1, 0);
+
+            const halfWidth = 5.1;
+            const tanH = halfWidth / camZ;
+            const tanV = tanH / aspect;
+            const vFovDeg = THREE.MathUtils.radToDeg(Math.atan(tanV) * 2);
+            this.camera.fov = Math.max(40, Math.min(70, vFovDeg));
         } else {
             // Widescreen Desktop:
             if (this.cameraPos) this.cameraPos.set(0, 2.0, 9.6);

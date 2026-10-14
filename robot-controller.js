@@ -786,21 +786,24 @@ document.addEventListener('DOMContentLoaded', () => {
     function createMobileWorkcellUI() {
         if (document.getElementById('mobile-safety-sign')) return;
 
-        // 1. Prominent Industrial Safety Sign at Top
+        // 1. Prominent Industrial OSHA DANGER Safety Sign at Top
         const safetySign = document.createElement('div');
         safetySign.id = 'mobile-safety-sign';
-        safetySign.className = 'mobile-safety-sign';
+        safetySign.className = 'mobile-safety-sign osha-danger-sign';
         safetySign.innerHTML = `
-            <div class="safety-sign-header">
-                <span class="safety-stripe left"></span>
-                <span class="safety-header-text">⚠️ SAFETY NOTICE // OPERATOR INSTRUCTION ⚠️</span>
-                <span class="safety-stripe right"></span>
+            <div class="osha-inner-frame">
+                <!-- Top Black Header with Red Oval -->
+                <div class="osha-header">
+                    <div class="osha-oval-badge">
+                        <span class="osha-danger-title">DANGER</span>
+                    </div>
+                </div>
+                <!-- Bottom White Message Area -->
+                <div class="osha-body">
+                    <div class="osha-line-1">TAP ON A BRIEFCASE</div>
+                    <div class="osha-line-2">TO OPEN DOSSIER</div>
+                </div>
             </div>
-            <div class="safety-sign-body">
-                <div class="safety-main-text">TAP ANY BRIEFCASE TO OPEN DOSSIER</div>
-                <div class="safety-sub-text">USE ◀ PREV / NEXT ▶ BUTTONS BELOW • SWIPE TO SCRUB</div>
-            </div>
-            <div class="safety-sign-hazard-bar"></div>
         `;
         document.body.appendChild(safetySign);
 
