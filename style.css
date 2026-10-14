@@ -3712,10 +3712,11 @@ body.classic-view-mode #robot-front-stage .hero {
     .mobile-safety-sign.osha-danger-sign {
         display: block !important;
         position: fixed;
-        top: 62px;
+        top: 72px;
         left: 50%;
         transform: translateX(-50%);
-        width: 240px;
+        width: 246px;
+        box-sizing: border-box;
         background: #ffffff;
         border: 2px solid #000000;
         border-radius: 9px;

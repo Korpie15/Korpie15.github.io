@@ -2870,29 +2870,30 @@ class RobotWorkcell {
         // To ensure all 7 briefcases and the robot cell fit with generous breathing margins on all mobile devices:
         if (aspect < 1.0) {
             // Mobile Portrait (e.g. phones):
-            const camZ = 13.8;
-            const camY = 3.1;
+            // Briefcases span from X = -3.05m to +3.05m (6.1m total span).
+            // Setting halfWidth = 3.55m allows the briefcases to fill ~90% of screen width cleanly.
+            const camZ = 10.4;
+            const camY = 2.4;
             if (this.cameraPos) this.cameraPos.set(0, camY, camZ);
             if (this.cameraLookAt) this.cameraLookAt.set(0, 0.1, 0);
             this.camera.position.set(0, camY, camZ);
             this.camera.lookAt(0, 0.1, 0);
 
-            // Compute vertical FOV so that horizontal width at center is guaranteed ~9.7m:
-            const halfWidth = 4.85; // Perfectly frames the cell and briefcases without cut-off or excess zoom-out
+            const halfWidth = 3.55;
             const tanH = halfWidth / camZ;
             const tanV = tanH / aspect;
             const vFovDeg = THREE.MathUtils.radToDeg(Math.atan(tanV) * 2);
             this.camera.fov = Math.max(40, Math.min(84, vFovDeg));
         } else if (aspect < 1.4) {
             // Tablets / Square Viewports:
-            const camZ = 12.2;
-            const camY = 2.8;
+            const camZ = 11.2;
+            const camY = 2.5;
             if (this.cameraPos) this.cameraPos.set(0, camY, camZ);
             if (this.cameraLookAt) this.cameraLookAt.set(0, 0.1, 0);
             this.camera.position.set(0, camY, camZ);
             this.camera.lookAt(0, 0.1, 0);
 
-            const halfWidth = 5.1;
+            const halfWidth = 4.4;
             const tanH = halfWidth / camZ;
             const tanV = tanH / aspect;
             const vFovDeg = THREE.MathUtils.radToDeg(Math.atan(tanV) * 2);
