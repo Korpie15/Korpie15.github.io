@@ -121,7 +121,6 @@ document.addEventListener('DOMContentLoaded', () => {
         pendant.innerHTML = `
             <!-- Top Bezel & Grip -->
             <div class="tp-header" id="tp-header">
-                <div class="tp-grip-tab"></div>
                 <div class="tp-title">
                     <span class="tp-brand">FANUC-STYLE // TP-6000</span>
                     <span class="tp-subtitle">ROBOTIC TEACH PENDANT</span>
@@ -247,11 +246,24 @@ document.addEventListener('DOMContentLoaded', () => {
     function setupPendantEvents(pendant) {
         // Minimize / Maximize Pendant
         const minBtn = pendant.querySelector('#tp-minimize-btn');
+        const header = pendant.querySelector('#tp-header');
         const body = pendant.querySelector('#tp-body');
-        minBtn.addEventListener('click', () => {
+
+        minBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
             pendant.classList.toggle('minimized');
             minBtn.textContent = pendant.classList.contains('minimized') ? '+' : '−';
         });
+
+        if (header) {
+            header.addEventListener('click', (e) => {
+                if (e.target && e.target.closest('#tp-minimize-btn')) return;
+                if (pendant.classList.contains('minimized')) {
+                    pendant.classList.remove('minimized');
+                    minBtn.textContent = '−';
+                }
+            });
+        }
 
         // Workpiece Selector Buttons
         const workpieceBtns = pendant.querySelectorAll('.tp-workpiece-btn');
@@ -798,8 +810,13 @@ document.addEventListener('DOMContentLoaded', () => {
                         <span class="osha-danger-title">DANGER</span>
                     </div>
                 </div>
-                <!-- Bottom White Message Area (3-line format matching OSHA reference) -->
-                <div class="osha-body">
+                <!-- Desktop Message (Scroll or Click Briefcase) -->
+                <div class="osha-body osha-desktop-body">
+                    <div class="osha-line-1">SCROLL OR CLICK</div>
+                    <div class="osha-line-2">A BRIEFCASE</div>
+                </div>
+                <!-- Mobile Message (Tap Briefcase / Hold Prev/Next) -->
+                <div class="osha-body osha-mobile-body">
                     <div class="osha-line-1">TAP ON A BRIEFCASE</div>
                     <div class="osha-line-2">TO AUTO OPEN</div>
                     <div class="osha-line-3">HOLD PREV / NEXT TO RUN</div>

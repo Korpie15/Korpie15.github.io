@@ -3246,6 +3246,125 @@ body.classic-view-mode #robot-front-stage .hero {
 }
 
 /* ============================================
+   AUTHENTIC OSHA DANGER SAFETY SIGN
+   Prominent safety sign in workcell view (Desktop & Mobile)
+   ============================================ */
+.mobile-safety-sign.osha-danger-sign,
+.osha-danger-sign {
+    display: block !important;
+    position: fixed;
+    top: 82px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 252px;
+    box-sizing: border-box;
+    background: #ffffff;
+    border: 2px solid #000000;
+    border-radius: 9px;
+    padding: 3px;
+    box-shadow: 0 10px 28px rgba(0, 0, 0, 0.8), 0 2px 8px rgba(0, 0, 0, 0.5);
+    z-index: 55;
+    overflow: hidden;
+    pointer-events: auto;
+    user-select: none;
+    -webkit-user-select: none;
+    transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+body:has(#robot-front-stage.expanded:not(.minimized-dock):not(.docked-hidden)) .osha-danger-sign {
+    opacity: 0;
+    pointer-events: none;
+    transform: translateX(-50%) translateY(-10px);
+}
+
+body.classic-view-mode .osha-danger-sign {
+    display: none !important;
+}
+
+.osha-inner-frame {
+    border: 1.5px solid #000000;
+    border-radius: 6px;
+    background: #ffffff;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.osha-header {
+    background: #000000;
+    padding: 5px 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.osha-oval-badge {
+    width: 100%;
+    max-width: 185px;
+    height: 35px;
+    background: #dc2626;
+    border: 2.5px solid #ffffff;
+    border-radius: 50% / 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.osha-danger-title {
+    color: #ffffff;
+    font-family: 'Arial Black', Arial, Impact, sans-serif;
+    font-weight: 900;
+    font-size: 1.2rem;
+    letter-spacing: 2px;
+    line-height: 1;
+    text-transform: uppercase;
+    margin-top: 1px;
+}
+
+.osha-body {
+    background: #ffffff;
+    padding: 7px 6px 6px;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 1px;
+}
+
+.osha-desktop-body {
+    display: flex;
+}
+
+.osha-mobile-body {
+    display: none;
+}
+
+.osha-line-1,
+.osha-line-2,
+.osha-line-3 {
+    font-family: Arial, Helvetica, sans-serif;
+    font-weight: 900;
+    font-size: 0.78rem;
+    line-height: 1.22;
+    color: #000000;
+    letter-spacing: 0.4px;
+    text-transform: uppercase;
+}
+
+.osha-desktop-body .osha-line-1,
+.osha-desktop-body .osha-line-2 {
+    font-size: 0.82rem;
+    letter-spacing: 0.5px;
+}
+
+.osha-line-3 {
+    font-size: 0.65rem;
+    color: #b91c1c;
+    margin-top: 1px;
+}
+
+/* ============================================
    INDUSTRIAL ROBOT TEACH PENDANT CONTROLLER
    ============================================ */
 
@@ -3267,15 +3386,71 @@ body.classic-view-mode #robot-front-stage .hero {
     overflow: hidden;
     transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), height 0.3s ease;
     user-select: none;
+    box-sizing: border-box;
 }
 
 .teach-pendant.minimized {
     height: 48px;
     border-radius: 12px;
+    cursor: pointer;
 }
 
 .teach-pendant.minimized .tp-body {
     display: none;
+}
+
+.teach-pendant.minimized .tp-header {
+    height: 100%;
+    border-bottom: none;
+    padding: 0 14px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    box-sizing: border-box;
+    cursor: pointer;
+}
+
+.teach-pendant.minimized .tp-grip-tab {
+    display: none;
+}
+
+.teach-pendant.minimized .tp-title {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    line-height: 1.1;
+}
+
+.teach-pendant.minimized .tp-brand {
+    font-size: 0.78rem;
+    line-height: 1.15;
+    margin: 0;
+}
+
+.teach-pendant.minimized .tp-subtitle {
+    font-size: 0.62rem;
+    line-height: 1.15;
+    margin: 2px 0 0 0;
+}
+
+.teach-pendant.minimized .tp-window-actions {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+}
+
+.teach-pendant.minimized .tp-minimize-btn {
+    width: 26px;
+    height: 26px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.15rem;
+    font-weight: 700;
+    line-height: 1;
+    padding: 0;
+    margin: 0;
 }
 
 /* Top Grip & Bezel */
@@ -3287,6 +3462,7 @@ body.classic-view-mode #robot-front-stage .hero {
     justify-content: space-between;
     border-bottom: 2px solid #3f3f46;
     cursor: default;
+    box-sizing: border-box;
 }
 
 .tp-title {
@@ -3307,6 +3483,12 @@ body.classic-view-mode #robot-front-stage .hero {
     font-weight: 600;
 }
 
+.tp-window-actions {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
 .tp-minimize-btn {
     background: #3f3f46;
     border: none;
@@ -3317,10 +3499,13 @@ body.classic-view-mode #robot-front-stage .hero {
     font-size: 1rem;
     font-weight: bold;
     cursor: pointer;
-    display: flex;
+    display: inline-flex;
     align-items: center;
     justify-content: center;
+    line-height: 1;
+    padding: 0;
     transition: background 0.2s;
+    user-select: none;
 }
 
 .tp-minimize-btn:hover {
@@ -3708,100 +3893,19 @@ body.classic-view-mode #robot-front-stage .hero {
         cursor: pointer !important;
     }
 
-    /* 1. Constant, Authentic OSHA DANGER Safety Sign at Top of Screen */
-    .mobile-safety-sign.osha-danger-sign {
-        display: block !important;
-        position: fixed;
-        top: 72px;
-        left: 50%;
-        transform: translateX(-50%);
-        width: 246px;
-        box-sizing: border-box;
-        background: #ffffff;
-        border: 2px solid #000000;
-        border-radius: 9px;
-        padding: 3px;
-        box-shadow: 0 10px 28px rgba(0, 0, 0, 0.8), 0 2px 8px rgba(0, 0, 0, 0.5);
-        z-index: 55;
-        overflow: hidden;
-        pointer-events: auto;
-        user-select: none;
-        transition: opacity 0.3s ease, transform 0.3s ease;
+    /* 1. Constant, Authentic OSHA DANGER Safety Sign at Top of Screen (Mobile View) */
+    .mobile-safety-sign.osha-danger-sign,
+    .osha-danger-sign {
+        top: 72px !important;
+        width: 246px !important;
     }
 
-    body:has(#robot-front-stage.expanded:not(.minimized-dock):not(.docked-hidden)) .mobile-safety-sign {
-        opacity: 0;
-        pointer-events: none;
-        transform: translateX(-50%) translateY(-10px);
+    .osha-desktop-body {
+        display: none !important;
     }
 
-    .osha-inner-frame {
-        border: 1.5px solid #000000;
-        border-radius: 6px;
-        background: #ffffff;
-        overflow: hidden;
-        display: flex;
-        flex-direction: column;
-    }
-
-    .osha-header {
-        background: #000000;
-        padding: 5px 8px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-    }
-
-    .osha-oval-badge {
-        width: 100%;
-        max-width: 185px;
-        height: 35px;
-        background: #dc2626;
-        border: 2.5px solid #ffffff;
-        border-radius: 50% / 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-    }
-
-    .osha-danger-title {
-        color: #ffffff;
-        font-family: 'Arial Black', Arial, Impact, sans-serif;
-        font-weight: 900;
-        font-size: 1.2rem;
-        letter-spacing: 2px;
-        line-height: 1;
-        text-transform: uppercase;
-        margin-top: 1px;
-    }
-
-    .osha-body {
-        background: #ffffff;
-        padding: 7px 6px 6px;
-        text-align: center;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        gap: 1px;
-    }
-
-    .osha-line-1,
-    .osha-line-2,
-    .osha-line-3 {
-        font-family: Arial, Helvetica, sans-serif;
-        font-weight: 900;
-        font-size: 0.76rem;
-        line-height: 1.22;
-        color: #000000;
-        letter-spacing: 0.4px;
-        text-transform: uppercase;
-    }
-
-    .osha-line-3 {
-        font-size: 0.65rem;
-        color: #b91c1c;
-        margin-top: 1px;
+    .osha-mobile-body {
+        display: flex !important;
     }
 
     /* 2. Tactile Mobile Workcell Navigation Controls at Bottom */
