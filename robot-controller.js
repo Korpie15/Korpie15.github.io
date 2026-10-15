@@ -17,6 +17,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentSectionIndex = 0;
     let isScrollLocked = false;
     let viewMode = 'robot'; // 'robot' or 'classic'
+    let stageRetractTimer = null;
 
     // Create Industrial Teach Pendant UI
     createTeachPendantUI();
@@ -43,7 +44,7 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     // Initial state: start with blank front stool, robot in standby, NO pop-ups open!
-    hideFrontStageSection();
+    hideFrontStageSection(true);
     highlightActivePendantButton(-1);
 
     // Create Mobile Workcell UI (Safety Sign Banner & Prev/Next Controls)
@@ -274,6 +275,11 @@ document.addEventListener('DOMContentLoaded', () => {
                     alert('Robot is halted by EMERGENCY STOP! Click the E-STOP button to reset safety circuit.');
                     return;
                 }
+                currentSectionIndex = index;
+                if (workcell) workcell.targetSectionIndex = index;
+                highlightActivePendantButton(index);
+                updateNavMenuHighlight(sectionIds[index]);
+                updateMobileControls(index);
                 workcell.goToSection(index);
             });
         });
@@ -390,20 +396,74 @@ document.addEventListener('DOMContentLoaded', () => {
 
     /**
      * Front Stage Display Management
-     * Seamlessly docks and unfolds the target HTML section card
+     * Seamlessly docks, unfolds, and retracts the target HTML section card
      */
-    function hideFrontStageSection() {
+    function hideFrontStageSection(immediate = false, onComplete = null) {
         const stageCard = document.getElementById('robot-front-stage');
         const stageBeam = document.getElementById('robot-stage-beam');
-        if (!stageCard) return;
+        if (!stageCard) {
+            if (typeof onComplete === 'function') onComplete();
+            return;
+        }
 
+        if (stageRetractTimer) {
+            clearTimeout(stageRetractTimer);
+            stageRetractTimer = null;
+        }
+
+        const isCurrentlyExpanded = stageCard.classList.contains('expanded') && !stageCard.classList.contains('docked-hidden');
+
+        if (immediate || !isCurrentlyExpanded) {
+            stageCard.classList.remove('expanded', 'retracting');
+            stageCard.classList.add('docked-hidden');
+            if (stageBeam) {
+                stageBeam.classList.remove('expanded', 'retracting');
+                stageBeam.classList.add('docked-hidden');
+            }
+            if (typeof onComplete === 'function') onComplete();
+            return;
+        }
+
+        updateStageApertureVars();
+
+        // 1. Trigger the physics-driven retraction animation into briefcase mouth
         stageCard.classList.remove('expanded');
-        stageCard.classList.add('docked-hidden');
+        stageCard.classList.add('retracting');
         if (stageBeam) {
             stageBeam.classList.remove('expanded');
-            stageBeam.classList.add('docked-hidden');
+            stageBeam.classList.add('retracting');
         }
+
+        // 2. Once animation completes (480ms), transition cleanly to docked-hidden
+        stageRetractTimer = setTimeout(() => {
+            stageCard.classList.remove('retracting');
+            stageCard.classList.add('docked-hidden');
+            if (stageBeam) {
+                stageBeam.classList.remove('retracting');
+                stageBeam.classList.add('docked-hidden');
+            }
+            stageRetractTimer = null;
+            if (typeof onComplete === 'function') onComplete();
+        }, 480);
     }
+    window.hideFrontStageSection = hideFrontStageSection;
+
+    function updateStageApertureVars() {
+        let mouthY = window.innerHeight * 0.62;
+        let mouthW = 240;
+
+        if (workcell && typeof workcell.getFrontApertureScreenPos === 'function') {
+            const pos = workcell.getFrontApertureScreenPos();
+            if (pos && pos.y > 100) {
+                mouthY = pos.y;
+                mouthW = Math.max(160, Math.min(420, pos.width));
+            }
+        }
+
+        document.documentElement.style.setProperty('--briefcase-mouth-y', `${mouthY.toFixed(1)}px`);
+        document.documentElement.style.setProperty('--briefcase-mouth-w', `${mouthW.toFixed(1)}px`);
+    }
+    window.updateStageApertureVars = updateStageApertureVars;
 
     function displayFrontStageSection(sectionId, index) {
         if (viewMode !== 'robot') return;
@@ -412,11 +472,18 @@ document.addEventListener('DOMContentLoaded', () => {
         const stageBeam = document.getElementById('robot-stage-beam');
         if (!stageCard) return;
 
-        // 1. Immediately emerge the stage card and beam (0.3s CSS transition)
-        stageCard.classList.remove('docked-hidden', 'transitioning');
+        if (stageRetractTimer) {
+            clearTimeout(stageRetractTimer);
+            stageRetractTimer = null;
+        }
+
+        updateStageApertureVars();
+
+        // 1. Immediately emerge the stage card and beam (emerging from briefcase mouth)
+        stageCard.classList.remove('docked-hidden', 'transitioning', 'retracting');
         stageCard.classList.add('expanded');
         if (stageBeam) {
-            stageBeam.classList.remove('docked-hidden', 'transitioning');
+            stageBeam.classList.remove('docked-hidden', 'transitioning', 'retracting');
             stageBeam.classList.add('expanded');
         }
 
@@ -527,6 +594,11 @@ document.addEventListener('DOMContentLoaded', () => {
         const maxNotchDelta = 100;
         const clampedDelta = Math.sign(rawDelta) * Math.min(maxNotchDelta, Math.abs(rawDelta));
         workcell.applyScrollDelta(clampedDelta * scrubSensitivity);
+
+        const activeProg = (workcell.currentProgress !== undefined) ? workcell.currentProgress : workcell.targetProgress;
+        if (typeof activeProg === 'number' && activeProg >= 0.5) {
+            currentSectionIndex = Math.max(0, Math.min(sectionIds.length - 1, Math.round(activeProg) - 1));
+        }
     }, { passive: true });
 
     /**
@@ -605,6 +677,11 @@ document.addEventListener('DOMContentLoaded', () => {
             if (workcell && typeof workcell.getIntersectedBay === 'function') {
                 const hitIndex = workcell.getIntersectedBay(touchStartX, touchStartY);
                 if (hitIndex !== null) {
+                    currentSectionIndex = hitIndex;
+                    if (workcell) workcell.targetSectionIndex = hitIndex;
+                    highlightActivePendantButton(hitIndex);
+                    updateNavMenuHighlight(sectionIds[hitIndex]);
+                    updateMobileControls(hitIndex);
                     workcell.goToSection(hitIndex);
                 }
             }
@@ -623,6 +700,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 const targetId = link.getAttribute('href').substring(1);
                 const targetIdx = sectionIds.indexOf(targetId);
                 if (targetIdx !== -1) {
+                    currentSectionIndex = targetIdx;
+                    if (workcell) workcell.targetSectionIndex = targetIdx;
+                    highlightActivePendantButton(targetIdx);
+                    updateNavMenuHighlight(targetId);
+                    updateMobileControls(targetIdx);
                     workcell.goToSection(targetIdx);
                 }
             }
@@ -644,6 +726,72 @@ document.addEventListener('DOMContentLoaded', () => {
         const mobileControls = document.getElementById('mobile-workcell-controls');
 
         if (mode === 'classic') {
+            // Robust active section detection from all possible Robot Mode states:
+            let targetSectionId = null;
+
+            // 1. Check if a section is actively displayed inside the popup dossier
+            const activeSectionEl = document.querySelector('.section.robot-mode-active, .hero.robot-mode-active');
+            if (activeSectionEl && activeSectionEl.id && sectionIds.includes(activeSectionEl.id)) {
+                targetSectionId = activeSectionEl.id;
+            }
+
+            // 2. Check workcell.dockedSectionIndex (briefcase placed on front stool)
+            if (!targetSectionId && workcell && typeof workcell.dockedSectionIndex === 'number' && workcell.dockedSectionIndex >= 0 && workcell.dockedSectionIndex < sectionIds.length) {
+                targetSectionId = sectionIds[workcell.dockedSectionIndex];
+            }
+
+            // 3. Check workcell.targetSectionIndex (briefcase dispatched/targeted)
+            if (!targetSectionId && workcell && typeof workcell.targetSectionIndex === 'number' && workcell.targetSectionIndex >= 0 && workcell.targetSectionIndex < sectionIds.length) {
+                targetSectionId = sectionIds[workcell.targetSectionIndex];
+            }
+
+            // 4. Check active navbar link
+            if (!targetSectionId) {
+                const activeNav = document.querySelector('.nav-link.active');
+                if (activeNav && activeNav.getAttribute('href')) {
+                    const hrefId = activeNav.getAttribute('href').substring(1);
+                    if (sectionIds.includes(hrefId) && hrefId !== 'hero') {
+                        targetSectionId = hrefId;
+                    }
+                }
+            }
+
+            // 5. Check active teach pendant button
+            if (!targetSectionId) {
+                const activeTp = document.querySelector('.tp-workpiece-btn.active');
+                if (activeTp) {
+                    const tpIdx = parseInt(activeTp.getAttribute('data-index'), 10);
+                    if (tpIdx >= 0 && tpIdx < sectionIds.length) {
+                        targetSectionId = sectionIds[tpIdx];
+                    }
+                }
+            }
+
+            // 6. Check workcell continuous scrub progress (0.0 Idle, 1.0 Hero, 2.0 About, 3.0 Experience, 4.0 Leadership, 5.0 Projects, 6.0 Skills, 7.0 Contact)
+            if (!targetSectionId && workcell) {
+                const p = (typeof workcell.currentProgress === 'number') ? workcell.currentProgress : workcell.targetProgress;
+                if (typeof p === 'number' && p >= 0.5) {
+                    const scrubIdx = Math.max(0, Math.min(sectionIds.length - 1, Math.round(p) - 1));
+                    targetSectionId = sectionIds[scrubIdx];
+                }
+            }
+
+            // 7. Fallback to currentSectionIndex
+            if (!targetSectionId && typeof currentSectionIndex === 'number' && currentSectionIndex >= 0 && currentSectionIndex < sectionIds.length) {
+                targetSectionId = sectionIds[currentSectionIndex];
+            }
+
+            if (targetSectionId) {
+                const targetIdx = sectionIds.indexOf(targetSectionId);
+                if (targetIdx !== -1) {
+                    currentSectionIndex = targetIdx;
+                    if (workcell) {
+                        workcell.targetSectionIndex = targetIdx;
+                        workcell.dockedSectionIndex = targetIdx;
+                    }
+                }
+            }
+
             document.body.classList.add('classic-view-mode');
             if (appContainer) appContainer.style.display = 'none';
             if (pendant) pendant.style.display = 'none';
@@ -651,7 +799,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (safetySign) safetySign.style.display = 'none';
             if (mobileControls) mobileControls.style.display = 'none';
             if (stageCard) {
-                stageCard.classList.remove('docked-hidden', 'transitioning', 'minimized-dock');
+                stageCard.classList.remove('docked-hidden', 'transitioning', 'minimized-dock', 'retracting');
                 stageCard.classList.add('expanded');
             }
             document.querySelectorAll('.section, .hero').forEach(sec => {
@@ -659,6 +807,36 @@ document.addEventListener('DOMContentLoaded', () => {
             });
             if (btn) {
                 btn.innerHTML = '<span>🤖</span> Robot Cell';
+            }
+
+            // Immediately scroll down to the active section in Classic View!
+            if (targetSectionId && targetSectionId !== 'hero') {
+                const performScroll = () => {
+                    const targetEl = document.getElementById(targetSectionId);
+                    if (!targetEl) return;
+                    const navbar = document.getElementById('navbar');
+                    const navOffset = navbar ? (navbar.offsetHeight + 16) : 80;
+                    const rect = targetEl.getBoundingClientRect();
+                    const targetTop = (rect.top + window.pageYOffset) - navOffset;
+
+                    const prevScrollBehavior = document.documentElement.style.scrollBehavior;
+                    document.documentElement.style.scrollBehavior = 'auto';
+                    window.scrollTo(0, Math.max(0, targetTop));
+                    if (typeof targetEl.scrollIntoView === 'function') {
+                        targetEl.scrollIntoView({ behavior: 'auto', block: 'start' });
+                        window.scrollBy(0, -navOffset);
+                    }
+                    setTimeout(() => {
+                        document.documentElement.style.scrollBehavior = prevScrollBehavior;
+                    }, 60);
+                };
+
+                performScroll();
+                requestAnimationFrame(performScroll);
+                setTimeout(performScroll, 50);
+                setTimeout(performScroll, 160);
+            } else {
+                window.scrollTo({ top: 0, behavior: 'instant' });
             }
         } else {
             // Switching from Classic Mode -> Robot Cell Mode:
@@ -695,13 +873,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 workcell.onResize();
             }
 
-            // Immediately drive the robot workcell to this exact section and open the dossier!
+            // Immediately teleport the robot workcell to this exact section and open the dossier!
             currentSectionIndex = activeIdx;
-            if (workcell && typeof workcell.goToSection === 'function') {
+            if (workcell && typeof workcell.teleportToSection === 'function') {
+                workcell.teleportToSection(activeIdx);
+            } else if (workcell && typeof workcell.goToSection === 'function') {
                 workcell.goToSection(activeIdx);
-            } else {
-                displayFrontStageSection(sectionIds[activeIdx], activeIdx);
             }
+            displayFrontStageSection(sectionIds[activeIdx], activeIdx);
         }
     };
 
@@ -752,6 +931,22 @@ document.addEventListener('DOMContentLoaded', () => {
     window.toggleFrontStageDock = function() {
         window.toggleCardInspect();
     };
+
+    window.closeFrontStageDossier = function(e) {
+        if (e && typeof e.stopPropagation === 'function') {
+            e.stopPropagation();
+        }
+        hideFrontStageSection(false);
+        if (workcell && typeof workcell.stowFrontBoxToRack === 'function') {
+            workcell.stowFrontBoxToRack();
+        } else if (workcell && typeof workcell.goToSection === 'function') {
+            workcell.goToSection(-1);
+        }
+        highlightActivePendantButton(-1);
+        updateNavMenuHighlight('');
+        updateMobileControls(-1);
+    };
+    window.stowDossierBackToBriefcase = window.closeFrontStageDossier;
 
     /**
      * Re-open Minimized Dock Pop-up on Any Click or Tap:

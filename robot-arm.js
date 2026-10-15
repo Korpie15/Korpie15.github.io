@@ -467,13 +467,13 @@ class RobotWorkcell {
         //   so their wide, high-res faceplates are 100% visible and unobstructed from the front camera!
         // - Experience, Leadership, and Projects tiered up in amphitheater formation behind the arm
         this.bayConfigs = [
-            { id: 'hero', name: 'Home / Dossier', bayNum: '00', pos: [-1.65, -1.05, 1.85], rotY: -0.45, color: 0x2563eb },
-            { id: 'about', name: 'About Me', bayNum: '01', pos: [-2.45, 0.05, 0.60], rotY: 0.12, color: 0x059669 },
-            { id: 'experience', name: 'Experience', bayNum: '02', pos: [-1.95, 0.15, -1.35], rotY: -2.00, color: 0xd97706 },
-            { id: 'leadership', name: 'Leadership', bayNum: '03', pos: [0.0, 0.25, -2.45], rotY: Math.PI, color: 0x7c3aed },
-            { id: 'projects', name: 'Projects', bayNum: '04', pos: [1.95, 0.15, -1.35], rotY: 2.00, color: 0x0284c7 },
-            { id: 'skills', name: 'Technical Skills', bayNum: '05', pos: [2.45, 0.05, 0.60], rotY: -0.12, color: 0xe11d48 },
-            { id: 'contact', name: 'Contact', bayNum: '06', pos: [1.65, -1.05, 1.85], rotY: 0.45, color: 0x4f46e5 }
+            { id: 'hero', name: 'Home / Dossier', bayNum: '00', pos: [-1.65, -1.05, 1.85], rotY: -0.45, color: 0xf59e0b },
+            { id: 'about', name: 'About Me', bayNum: '01', pos: [-2.45, 0.05, 0.60], rotY: 0.12, color: 0x10b981 },
+            { id: 'experience', name: 'Experience', bayNum: '02', pos: [-1.95, 0.15, -1.35], rotY: -2.00, color: 0xf97316 },
+            { id: 'leadership', name: 'Leadership', bayNum: '03', pos: [0.0, 0.25, -2.45], rotY: Math.PI, color: 0x8b5cf6 },
+            { id: 'projects', name: 'Projects', bayNum: '04', pos: [1.95, 0.15, -1.35], rotY: 2.00, color: 0x06b6d4 },
+            { id: 'skills', name: 'Technical Skills', bayNum: '05', pos: [2.45, 0.05, 0.60], rotY: -0.12, color: 0xef4444 },
+            { id: 'contact', name: 'Contact', bayNum: '06', pos: [1.65, -1.05, 1.85], rotY: 0.45, color: 0xec4899 }
         ];
 
         // Compute handle heights and rack positions for each storage bay:
@@ -507,6 +507,7 @@ class RobotWorkcell {
         this.targetProgress = 0.0;
         this.maxProgress = 7.0;
         this.dockedSectionIndex = -1; // -1 means no box docked on front stool
+        this.targetSectionIndex = -1;
         this.activeTween = null;
 
         this.bays = [];
@@ -640,8 +641,8 @@ class RobotWorkcell {
         const height = this.container.clientHeight || window.innerHeight;
 
         this.scene = new THREE.Scene();
-        this.scene.background = new THREE.Color(0x0a0e17);
-        this.scene.fog = new THREE.FogExp2(0x0a0e17, 0.014);
+        this.scene.background = new THREE.Color(0x0e1014);
+        this.scene.fog = null;
 
         this.camera = new THREE.PerspectiveCamera(40, width / height, 0.1, 100);
         this.camera.position.copy(this.cameraPos);
@@ -659,12 +660,13 @@ class RobotWorkcell {
     }
 
     setupLighting() {
-        const ambientLight = new THREE.AmbientLight(0x94a3b8, 0.85);
+        // Uniform, balanced ambient illumination across the entire cell
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.95);
         this.scene.add(ambientLight);
 
-        // Main Studio Spotlight
-        const mainLight = new THREE.DirectionalLight(0xfffbeb, 1.6);
-        mainLight.position.set(3, 10, 6);
+        // Directional overhead key light
+        const mainLight = new THREE.DirectionalLight(0xffffff, 1.1);
+        mainLight.position.set(3, 12, 6);
         mainLight.castShadow = true;
         mainLight.shadow.mapSize.width = 2048;
         mainLight.shadow.mapSize.height = 2048;
@@ -678,21 +680,19 @@ class RobotWorkcell {
         mainLight.shadow.normalBias = 0.02;
         this.scene.add(mainLight);
 
-        const fillLight = new THREE.DirectionalLight(0x38bdf8, 0.5);
-        fillLight.position.set(-5, 6, -3);
+        // Gentle soft fill light
+        const fillLight = new THREE.DirectionalLight(0xffffff, 0.35);
+        fillLight.position.set(-5, 8, 4);
         this.scene.add(fillLight);
-
-        const frontStoolLight = new THREE.PointLight(0xffedd5, 0.7, 7);
-        frontStoolLight.position.set(0, 1.2, 2.6);
-        this.scene.add(frontStoolLight);
     }
 
     buildFactoryFloor() {
-        const floorGeo = new THREE.PlaneGeometry(32, 32);
+        const floorGeo = new THREE.PlaneGeometry(42, 42);
+        // Clean matte floor - zero specular reflection / glare gradient!
         const floorMat = new THREE.MeshStandardMaterial({
-            color: 0x0f172a,
-            roughness: 0.85,
-            metalness: 0.2
+            color: 0x181a20,
+            roughness: 0.95,
+            metalness: 0.0
         });
         const floor = new THREE.Mesh(floorGeo, floorMat);
         floor.rotation.x = -Math.PI / 2;
@@ -700,20 +700,42 @@ class RobotWorkcell {
         floor.receiveShadow = true;
         this.scene.add(floor);
 
-        const grid = new THREE.GridHelper(26, 26, 0x334155, 0x1e293b);
-        grid.position.y = -1.798;
-        this.scene.add(grid);
+        // Marked Operator Walkway in safety green (matte finish)
+        const walkwayMat = new THREE.MeshStandardMaterial({
+            color: 0x064e3b, // Industrial safety green
+            roughness: 0.95,
+            metalness: 0.0
+        });
+        const walkway = new THREE.Mesh(new THREE.PlaneGeometry(8.2, 1.4), walkwayMat);
+        walkway.rotation.x = -Math.PI / 2;
+        walkway.position.set(0, -1.796, 3.8);
+        walkway.receiveShadow = true;
+        this.scene.add(walkway);
 
-        // Robot Safety Hazard Ring
-        const hazardRingGeo = new THREE.RingGeometry(1.5, 1.75, 48);
+        // High-Vis Safety Yellow Boundary Lines surrounding the robot workcell
+        const lineMat = new THREE.MeshBasicMaterial({ color: 0xf59e0b });
+        const createBoundaryLine = (w, h, x, z) => {
+            const m = new THREE.Mesh(new THREE.PlaneGeometry(w, h), lineMat);
+            m.rotation.x = -Math.PI / 2;
+            m.position.set(x, -1.794, z);
+            this.scene.add(m);
+        };
+        createBoundaryLine(8.2, 0.08, 0, 3.1);  // Front perimeter line
+        createBoundaryLine(8.2, 0.08, 0, -3.1); // Rear perimeter line
+        createBoundaryLine(0.08, 6.2, -4.1, 0); // Left perimeter line
+        createBoundaryLine(0.08, 6.2, 4.1, 0);  // Right perimeter line
+
+        // Robot Safety Hazard Ring (Industrial Caution Amber)
+        const hazardRingGeo = new THREE.RingGeometry(1.5, 1.78, 48);
         const hazardRingMat = new THREE.MeshStandardMaterial({
             color: 0xf59e0b,
-            roughness: 0.5,
+            roughness: 0.35,
+            metalness: 0.3,
             side: THREE.DoubleSide
         });
         const hazardRing = new THREE.Mesh(hazardRingGeo, hazardRingMat);
         hazardRing.rotation.x = -Math.PI / 2;
-        hazardRing.position.y = -1.795;
+        hazardRing.position.y = -1.793;
         this.scene.add(hazardRing);
     }
 
@@ -1072,9 +1094,9 @@ class RobotWorkcell {
      */
     buildFrontStool() {
         const steelMat = new THREE.MeshStandardMaterial({
-            color: 0x334155,
-            roughness: 0.5,
-            metalness: 0.6
+            color: 0x272a30,
+            roughness: 0.45,
+            metalness: 0.75
         });
 
         const hazardMat = new THREE.MeshStandardMaterial({
@@ -1107,9 +1129,9 @@ class RobotWorkcell {
 
     buildStorageRacks() {
         const steelMat = new THREE.MeshStandardMaterial({
-            color: 0x334155,
-            roughness: 0.5,
-            metalness: 0.6
+            color: 0x272a30,
+            roughness: 0.45,
+            metalness: 0.75
         });
 
         this.bayConfigs.forEach((cfg, index) => {
@@ -1129,11 +1151,27 @@ class RobotWorkcell {
                 rackGroup.add(basePlate);
             }
 
+            // Colored Docking Bay Ring on floor underneath pedestal
+            const dockRingGeo = new THREE.RingGeometry(0.55, 0.65, 32);
+            const dockRingMat = new THREE.MeshBasicMaterial({ color: cfg.color, side: THREE.DoubleSide });
+            const dockRing = new THREE.Mesh(dockRingGeo, dockRingMat);
+            dockRing.rotation.x = -Math.PI / 2;
+            dockRing.position.set(0, -postHeight + 0.005, 0);
+            rackGroup.add(dockRing);
+
             // Sleek shelf tailored to briefcase dimensions (clean flush surface)
             const shelf = new THREE.Mesh(new THREE.BoxGeometry(1.35, 0.08, 0.50), steelMat);
             shelf.castShadow = true;
             shelf.receiveShadow = true;
             rackGroup.add(shelf);
+
+            // Colored front edge accent band on shelf
+            const shelfAccent = new THREE.Mesh(
+                new THREE.BoxGeometry(1.35, 0.02, 0.02),
+                new THREE.MeshBasicMaterial({ color: cfg.color })
+            );
+            shelfAccent.position.set(0, 0, 0.25);
+            rackGroup.add(shelfAccent);
 
             this.scene.add(rackGroup);
             this.bays.push(rackGroup);
@@ -1146,12 +1184,12 @@ class RobotWorkcell {
         canvas.height = 1024;
         const ctx = canvas.getContext('2d');
 
-        // Deep Navy-Carbon Background
-        ctx.fillStyle = '#070b14';
+        // Deep Charcoal Matte Base
+        ctx.fillStyle = '#111216';
         ctx.fillRect(0, 0, 2048, 1024);
 
         // Subtle Industrial Tech Hatching Lines
-        ctx.strokeStyle = 'rgba(255, 255, 255, 0.035)';
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.04)';
         ctx.lineWidth = 2;
         for (let y = 0; y < 1024; y += 32) {
             ctx.beginPath();
@@ -1180,8 +1218,8 @@ class RobotWorkcell {
         ctx.arc(1960, 85, 22, 0, Math.PI * 2);
         ctx.fill();
 
-        // High-Contrast Dark Display Panel
-        ctx.fillStyle = '#0f172a';
+        // High-Contrast Neutral Display Panel
+        ctx.fillStyle = '#181a20';
         ctx.fillRect(48, 180, 1952, 680);
         ctx.strokeStyle = 'rgba(255, 255, 255, 0.15)';
         ctx.lineWidth = 6;
@@ -1206,8 +1244,8 @@ class RobotWorkcell {
         ctx.fillStyle = accentHex;
         ctx.fillRect(90, 460, 1860, 14);
 
-        // Subtitle Technical Meta Data
-        ctx.fillStyle = '#38bdf8'; // Bright Cyan
+        // Subtitle Technical Meta Data (uses matching briefcase accent)
+        ctx.fillStyle = accentHex;
         ctx.font = 'bold 64px "Segoe UI", monospace';
         if (!isBack) {
             ctx.fillText('STATUS: DISPATCH VERIFIED // 6-DOF REACH', 90, 580);
@@ -1254,20 +1292,20 @@ class RobotWorkcell {
      */
     buildEnclosedBoxes() {
         const darkBodyMat = new THREE.MeshStandardMaterial({
-            color: 0x182234,
-            roughness: 0.55,
-            metalness: 0.4
+            color: 0x16181d, // Stealth matte black / dark titanium flight-case shell
+            roughness: 0.45,
+            metalness: 0.5
         });
 
         const interiorMat = new THREE.MeshStandardMaterial({
-            color: 0x090d16,
-            roughness: 0.4,
-            metalness: 0.7
+            color: 0x101114, // Deep matte charcoal foam interior
+            roughness: 0.65,
+            metalness: 0.35
         });
 
         const cornerCapMat = new THREE.MeshStandardMaterial({
-            color: 0x0f172a,
-            roughness: 0.6,
+            color: 0x24272e, // Machined dark gunmetal reinforced corner caps
+            roughness: 0.4,
             metalness: 0.85
         });
 
@@ -1284,7 +1322,7 @@ class RobotWorkcell {
         });
 
         const rubberMat = new THREE.MeshStandardMaterial({
-            color: 0x0f172a,
+            color: 0x090a0c, // Vulcanized black rubber
             roughness: 0.95,
             metalness: 0.05
         });
@@ -1309,8 +1347,15 @@ class RobotWorkcell {
             const frontMat = new THREE.MeshStandardMaterial({ map: frontTex, roughness: 0.35 });
             const backMat = new THREE.MeshStandardMaterial({ map: backTex, roughness: 0.35 });
 
+            // Saturated authentic Pelican / Nanuk resin hard-case shell!
+            const caseShellMat = new THREE.MeshStandardMaterial({
+                color: cfg.color,
+                roughness: 0.35,
+                metalness: 0.2
+            });
+
             // 1. Lower Briefcase Tub (Height = 0.62, center at Y = -0.08)
-            const tubMaterials = [darkBodyMat, darkBodyMat, interiorMat, darkBodyMat, frontMat, backMat];
+            const tubMaterials = [caseShellMat, caseShellMat, interiorMat, caseShellMat, frontMat, backMat];
             const tubMesh = new THREE.Mesh(new THREE.BoxGeometry(boxWidth, tubHeight, boxDepth), tubMaterials);
             tubMesh.position.set(0, -0.08, 0);
             tubMesh.castShadow = true;
@@ -1343,6 +1388,18 @@ class RobotWorkcell {
                 boxGroup.add(foot);
             });
 
+            // 8 Rugged Black Protective Corner Ball Caps for authentic Pelican/Nanuk styling
+            const cornerCapGeo = new THREE.BoxGeometry(0.08, 0.08, 0.08);
+            [-hx + 0.02, hx - 0.02].forEach(cx => {
+                [-tubHeight / 2 + 0.02, tubHeight / 2 - 0.02].forEach(cy => {
+                    [-hz + 0.02, hz - 0.02].forEach(cz => {
+                        const cap = new THREE.Mesh(cornerCapGeo, cornerCapMat);
+                        cap.position.set(cx, -0.08 + cy, cz);
+                        boxGroup.add(cap);
+                    });
+                });
+            });
+
             // Dual Heavy-Duty Flight-Case Toggle Latches on front face
             [-0.38, 0.38].forEach(lx => {
                 const latchPlate = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.12, 0.025), chromeMat);
@@ -1362,11 +1419,18 @@ class RobotWorkcell {
             lidPivot.position.set(0, hingeY, hingeZ);
             boxGroup.add(lidPivot);
 
-            const lidMaterials = [darkBodyMat, darkBodyMat, darkBodyMat, interiorMat, darkBodyMat, darkBodyMat];
+            const lidMaterials = [caseShellMat, caseShellMat, caseShellMat, interiorMat, caseShellMat, caseShellMat];
             const lidMesh = new THREE.Mesh(new THREE.BoxGeometry(boxWidth, lidHeight, boxDepth), lidMaterials);
             lidMesh.position.set(0, lidHeight / 2, hz); // Center of lid relative to hinge
             lidMesh.castShadow = true;
             lidPivot.add(lidMesh);
+
+            // Molded reinforcement ribs on lid
+            [-0.45, -0.22, 0.22, 0.45].forEach(rx => {
+                const rib = new THREE.Mesh(new THREE.BoxGeometry(0.035, 0.025, boxDepth * 0.75), caseShellMat);
+                rib.position.set(rx, lidHeight + 0.012, hz);
+                lidPivot.add(rib);
+            });
 
             // Aluminum rim around bottom of lid
             const lidRim = new THREE.Mesh(new THREE.BoxGeometry(boxWidth + 0.02, 0.025, boxDepth + 0.02), chromeMat);
@@ -1886,12 +1950,20 @@ class RobotWorkcell {
             }
         }
 
-        const bToCfg = this.bayConfigs[kTo];
-        const j1To = Math.atan2(bToCfg.pos[0], bToCfg.pos[2]);
-        const toGrip = this.solveIK(bToCfg.pos[0], bToCfg.handleY, bToCfg.pos[2], bToCfg.rotY);
-        const toLift = this.solveIK(bToCfg.pos[0], bToCfg.handleY + 0.65, bToCfg.pos[2], bToCfg.rotY);
-        const toCorridor = this.getFlightCorridorPose(j1To, toGrip.j6);
-        const boxTo = this.pallets[kTo];
+        let bToCfg = null;
+        let toGrip = null;
+        let toLift = null;
+        let toCorridor = null;
+        let boxTo = null;
+
+        if (kTo !== null && kTo !== undefined && kTo >= 0 && this.bayConfigs[kTo]) {
+            bToCfg = this.bayConfigs[kTo];
+            const j1To = Math.atan2(bToCfg.pos[0], bToCfg.pos[2]);
+            toGrip = this.solveIK(bToCfg.pos[0], bToCfg.handleY, bToCfg.pos[2], bToCfg.rotY);
+            toLift = this.solveIK(bToCfg.pos[0], bToCfg.handleY + 0.65, bToCfg.pos[2], bToCfg.rotY);
+            toCorridor = this.getFlightCorridorPose(j1To, toGrip.j6);
+            boxTo = this.pallets[kTo];
+        }
 
         let boxFrom = null;
         let fromGrip = null;
@@ -1907,7 +1979,72 @@ class RobotWorkcell {
             fromCorridor = this.getFlightCorridorPose(j1From, fromGrip.j6);
         }
 
-        if (mode === 'fetchFromStandby') {
+        if (mode === 'returnToStandby') {
+            const tau = Math.max(0, Math.min(1, t));
+            if (tau <= 0.12) {
+                // Close lid smoothly
+                const u = tau / 0.12;
+                targetAngles = this.inspectPose;
+                gripGap = 0.20;
+                boxFrom.position.copy(this.frontStoolBoxPos);
+                boxFrom.rotation.set(0, 0, 0);
+                boxFrom.userData.setOpen(1.0 - sCurve(u));
+                carriedBox = null;
+            } else if (tau <= 0.24) {
+                // Arm moves from inspectPose to frontGrip
+                const u = (tau - 0.12) / 0.12;
+                targetAngles = sLerp(this.inspectPose, frontGrip, u);
+                gripGap = 0.20;
+                boxFrom.position.copy(this.frontStoolBoxPos);
+                boxFrom.rotation.set(0, 0, 0);
+                boxFrom.userData.setOpen(0.0);
+                carriedBox = null;
+            } else if (tau <= 0.32) {
+                // Clamp boxFrom handle
+                const u = (tau - 0.24) / 0.08;
+                targetAngles = frontGrip;
+                gripGap = 0.20 - sCurve(u) * (0.20 - 0.075);
+                boxFrom.position.copy(this.frontStoolBoxPos);
+                boxFrom.rotation.set(0, 0, 0);
+                carriedBox = null;
+            } else if (tau <= 0.50) {
+                // Lift boxFrom up through frontLift to frontCorridor
+                const u = (tau - 0.32) / 0.18;
+                targetAngles = u < 0.5 ? sLerp(frontGrip, frontLift, u / 0.5) : sLerp(frontLift, frontCorridor, (u - 0.5) / 0.5);
+                gripGap = 0.075;
+                carriedBox = boxFrom;
+            } else if (tau <= 0.70) {
+                // Traverse across cell to fromCorridor
+                const u = (tau - 0.50) / 0.20;
+                targetAngles = sLerp(frontCorridor, fromCorridor, u);
+                gripGap = 0.075;
+                carriedBox = boxFrom;
+            } else if (tau <= 0.86) {
+                // Descend to Rack fromGrip
+                const u = (tau - 0.70) / 0.16;
+                targetAngles = u < 0.5 ? sLerp(fromCorridor, fromLift, u / 0.5) : sLerp(fromLift, fromGrip, (u - 0.5) / 0.5);
+                gripGap = 0.075;
+                carriedBox = boxFrom;
+            } else if (tau <= 0.93) {
+                // Unclamp handle onto rack pedestal
+                const u = (tau - 0.86) / 0.07;
+                targetAngles = fromGrip;
+                gripGap = 0.075 + sCurve(u) * (0.20 - 0.075);
+                boxFrom.position.copy(boxFrom.userData.rackHomePos);
+                boxFrom.rotation.set(0, boxFrom.userData.rackHomeRotY, 0);
+                boxFrom.userData.setOpen(0.0);
+                carriedBox = null;
+            } else {
+                // Retract empty arm smoothly to standby
+                const u = (tau - 0.93) / 0.07;
+                targetAngles = sLerp(fromGrip, this.standbyPose, u);
+                gripGap = 0.20;
+                boxFrom.position.copy(boxFrom.userData.rackHomePos);
+                boxFrom.rotation.set(0, boxFrom.userData.rackHomeRotY, 0);
+                boxFrom.userData.setOpen(0.0);
+                carriedBox = null;
+            }
+        } else if (mode === 'fetchFromStandby') {
             boxTo.position.copy(boxTo.userData.rackHomePos);
             boxTo.rotation.set(0, boxTo.userData.rackHomeRotY, 0);
             boxTo.userData.setOpen(0.0);
@@ -2403,6 +2540,167 @@ class RobotWorkcell {
     }
 
     /**
+     * Instant Section Teleportation:
+     * Used when switching back from Classic View mode to Robot Cell mode.
+     * Instantly docks the target briefcase on the front stool, opens its lid,
+     * and sets the robot arm in the inspect posture with zero delay or animation.
+     */
+    teleportToSection(sectionIndex) {
+        if (this.isEStopped) return;
+        if (sectionIndex < 0 || sectionIndex >= this.bayConfigs.length) return;
+
+        if (this.activeTween) {
+            this.activeTween.kill();
+            this.activeTween = null;
+        }
+        this.directTransfer = null;
+        this.directTransferStartPose = null;
+        this.carriedBox = null;
+        this.manualGripperGap = null;
+        if (this.jogOffsets) {
+            this.jogOffsets.j1 = 0;
+            this.jogOffsets.j2 = 0;
+            this.jogOffsets.j3 = 0;
+            this.jogOffsets.j4 = 0;
+            this.jogOffsets.j5 = 0;
+            this.jogOffsets.j6 = 0;
+        }
+
+        const kTo = sectionIndex;
+        this.dockedSectionIndex = kTo;
+        this.targetSectionIndex = kTo;
+        this.targetProgress = kTo + 1.0;
+        this.currentProgress = kTo + 1.0;
+
+        // Position target briefcase on front stool with open lid, and all other crates on racks closed
+        this.bayConfigs.forEach((cfg, idx) => {
+            const box = this.pallets[idx];
+            if (!box) return;
+
+            if (idx === kTo) {
+                box.position.copy(this.frontStoolBoxPos);
+                box.rotation.set(0, 0, 0);
+                if (typeof box.userData.setOpen === 'function') {
+                    box.userData.setOpen(1.0);
+                }
+            } else {
+                box.position.copy(cfg.boxRestPos);
+                box.rotation.set(0, cfg.rotY, 0);
+                if (typeof box.userData.setOpen === 'function') {
+                    box.userData.setOpen(0.0);
+                }
+            }
+        });
+
+        // Set arm pose to inspect pose immediately
+        this.targetJointAngles = { ...this.inspectPose, j5: 0, j6: 0 };
+        this.jointAngles = { ...this.inspectPose, j5: 0, j6: 0 };
+        this.targetGripGap = 0.20;
+        this.joints.gripper.targetGap = 0.20;
+        this.joints.gripper.gap = 0.20;
+
+        if (this.joints.turntable) this.joints.turntable.rotation.y = this.jointAngles.j1;
+        if (this.joints.shoulder) this.joints.shoulder.rotation.x = this.jointAngles.j2;
+        if (this.joints.elbow) this.joints.elbow.rotation.x = this.jointAngles.j3;
+        if (this.joints.wrist) this.joints.wrist.rotation.x = this.jointAngles.j4;
+        if (this.joints.wristYaw) this.joints.wristYaw.rotation.z = this.jointAngles.j5 || 0;
+        if (this.joints.flange) this.joints.flange.rotation.y = Math.PI / 2 + (this.jointAngles.j6 || 0);
+        if (this.joints.gripper.leftFinger && this.joints.gripper.rightFinger) {
+            this.joints.gripper.leftFinger.position.x = -0.20;
+            this.joints.gripper.rightFinger.position.x = 0.20;
+        }
+
+        this.statusText = `PLACED ON FRONT STOOL // ${this.bayConfigs[kTo].name.toUpperCase()}`;
+
+        if (typeof this.onSectionChange === 'function') {
+            this.onSectionChange(this.bayConfigs[kTo].id, kTo);
+        }
+    }
+
+    /**
+     * Stows the active briefcase from the front stool back to its rack pedestal
+     * and returns the robot arm to standby
+     */
+    stowFrontBoxToRack() {
+        if (this.isEStopped) return;
+        if (this.activeTween) {
+            this.activeTween.kill();
+            this.activeTween = null;
+        }
+        this.manualGripperGap = null;
+        this.targetSectionIndex = -1;
+        if (this.jogOffsets) {
+            this.jogOffsets.j1 = 0;
+            this.jogOffsets.j2 = 0;
+            this.jogOffsets.j3 = 0;
+            this.jogOffsets.j4 = 0;
+            this.jogOffsets.j5 = 0;
+            this.jogOffsets.j6 = 0;
+        }
+
+        this.directTransferStartPose = {
+            j1: this.jointAngles.j1,
+            j2: this.jointAngles.j2,
+            j3: this.jointAngles.j3,
+            j4: this.jointAngles.j4,
+            j5: this.jointAngles.j5 || 0,
+            j6: this.jointAngles.j6 || 0
+        };
+
+        let frontBoxIndex = this.dockedSectionIndex >= 0 ? this.dockedSectionIndex : null;
+        if (frontBoxIndex === null) {
+            for (let i = 0; i < this.pallets.length; i++) {
+                const box = this.pallets[i];
+                if (box !== this.carriedBox && box.position.distanceTo(this.frontStoolBoxPos) < 0.25) {
+                    frontBoxIndex = i;
+                    break;
+                }
+            }
+        }
+
+        if (frontBoxIndex === null) {
+            this.dockedSectionIndex = -1;
+            this.targetProgress = 0.0;
+            this.currentProgress = 0.0;
+            this.statusText = 'SYSTEM READY // STANDBY';
+            if (this.onSectionChange) this.onSectionChange(null, -1);
+            return;
+        }
+
+        const kFrom = frontBoxIndex;
+        const mode = 'returnToStandby';
+        const duration = 6.8;
+
+        this.statusText = `STOWING: BAY [${this.bayConfigs[kFrom].bayNum} // ${this.bayConfigs[kFrom].name.toUpperCase()}] TO RACK`;
+
+        const transferState = { t: 0.0 };
+        this.directTransfer = { mode, kFrom, kTo: null, state: transferState };
+
+        this.activeTween = gsap.to(transferState, {
+            t: 1.0,
+            duration: duration,
+            ease: 'linear',
+            onUpdate: () => {
+                if (this.directTransfer) {
+                    this.evaluateDirectTransfer(mode, kFrom, null, transferState.t);
+                }
+            },
+            onComplete: () => {
+                this.activeTween = null;
+                this.directTransfer = null;
+                this.directTransferStartPose = null;
+                this.dockedSectionIndex = -1;
+                this.currentProgress = 0.0;
+                this.targetProgress = 0.0;
+                this.statusText = 'SYSTEM READY // STANDBY';
+                if (this.onSectionChange) {
+                    this.onSectionChange(null, -1);
+                }
+            }
+        });
+    }
+
+    /**
      * Direct Dossier Dispatch:
      * When clicking a Teach Pendant button or Navbar link:
      * Physical, deliberate industrial motion:
@@ -2411,7 +2709,11 @@ class RobotWorkcell {
      */
     goToSection(sectionIndex) {
         if (this.isEStopped) return;
+        if (sectionIndex === -1 || sectionIndex === null || sectionIndex === undefined) {
+            return this.stowFrontBoxToRack();
+        }
         if (sectionIndex < 0 || sectionIndex >= this.bayConfigs.length) return;
+        this.targetSectionIndex = sectionIndex;
         if (this.activeTween) {
             this.activeTween.kill();
             this.activeTween = null;
@@ -2912,8 +3214,37 @@ class RobotWorkcell {
         this.renderer.setSize(width, height);
     }
 
+    getFrontApertureScreenPos() {
+        if (!this.camera || !this.container) {
+            return { x: window.innerWidth / 2, y: window.innerHeight * 0.62, width: 240 };
+        }
+        const w = this.container.clientWidth || window.innerWidth;
+        const h = this.container.clientHeight || window.innerHeight;
+
+        this.camera.updateMatrixWorld();
+
+        // Briefcase aperture center: (0, 0.23, 2.4)
+        const vCenter = new THREE.Vector3(0, 0.23, 2.4);
+        vCenter.project(this.camera);
+
+        const vLeft = new THREE.Vector3(-0.60, 0.23, 2.4);
+        vLeft.project(this.camera);
+
+        const vRight = new THREE.Vector3(0.60, 0.23, 2.4);
+        vRight.project(this.camera);
+
+        const screenX = (vCenter.x * 0.5 + 0.5) * w;
+        const screenY = (-(vCenter.y * 0.5) + 0.5) * h;
+        const screenWidth = Math.abs(vRight.x - vLeft.x) * 0.5 * w;
+
+        return { x: screenX, y: screenY, width: screenWidth };
+    }
+
     onResize() {
         this.updateCameraAspect();
+        if (typeof window.updateStageApertureVars === 'function') {
+            window.updateStageApertureVars();
+        }
     }
 
     setupEventListeners() {
@@ -2921,6 +3252,9 @@ class RobotWorkcell {
 
         window.addEventListener('resize', () => {
             this.updateCameraAspect();
+            if (typeof window.updateStageApertureVars === 'function') {
+                window.updateStageApertureVars();
+            }
         });
 
         if (this.renderer && this.renderer.domElement) {
