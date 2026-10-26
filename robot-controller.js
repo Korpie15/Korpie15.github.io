@@ -8,8 +8,28 @@ document.addEventListener('DOMContentLoaded', () => {
     const canvasContainer = document.getElementById('robot-canvas-container');
     if (!canvasContainer) return;
 
-    // Initialize 3D Workcell
-    const workcell = new RobotWorkcell('robot-canvas-container');
+    // Initialize 3D Workcell (fall back to Classic View if WebGL is unavailable or fails)
+    let workcell;
+    try {
+        const probe = document.createElement('canvas');
+        if (!(probe.getContext('webgl2') || probe.getContext('webgl'))) {
+            throw new Error('WebGL not supported');
+        }
+        workcell = new RobotWorkcell('robot-canvas-container');
+    } catch (err) {
+        console.warn('3D workcell unavailable, showing Classic View:', err);
+        document.body.classList.add('classic-view-mode', 'no-webgl');
+        canvasContainer.style.display = 'none';
+        const appContainer = document.getElementById('robot-app-container');
+        if (appContainer) appContainer.style.display = 'none';
+        const toggle = document.getElementById('viewModeToggle');
+        if (toggle) toggle.style.display = 'none';
+        document.querySelectorAll('.section, .hero').forEach(sec => {
+            sec.classList.remove('robot-mode-hidden', 'robot-mode-active');
+        });
+        if (typeof window.dismissLoader === 'function') window.dismissLoader();
+        return;
+    }
     window.activeWorkcell = workcell;
 
     // Section Mappings
@@ -1152,4 +1172,26 @@ document.addEventListener('DOMContentLoaded', () => {
     function updateMobileControls(index) {
         // Badge removed per user request
     }
+
+    // Keyboard access: arrow keys step through briefcases, Escape stows the open dossier
+    document.addEventListener('keydown', (e) => {
+        if (document.body.classList.contains('classic-view-mode')) return;
+        if (e.altKey || e.ctrlKey || e.metaKey) return;
+        const tag = (e.target && e.target.tagName) || '';
+        if (/^(INPUT|TEXTAREA|SELECT)$/.test(tag) || (e.target && e.target.isContentEditable)) return;
+        const stage = document.getElementById('robot-front-stage');
+        const stageHidden = !stage || stage.classList.contains('docked-hidden');
+
+        if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
+            const step = e.key === 'ArrowRight' ? 1 : -1;
+            const count = sectionIds.length;
+            const target = stageHidden
+                ? (step > 0 ? 0 : count - 1)
+                : (currentSectionIndex + step + count) % count;
+            e.preventDefault();
+            workcell.goToSection(target);
+        } else if (e.key === 'Escape' && !stageHidden) {
+            window.closeFrontStageDossier();
+        }
+    });
 });

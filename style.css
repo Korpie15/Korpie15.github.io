@@ -1619,6 +1619,8 @@ body:not(.classic-view-mode) .hero .scroll-indicator {
 }
 
 .modal-close {
+    border: none;
+    padding: 0;
     position: absolute;
     top: 1rem;
     right: 1rem;
@@ -1669,6 +1671,9 @@ body:not(.classic-view-mode) .hero .scroll-indicator {
 }
 
 .lightbox-close {
+    background: none;
+    border: none;
+    line-height: 1;
     position: absolute;
     top: 20px;
     right: 40px;
@@ -4452,3 +4457,25 @@ body.classic-view-mode .blue-mandatory-sign {
     font-weight: 700;
 }
 
+
+
+/* ============================================
+   ACCESSIBILITY
+   ============================================ */
+:focus-visible {
+    outline: 2px solid #f59e0b;
+    outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    html {
+        scroll-behavior: auto;
+    }
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}
