@@ -566,15 +566,15 @@ body:not(.classic-view-mode) .hero .scroll-indicator {
 }
 
 .professional-project-tile:hover {
-    border-color: rgba(245, 158, 11, 0.45);
+    border-color: rgba(245, 158, 11, 0.3);
     transform: translateY(-2px);
-    box-shadow: 0 12px 30px -4px rgba(245, 158, 11, 0.2), 0 4px 12px rgba(0, 0, 0, 0.4);
+    box-shadow: 0 12px 30px -4px rgba(0, 0, 0, 0.5);
 }
 
 .professional-project-tile.expanded {
-    border-color: rgba(245, 158, 11, 0.5);
-    box-shadow: 0 16px 40px -6px rgba(24, 24, 27, 0.6), 0 0 0 1px rgba(245, 158, 11, 0.25);
-    background: #1c1a15;
+    border-color: rgba(245, 158, 11, 0.28);
+    box-shadow: 0 16px 40px -6px rgba(0, 0, 0, 0.55);
+    background: #1b1c21;
 }
 
 .tile-header {
@@ -662,9 +662,9 @@ body:not(.classic-view-mode) .hero .scroll-indicator {
 }
 
 .professional-project-tile:hover .tile-tag {
-    background: rgba(245, 158, 11, 0.1);
-    border-color: rgba(245, 158, 11, 0.25);
-    color: #fcd34d;
+    background: rgba(255, 255, 255, 0.08);
+    border-color: rgba(255, 255, 255, 0.16);
+    color: #e5e7eb;
 }
 
 .tile-expand-action {
@@ -699,9 +699,9 @@ body:not(.classic-view-mode) .hero .scroll-indicator {
 }
 
 .professional-project-tile:hover .expand-icon-wrapper {
-    background: rgba(245, 158, 11, 0.25);
-    border-color: rgba(245, 158, 11, 0.5);
-    color: #ffffff;
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(245, 158, 11, 0.45);
+    color: #fbbf24;
     transform: scale(1.06);
 }
 
@@ -722,9 +722,9 @@ body:not(.classic-view-mode) .hero .scroll-indicator {
 }
 
 .professional-project-tile.expanded .expand-icon-wrapper {
-    background: rgba(245, 158, 11, 0.3);
-    border-color: rgba(245, 158, 11, 0.6);
-    color: #ffffff;
+    background: rgba(255, 255, 255, 0.08);
+    border-color: rgba(245, 158, 11, 0.45);
+    color: #fbbf24;
 }
 
 .tile-content {
