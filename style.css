@@ -4485,3 +4485,14 @@ body.classic-view-mode .blue-mandatory-sign {
         transition-duration: 0.01ms !important;
     }
 }
+
+
+/* Robot Cell mode: the footer and mobile nav live in normal page flow at the top of the page,
+   behind the fixed canvas. Hide them so they can't show through around fixed overlays. */
+body:not(.classic-view-mode) .footer {
+    display: none;
+}
+
+.mobile-workcell-controls {
+    display: none;
+}
