@@ -3394,7 +3394,8 @@ body.classic-view-mode #robot-front-stage .section {
     border: 2px solid #0052cc;
     border-radius: 10px;
     padding: 3px;
-    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.8), 0 0 16px rgba(0, 82, 204, 0.35);
+    /* Tight shadow: large blurs get clipped into a visible dark box over the WebGL canvas */
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.55), 0 0 6px rgba(0, 82, 204, 0.4);
     z-index: 55;
     overflow: hidden;
     pointer-events: auto;
