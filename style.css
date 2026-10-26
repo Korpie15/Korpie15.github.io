@@ -3388,14 +3388,14 @@ body.classic-view-mode #robot-front-stage .section {
     left: 25px;
     right: auto;
     transform: none;
-    width: 325px; /* matches .teach-pendant */
+    width: calc(var(--tp-base-w, 325px) * var(--tp-scale, 1)); /* matches .teach-pendant */
     box-sizing: border-box;
     background: #ffffff;
     border: 2px solid #0052cc;
     border-radius: 10px;
     padding: 3px;
-    /* Tight shadow: large blurs get clipped into a visible dark box over the WebGL canvas */
-    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.55), 0 0 6px rgba(0, 82, 204, 0.4);
+    /* No box-shadow: shadows on this layer render as a dark box over the WebGL canvas */
+    outline: 2px solid rgba(0, 82, 204, 0.35);
     z-index: 55;
     overflow: hidden;
     pointer-events: auto;
@@ -3522,7 +3522,9 @@ body.classic-view-mode .blue-mandatory-sign {
     bottom: 20px;
     left: 25px;
     right: auto;
-    width: 325px;
+    width: var(--tp-base-w, 325px);
+    transform-origin: left bottom;
+    transform: scale(var(--tp-scale, 1)); /* JS shrinks it to fit below the sign instead of scrolling */
     background: #18181b; /* Matte industrial graphite */
     border: 3px solid #f59e0b; /* Yellow shock bumper */
     border-radius: 16px;
@@ -3534,24 +3536,20 @@ body.classic-view-mode .blue-mandatory-sign {
     display: flex;
     flex-direction: column;
     overflow: hidden;
-    /* Stay below the mandatory sign (top 84px + ~102px tall + 12px gap) and above the 20px bottom offset */
-    max-height: calc(100vh - 218px);
     transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), height 0.3s ease;
     user-select: none;
     box-sizing: border-box;
 }
 
 /* Too short for both: the sign is only a hint, so give the pendant the room */
-@media (max-height: 560px) {
+@media (max-height: 759px) {
     body:not(.classic-view-mode) .blue-mandatory-sign {
         display: none !important;
-    }
-    .teach-pendant {
-        max-height: calc(100vh - 100px);
     }
 }
 
 .teach-pendant.minimized {
+    transform: none;
     height: 48px;
     border-radius: 12px;
     cursor: pointer;
@@ -3682,9 +3680,9 @@ body.classic-view-mode .blue-mandatory-sign {
     flex-direction: column;
     gap: 0.55rem;
     background: #18181b;
-    flex: 1 1 auto;
-    min-height: 0;
+    max-height: calc(100vh - 90px);
     overflow-y: auto;
+    overscroll-behavior: contain;
 }
 
 .tp-body::-webkit-scrollbar {
@@ -3970,8 +3968,8 @@ body.classic-view-mode .blue-mandatory-sign {
 
 /* Responsive adjustments */
 @media (max-width: 900px) {
-    .blue-mandatory-sign {
-        width: 290px;
+    :root {
+        --tp-base-w: 290px;
     }
 
     body:not(.classic-view-mode) #robot-front-stage {
@@ -3986,7 +3984,6 @@ body.classic-view-mode .blue-mandatory-sign {
     .teach-pendant {
         bottom: 12px;
         right: 12px;
-        width: 290px;
     }
 }
 

@@ -270,9 +270,28 @@ document.addEventListener('DOMContentLoaded', () => {
         const header = pendant.querySelector('#tp-header');
         const body = pendant.querySelector('#tp-body');
 
+        // Scale the pendant so it fits below the safety sign without scrolling
+        function fitPendant() {
+            const signVisible = window.innerHeight >= 760 && !document.body.classList.contains('classic-view-mode');
+            const bottomGap = parseFloat(getComputedStyle(pendant).bottom) || 20;
+            const topLimit = signVisible ? 198 : 100; // sign: top 84 + ~102 tall + 12 gap
+            const natural = header.offsetHeight + body.scrollHeight + 6;
+            const fit = Math.min(1, (window.innerHeight - topLimit - bottomGap) / natural);
+            const scale = pendant.classList.contains('minimized') ? 1 : Math.max(0.55, fit);
+            document.documentElement.style.setProperty('--tp-scale', scale.toFixed(3));
+        }
+        window.addEventListener('resize', fitPendant);
+        window.addEventListener('load', fitPendant);
+        fitPendant();
+
+        // Scrolling over the pendant must never drive the robot
+        pendant.addEventListener('wheel', (e) => e.stopPropagation(), { passive: true });
+        pendant.addEventListener('touchmove', (e) => e.stopPropagation(), { passive: true });
+
         minBtn.addEventListener('click', (e) => {
             e.stopPropagation();
             pendant.classList.toggle('minimized');
+            fitPendant();
             minBtn.textContent = pendant.classList.contains('minimized') ? '+' : '−';
         });
 
@@ -282,6 +301,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (pendant.classList.contains('minimized')) {
                     pendant.classList.remove('minimized');
                     minBtn.textContent = '−';
+                    fitPendant();
                 }
             });
         }
