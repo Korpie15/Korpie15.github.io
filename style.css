@@ -3385,10 +3385,10 @@ body.classic-view-mode #robot-front-stage .section {
     display: block !important;
     position: fixed;
     top: 84px;
-    left: 28px;
+    left: 25px;
     right: auto;
     transform: none;
-    width: 275px;
+    width: 325px; /* matches .teach-pendant */
     box-sizing: border-box;
     background: #ffffff;
     border: 2px solid #0052cc;
@@ -3526,7 +3526,8 @@ body.classic-view-mode .blue-mandatory-sign {
     background: #18181b; /* Matte industrial graphite */
     border: 3px solid #f59e0b; /* Yellow shock bumper */
     border-radius: 16px;
-    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.7), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    /* Tight shadow: large blurs get clipped into a visible dark box over the WebGL canvas */
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.1);
     z-index: 10000;
     font-family: 'Segoe UI', system-ui, sans-serif;
     color: #f1f5f9;
@@ -3969,6 +3970,10 @@ body.classic-view-mode .blue-mandatory-sign {
 
 /* Responsive adjustments */
 @media (max-width: 900px) {
+    .blue-mandatory-sign {
+        width: 290px;
+    }
+
     body:not(.classic-view-mode) #robot-front-stage {
         top: 65px;
         bottom: 16px;
