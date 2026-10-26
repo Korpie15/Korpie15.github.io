@@ -3527,9 +3527,21 @@ body.classic-view-mode .blue-mandatory-sign {
     display: flex;
     flex-direction: column;
     overflow: hidden;
+    /* Stay below the mandatory sign (top 84px + ~102px tall + 12px gap) and above the 20px bottom offset */
+    max-height: calc(100vh - 218px);
     transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), height 0.3s ease;
     user-select: none;
     box-sizing: border-box;
+}
+
+/* Too short for both: the sign is only a hint, so give the pendant the room */
+@media (max-height: 560px) {
+    body:not(.classic-view-mode) .blue-mandatory-sign {
+        display: none !important;
+    }
+    .teach-pendant {
+        max-height: calc(100vh - 100px);
+    }
 }
 
 .teach-pendant.minimized {
@@ -3663,7 +3675,8 @@ body.classic-view-mode .blue-mandatory-sign {
     flex-direction: column;
     gap: 0.55rem;
     background: #18181b;
-    max-height: calc(100vh - 90px);
+    flex: 1 1 auto;
+    min-height: 0;
     overflow-y: auto;
 }
 
