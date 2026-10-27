@@ -1042,9 +1042,6 @@ class RobotWorkcell {
         const curtain = new THREE.Mesh(new THREE.PlaneGeometry(w + 0.18, 0.86), this.lightCurtainMat);
         curtain.position.set(0, topY + 0.45, pickZ + 0.22);
         g.add(curtain);
-        this.popStop = new THREE.Mesh(new THREE.BoxGeometry(w - 0.2, 0.08, 0.05), railMat);
-        this.popStop.position.set(0, topY - 0.05, pickZ + 0.17);
-        g.add(this.popStop);
 
         const pickTex = this.makeLabelTexture('PICK STATION C1', { size: 64, color: '#22d3ee', sub: 'ROBOT PICK-OFF // PROJECT BOARDS', h: 200 });
         const pickSign = new THREE.Mesh(new THREE.PlaneGeometry(0.62, 0.12), new THREE.MeshBasicMaterial({ map: pickTex }));
@@ -2199,11 +2196,6 @@ class RobotWorkcell {
         // Belt texture + rollers
         if (this.beltTex) this.beltTex.offset.y = -this.beltPos / 0.5;
         this.rollers.forEach(r => { r.rotation.x = this.beltPos / 0.08; });
-        if (this.popStop) {
-            const up = this.beltDemand !== null;
-            const targetY = cv.beltY + (up ? 0.05 : -0.05);
-            this.popStop.position.y += (targetY - this.popStop.position.y) * Math.min(1, dt * 10);
-        }
         if (this.lightCurtainMat) {
             this.lightCurtainMat.opacity = this.beltStaged ? 0.12 + 0.08 * Math.sin(this.elapsed * 10) : 0.32;
             this.lightCurtainMat.color.setHex(this.beltStaged ? 0xf59e0b : 0x22d3ee);
