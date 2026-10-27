@@ -26,7 +26,11 @@ const CORRIDOR_Y = 1.5;     // Safe swing height (handle height)
 const PROJECTS_INDEX = 4;
 const BELT_SPEED = 0.42;    // Constant conveyor speed (m/s) - the belt never runs faster than this
 const BELT_ACCEL = 0.8;     // Gentle start/stop ramp (m/s^2)
-const BELT_CLEAR = 0.6;     // Free belt length needed either side of the pick station to put a board back
+const BELT_CLEAR = 0.6;
+const GRAVITY = 9.81;
+const DROP_RESTITUTION = 0.38;   // Bounciness of a laminated board
+const DROP_FRICTION = 0.45;
+const DROP_SUBSTEPS = 6;     // Free belt length needed either side of the pick station to put a board back
 
 const PROJECT_LIBRARY = [
     { name: 'Chase the Chicken', tag: 'Urban hide-and-seek web app with battle-royale zones', chips: ['React 18', 'Vite'], color: 0xf59e0b },
@@ -1942,22 +1946,45 @@ class RobotWorkcell {
     }
 
     /**
-     * Dropping a held board: it tumbles to the floor, then the cell recovers
-     * (board is re-issued to its station and the arm returns to park).
+     * Dropping a held board: it falls as a rigid body (gravity, bounce, friction) and
+     * collides with the floor, stations and other boards. Once it settles the cell
+     * recovers: the board is re-issued to its station and the arm returns to park.
      */
     dropHeldBoard(index) {
         const board = this.boardForIndex(index);
         if (!board) return;
         this.beginCommand();
         this.manualGripperGap = GRIP_OPEN;
-        this.dropAnim = {
-            index,
-            board,
-            vel: new THREE.Vector3((Math.random() - 0.5) * 0.6, 0, (Math.random() - 0.5) * 0.6),
-            spin: (Math.random() - 0.5) * 2.4,
-            tip: 0,
-            t: 0
+
+        // Rigid body state lives at the centre of mass (middle of the panel)
+        const com = new THREE.Vector3(0, (BOARD.FOOT_H + BOARD.H) / 2, 0);
+        const track = this.carryTrack && this.carryTrack.board === board ? this.carryTrack : null;
+        const body = {
+            pos: com.clone().applyQuaternion(board.quaternion).add(board.position),
+            quat: board.quaternion.clone(),
+            vel: track ? track.vel.clone().clampLength(0, 6) : new THREE.Vector3(),
+            ang: track ? track.ang.clone().clampLength(0, 10) : new THREE.Vector3(),
+            com,
+            mass: 1.0
         };
+        // A little wobble so a still drop does not land perfectly flat
+        body.ang.add(new THREE.Vector3((Math.random() - 0.5) * 1.2, (Math.random() - 0.5) * 0.8, (Math.random() - 0.5) * 1.2));
+        const W = BOARD.W, H = BOARD.FOOT_H + BOARD.H, D = 0.14;
+        body.invInertia = new THREE.Vector3(12 / (H * H + D * D), 12 / (W * W + D * D), 12 / (W * W + H * H));
+
+        // Contact sample points in board-local space (relative to the centre of mass)
+        const xs = [-W / 2, 0, W / 2];
+        const ys = [0, BOARD.FOOT_H + BOARD.H];
+        const zs = [-0.13, 0.13];
+        body.points = [];
+        xs.forEach(x => ys.forEach(y => zs.forEach(z => body.points.push(new THREE.Vector3(x, y, z).sub(com)))));
+        body.points.push(new THREE.Vector3(0, BOARD.HANDLE_Y + 0.022, 0).sub(com));
+        [-0.17, 0.17].forEach(x => body.points.push(new THREE.Vector3(x, BOARD.HANDLE_Y, 0).sub(com)));
+        [-1, 1].forEach(side => body.points.push(new THREE.Vector3(side * W / 2, BOARD.FOOT_H + BOARD.H / 2, 0).sub(com)));
+
+        this.dropAnim = { index, board, body, t: 0, restTime: 0, settled: false, fadeT: 0, impacts: 0 };
+        board.rotation.order = 'XYZ';
+
         // A dropped project board is scrapped; the fabricator issues a new one
         if (index === PROJECTS_INDEX && this.claimedItem) {
             this.claimedItem.state = 'scrap';
@@ -1969,39 +1996,192 @@ class RobotWorkcell {
         this.targetProgress = 0;
     }
 
+    /** Static and semi-static collision shapes for dropped boards (rebuilt each step). */
+    dropColliders(excludeBoard) {
+        if (!this._staticColliders) {
+            const list = [];
+            const obb = (cx, cy, cz, hx, hy, hz, rotY) => list.push({ type: 'box', c: new THREE.Vector3(cx, cy, cz), h: new THREE.Vector3(hx, hy, hz), rotY });
+            // Rack decks (solid down to the floor under each tier's deck)
+            const ax = this.rackAxes();
+            const span = this.rack.spacing * 3 + 0.12;
+            this.rack.tiers.forEach(tier => {
+                const x = this.rack.center.x + ax.z.x * tier.lz;
+                const z = this.rack.center.y + ax.z.y * tier.lz;
+                obb(x, tier.shelfY - 0.03, z, span / 2, 0.03, 0.25, this.rack.rotY);
+            });
+            // Conveyor bed + chute
+            const cv = this.conveyor;
+            const mid = this.beltPoint(cv.length / 2);
+            obb(mid.x, (-1.8 + cv.beltY) / 2, mid.z, cv.width / 2 + 0.05, (cv.beltY + 1.8) / 2, cv.length / 2 + 0.06, cv.rotY);
+            const chute = this.beltPoint(cv.length + 0.06 + 0.375);
+            obb(chute.x, (-1.8 + cv.beltY - 0.2) / 2, chute.z, cv.width / 2 + 0.06, (cv.beltY + 1.8 - 0.2) / 2, 0.375, cv.rotY);
+            // Fabricator body
+            const fab = this.fabricatorGroup.position;
+            obb(fab.x, -1.8 + (0.18 + 2.35) / 2, fab.z, 1.06, (0.18 + 2.35) / 2, 0.86, cv.rotY);
+            // Plinth and robot base (vertical cylinders)
+            list.push({ type: 'cyl', x: this.plinthPos.x, z: this.plinthPos.z, r: 0.66, y0: -1.8, y1: this.plinthPos.y });
+            list.push({ type: 'cyl', x: 0, z: 0, r: 0.98, y0: -1.8, y1: -1.2 });
+            list.push({ type: 'cyl', x: 0, z: 0, r: 0.7, y0: -1.2, y1: -0.6 });
+            this._staticColliders = list;
+        }
+        const list = this._staticColliders.slice();
+        // Other boards (on the rack, plinth or belt) as thin boxes
+        const half = (BOARD.FOOT_H + BOARD.H) / 2;
+        const add = (b) => {
+            if (!b || b === excludeBoard || !b.visible || Math.abs(b.rotation.x) > 0.05) return;
+            const c = new THREE.Vector3(0, half, 0).applyAxisAngle(new THREE.Vector3(0, 1, 0), b.rotation.y).add(b.position);
+            list.push({ type: 'box', c, h: new THREE.Vector3(BOARD.W / 2, half, 0.08), rotY: b.rotation.y });
+        };
+        this.boards.forEach(add);
+        this.beltItems.forEach(it => { if (it.state === 'belt' && it.s > 0 && it.s < this.conveyor.length) add(it.board); });
+        return list;
+    }
+
+    /** Penetration of a world point into a collider: { n, depth } or null. */
+    penetration(p, col) {
+        if (col.type === 'cyl') {
+            const dx = p.x - col.x;
+            const dz = p.z - col.z;
+            const d = Math.hypot(dx, dz);
+            if (d >= col.r || p.y <= col.y0 || p.y >= col.y1) return null;
+            const top = col.y1 - p.y;
+            const side = col.r - d;
+            if (top < side) return { n: new THREE.Vector3(0, 1, 0), depth: top };
+            return { n: d > 1e-6 ? new THREE.Vector3(dx / d, 0, dz / d) : new THREE.Vector3(1, 0, 0), depth: side };
+        }
+        const cos = Math.cos(col.rotY);
+        const sin = Math.sin(col.rotY);
+        const rx = p.x - col.c.x;
+        const ry = p.y - col.c.y;
+        const rz = p.z - col.c.z;
+        // World -> box local (rotate by -rotY about Y)
+        const lx = cos * rx - sin * rz;
+        const lz = sin * rx + cos * rz;
+        const px = col.h.x - Math.abs(lx);
+        const py = col.h.y - Math.abs(ry);
+        const pz = col.h.z - Math.abs(lz);
+        if (px <= 0 || py <= 0 || pz <= 0) return null;
+        let nLocal;
+        let depth;
+        if (py <= px && py <= pz) {
+            nLocal = new THREE.Vector3(0, Math.sign(ry) || 1, 0);
+            depth = py;
+        } else if (px <= pz) {
+            nLocal = new THREE.Vector3(Math.sign(lx) || 1, 0, 0);
+            depth = px;
+        } else {
+            nLocal = new THREE.Vector3(0, 0, Math.sign(lz) || 1);
+            depth = pz;
+        }
+        // Box local -> world (rotate by +rotY)
+        const n = new THREE.Vector3(cos * nLocal.x + sin * nLocal.z, nLocal.y, -sin * nLocal.x + cos * nLocal.z);
+        return { n, depth };
+    }
+
+    stepBody(body, colliders, dt) {
+        body.vel.y -= GRAVITY * dt;
+        body.pos.addScaledVector(body.vel, dt);
+        // Integrate orientation
+        const w = body.ang;
+        const dq = new THREE.Quaternion(w.x * dt * 0.5, w.y * dt * 0.5, w.z * dt * 0.5, 0).multiply(body.quat);
+        body.quat.set(body.quat.x + dq.x, body.quat.y + dq.y, body.quat.z + dq.z, body.quat.w + dq.w).normalize();
+
+        const rot = new THREE.Matrix3().setFromMatrix4(new THREE.Matrix4().makeRotationFromQuaternion(body.quat));
+        const rotT = rot.clone().transpose();
+        // World-space inverse inertia applied to a vector: R * Iinv * R^T * v
+        const applyInvI = (v) => {
+            const l = v.clone().applyMatrix3(rotT);
+            l.set(l.x * body.invInertia.x, l.y * body.invInertia.y, l.z * body.invInertia.z);
+            return l.applyMatrix3(rot);
+        };
+        let impact = 0;
+        body.points.forEach(lp => {
+            const r = lp.clone().applyQuaternion(body.quat);
+            const p = r.clone().add(body.pos);
+            // Floor
+            const hits = [];
+            if (p.y < -1.8) hits.push({ n: new THREE.Vector3(0, 1, 0), depth: -1.8 - p.y });
+            colliders.forEach(col => { const h = this.penetration(p, col); if (h) hits.push(h); });
+            hits.forEach(({ n, depth }) => {
+                const vp = body.vel.clone().add(body.ang.clone().cross(r));
+                const vn = vp.dot(n);
+                // Push out of the surface (small slop so resting contacts don't jitter)
+                body.pos.addScaledVector(n, Math.max(0, depth - 0.002) * 0.6);
+                if (vn >= 0) return;
+                const rxn = r.clone().cross(n);
+                const denom = 1 / body.mass + n.dot(applyInvI(rxn).cross(r));
+                const bounce = vn < -0.6 ? DROP_RESTITUTION : 0; // tiny contacts settle instead of jittering
+                const j = -(1 + bounce) * vn / denom;
+                body.vel.addScaledVector(n, j / body.mass);
+                body.ang.add(applyInvI(rxn.multiplyScalar(j)));
+                impact = Math.max(impact, -vn);
+                // Coulomb friction
+                const vp2 = body.vel.clone().add(body.ang.clone().cross(r));
+                const vt = vp2.sub(n.clone().multiplyScalar(vp2.dot(n)));
+                const vtLen = vt.length();
+                if (vtLen > 1e-5) {
+                    const t = vt.divideScalar(vtLen);
+                    const rxt = r.clone().cross(t);
+                    const denomT = 1 / body.mass + t.dot(applyInvI(rxt).cross(r));
+                    const jt = Math.min(vtLen / denomT, DROP_FRICTION * j);
+                    body.vel.addScaledVector(t, -jt / body.mass);
+                    body.ang.add(applyInvI(rxt.multiplyScalar(-jt)));
+                }
+            });
+        });
+        // Light air drag / rolling resistance
+        body.vel.multiplyScalar(Math.pow(0.995, dt * 60));
+        body.ang.multiplyScalar(Math.pow(0.985, dt * 60));
+        return impact;
+    }
+
     updateDrop(dt) {
         const d = this.dropAnim;
         if (!d) return;
         d.t += dt;
         const b = d.board;
-        const floorY = -1.8;
-        if (b.position.y > floorY + 0.001) {
-            d.vel.y -= 9.8 * dt;
-            b.position.addScaledVector(d.vel, dt);
-            b.rotation.y += d.spin * dt;
-            d.tip = Math.min(Math.PI / 2 - 0.05, d.tip + dt * 2.2);
-            b.rotation.x = -d.tip;
-            if (b.position.y <= floorY) {
-                b.position.y = floorY;
-                d.vel.set(0, 0, 0);
-                d.spin = 0;
+        const body = d.body;
+
+        if (!d.settled) {
+            const colliders = this.dropColliders(b);
+            const h = dt / DROP_SUBSTEPS;
+            let impact = 0;
+            for (let i = 0; i < DROP_SUBSTEPS; i++) impact = Math.max(impact, this.stepBody(body, colliders, h));
+            if (impact > 1.2) {
+                d.impacts++;
+                this.statusText = `WORKPIECE IMPACT ${impact.toFixed(1)} m/s // RECOVERING CELL`;
             }
-        }
-        if (d.t > 1.8) {
-            const s = Math.max(0.001, 1 - (d.t - 1.8) / 0.35);
-            b.scale.setScalar(s);
-        }
-        if (d.t > 2.15) {
-            b.scale.setScalar(1);
-            b.rotation.x = 0;
-            const item = b.userData.beltItem;
-            if (item) {
-                item.state = 'pool';
-                b.visible = false;
+            const resting = body.vel.length() < 0.08 && body.ang.length() < 0.25;
+            d.restTime = resting ? d.restTime + dt : 0;
+            // Also treat it as settled once it has barely moved for half a second (resting on edges)
+            if (!d.anchor || d.t - d.anchor.t > 0.5) {
+                const moved = d.anchor ? d.anchor.pos.distanceTo(body.pos) + d.anchor.quat.angleTo(body.quat) * 0.3 : 1;
+                if (d.anchor && moved < 0.02 && d.t > 1.0) d.settled = true;
+                d.anchor = { t: d.t, pos: body.pos.clone(), quat: body.quat.clone() };
             }
-            this.dropAnim = null;
-            this.manualGripperGap = null;
-            this.statusText = 'CELL RECOVERED // BOARD RE-ISSUED';
+            if (d.restTime > 0.7 || d.t > 7 || body.pos.y < -6) d.settled = true;
+        }
+        // Board mesh follows the body (body is at the centre of mass)
+        b.quaternion.copy(body.quat);
+        b.position.copy(body.pos).sub(body.com.clone().applyQuaternion(body.quat));
+
+        if (d.settled) {
+            d.fadeT += dt;
+            if (d.fadeT > 0.9) b.scale.setScalar(Math.max(0.001, 1 - (d.fadeT - 0.9) / 0.35));
+            if (d.fadeT > 1.25) {
+                b.scale.setScalar(1);
+                b.quaternion.identity();
+                b.rotation.set(0, 0, 0);
+                const item = b.userData.beltItem;
+                if (item) {
+                    item.state = 'pool';
+                    b.visible = false;
+                }
+                this.dropAnim = null;
+                this.carryTrack = null;
+                this.manualGripperGap = null;
+                this.statusText = 'CELL RECOVERED // BOARD RE-ISSUED';
+            }
         }
     }
 
@@ -2309,6 +2489,26 @@ class RobotWorkcell {
         board.position.copy(pos);
         board.scale.setScalar(1);
         board.visible = true;
+
+        // Track the carried board's motion so a drop inherits the arm's velocity
+        const dt = Math.max(1e-3, this.frameDt || 0.016);
+        const c = this.carryTrack || (this.carryTrack = { board: null, pos: new THREE.Vector3(), quat: new THREE.Quaternion(), vel: new THREE.Vector3(), ang: new THREE.Vector3() });
+        if (c.board === board) {
+            const v = pos.clone().sub(c.pos).divideScalar(dt);
+            c.vel.lerp(v, 0.5);
+            const dq = board.quaternion.clone().multiply(c.quat.clone().invert());
+            if (dq.w < 0) { dq.x = -dq.x; dq.y = -dq.y; dq.z = -dq.z; dq.w = -dq.w; }
+            const angle = 2 * Math.acos(Math.min(1, dq.w));
+            const sinHalf = Math.sqrt(Math.max(0, 1 - dq.w * dq.w));
+            const w = sinHalf > 1e-6 ? new THREE.Vector3(dq.x, dq.y, dq.z).divideScalar(sinHalf).multiplyScalar(angle / dt) : new THREE.Vector3();
+            c.ang.lerp(w, 0.5);
+        } else {
+            c.board = board;
+            c.vel.set(0, 0, 0);
+            c.ang.set(0, 0, 0);
+        }
+        c.pos.copy(pos);
+        c.quat.copy(board.quaternion);
     }
 
     updateBoards() {
@@ -2607,6 +2807,7 @@ class RobotWorkcell {
         requestAnimationFrame(() => this.animate());
         const dt = Math.min(0.05, this.clock.getDelta());
         this.elapsed += dt;
+        this.frameDt = dt;
 
         if (!this.isEStopped) {
             if (this.directTransfer && !this.dropAnim) {
