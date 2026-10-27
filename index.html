@@ -1244,7 +1244,7 @@
     </section>
     </main>
 
-    <!-- Holographic Dossier Projection Beam (Morphs out of front flight briefcase) -->
+    <!-- Holographic Dossier Projection Beam (Morphs out of the presented board) -->
     <div id="robot-stage-beam" class="robot-stage-beam docked-hidden"></div>
     <!-- Footer -->
     <footer class="footer">
@@ -1282,7 +1282,13 @@
     <script src="three.min.js"></script>
     <script src="gsap.min.js"></script>
     <script src="script.js?v=5.0"></script>
-    <script src="robot-arm.js?v=5.0"></script>
+    <script>
+        // Fabrication cell is the default; ?cell=briefcase loads the original briefcase workcell for comparison
+        (function () {
+            var legacy = /[?&]cell=briefcase\b/.test(window.location.search);
+            document.write('<script src="' + (legacy ? 'robot-arm.js?v=5.0' : 'robot-factory.js?v=6.0') + '"><\/script>');
+        })();
+    </script>
     <script src="robot-controller.js?v=5.0"></script>
 </body>
 </html>

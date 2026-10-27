@@ -522,6 +522,24 @@ document.addEventListener('DOMContentLoaded', () => {
             // Scroll front stage card to top for newly opened dossier
             stageCard.scrollTop = 0;
 
+            // Fabrication cell: jump to the project board the robot picked off the conveyor
+            if (sectionId === 'projects' && workcell && workcell.activeProjectName && targetSection) {
+                const wanted = workcell.activeProjectName.toLowerCase().replace(/[^a-z0-9]/g, '');
+                const card = Array.from(targetSection.querySelectorAll('.project-card')).find(c => {
+                    const h3 = c.querySelector('h3');
+                    const name = h3 ? h3.textContent.toLowerCase().replace(/[^a-z0-9]/g, '') : '';
+                    return name && (name.includes(wanted) || wanted.includes(name.slice(0, 10)));
+                });
+                if (card) {
+                    card.classList.add('fab-picked');
+                    setTimeout(() => {
+                        const top = card.getBoundingClientRect().top - stageCard.getBoundingClientRect().top + stageCard.scrollTop - 90;
+                        stageCard.scrollTo({ top: Math.max(0, top), behavior: 'smooth' });
+                    }, 350);
+                    setTimeout(() => card.classList.remove('fab-picked'), 3200);
+                }
+            }
+
             if (targetSection) {
                 if (typeof animateSkillBars === 'function' && targetSection.querySelector('.skill-bars')) {
                     animateSkillBars();
@@ -1048,12 +1066,12 @@ document.addEventListener('DOMContentLoaded', () => {
                         <!-- Desktop Instructions -->
                         <div class="mandatory-text mandatory-desktop-text osha-desktop-body">
                             <div class="mandatory-line-1">SCROLL OR CLICK</div>
-                            <div class="mandatory-line-2">A BRIEFCASE</div>
+                            <div class="mandatory-line-2">A BOARD</div>
                         </div>
                         <!-- Mobile Instructions -->
                         <div class="mandatory-text mandatory-mobile-text osha-mobile-body">
-                            <div class="mandatory-line-1">TAP A BRIEFCASE</div>
-                            <div class="mandatory-line-2">TO AUTO OPEN</div>
+                            <div class="mandatory-line-1">TAP A BOARD</div>
+                            <div class="mandatory-line-2">TO PRESENT IT</div>
                             <div class="mandatory-line-sub">HOLD PREV / NEXT TO RUN</div>
                         </div>
                     </div>

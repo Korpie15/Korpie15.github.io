@@ -20,7 +20,7 @@
 
     const steps = [
         { at: 10, text: 'ALLOCATING THREE.JS GPU CONTEXT...' },
-        { at: 35, text: 'FABRICATING BRIEFCASE ATTACHÉ CASES...' },
+        { at: 35, text: 'LAMINATING INFO BOARDS & PRIMING FABRICATOR...' },
         { at: 60, text: 'SOLVING INVERSE KINEMATICS (IK)...' },
         { at: 80, text: 'SYNCHRONIZING INDUSTRIAL TELEMETRY...' },
         { at: 95, text: 'WORKCELL ONLINE - STANDBY ENGAGED' },
