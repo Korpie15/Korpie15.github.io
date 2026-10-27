@@ -1112,11 +1112,11 @@ class RobotWorkcell {
         for (let x = 0; x < w; x += 32) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, h); ctx.stroke(); }
         for (let y = 0; y < h; y += 32) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(w, y); ctx.stroke(); }
 
-        // Header band
-        const headH = 168;
+        // Header band (large title so boards read from across the cell)
+        const headH = 300;
         ctx.fillStyle = accent;
         ctx.fillRect(0, 0, w, headH);
-        ctx.fillStyle = 'rgba(0,0,0,0.18)';
+        ctx.fillStyle = 'rgba(0,0,0,0.16)';
         for (let i = 0; i < 26; i++) {
             ctx.beginPath();
             ctx.moveTo(w - 330 + i * 26, headH);
@@ -1127,35 +1127,58 @@ class RobotWorkcell {
         }
 
         ctx.fillStyle = '#0b0f19';
-        ctx.font = '700 30px "Consolas", "Courier New", monospace';
+        ctx.font = '700 28px "Consolas", "Courier New", monospace';
         ctx.textBaseline = 'alphabetic';
-        ctx.fillText(spec.kicker, 56, 54);
+        ctx.fillText(spec.kicker, 52, 50);
 
-        let titleSize = 88;
-        ctx.font = `900 ${titleSize}px "Segoe UI", "Arial Black", Arial, sans-serif`;
-        while (ctx.measureText(spec.title).width > w - 300 && titleSize > 48) {
-            titleSize -= 4;
-            ctx.font = `900 ${titleSize}px "Segoe UI", "Arial Black", Arial, sans-serif`;
-        }
-        ctx.fillText(spec.title, 52, 138);
-
-        // Big index number
-        ctx.font = '900 128px "Segoe UI", "Arial Black", Arial, sans-serif';
+        // Index number in the top strip
+        ctx.font = '900 64px "Segoe UI", "Arial Black", Arial, sans-serif';
         ctx.textAlign = 'right';
         ctx.fillStyle = 'rgba(11, 15, 25, 0.85)';
-        ctx.fillText(spec.num, w - 44, 142);
+        ctx.fillText(spec.num, w - 40, 66);
         ctx.textAlign = 'left';
+
+        // Title: one big line if it fits at >= 120px, otherwise two lines
+        const titleFont = (size) => `900 ${size}px "Segoe UI", "Arial Black", Arial, sans-serif`;
+        const maxW = w - 100;
+        const fitSize = (text, start, min) => {
+            let size = start;
+            ctx.font = titleFont(size);
+            while (ctx.measureText(text).width > maxW && size > min) {
+                size -= 4;
+                ctx.font = titleFont(size);
+            }
+            return size;
+        };
+        ctx.fillStyle = '#0b0f19';
+        const oneLine = fitSize(spec.title, 170, 60);
+        if (oneLine >= 120 || !spec.title.includes(' ')) {
+            ctx.font = titleFont(oneLine);
+            ctx.fillText(spec.title, 48, 120 + oneLine * 0.72);
+        } else {
+            const words = spec.title.split(' ');
+            let best = null;
+            for (let i = 1; i < words.length; i++) {
+                const l1 = words.slice(0, i).join(' ');
+                const l2 = words.slice(i).join(' ');
+                const size = Math.min(fitSize(l1, 112, 60), fitSize(l2, 112, 60));
+                if (!best || size > best.size) best = { l1, l2, size };
+            }
+            ctx.font = titleFont(best.size);
+            ctx.fillText(best.l1, 48, 66 + best.size * 0.92);
+            ctx.fillText(best.l2, 48, 66 + best.size * 1.9);
+        }
 
         // Subtitle
         ctx.fillStyle = accent;
-        ctx.font = '700 44px "Segoe UI", Arial, sans-serif';
+        ctx.font = '700 46px "Segoe UI", Arial, sans-serif';
         const subLines = this.wrapText(ctx, spec.subtitle, w - 120);
-        let y = headH + 72;
+        let y = headH + 66;
         subLines.slice(0, 2).forEach(l => { ctx.fillText(l, 56, y); y += 52; });
-        y += 14;
+        y += 8;
 
         // Body lines
-        ctx.font = '500 36px "Segoe UI", Arial, sans-serif';
+        ctx.font = '500 34px "Segoe UI", Arial, sans-serif';
         (spec.lines || []).forEach(line => {
             const wrapped = this.wrapText(ctx, line, w - 170);
             wrapped.forEach((l, li) => {
@@ -1165,9 +1188,9 @@ class RobotWorkcell {
                 }
                 ctx.fillStyle = '#d6dee9';
                 ctx.fillText(l, 96, y);
-                y += 46;
+                y += 44;
             });
-            y += 6;
+            y += 4;
         });
 
         // Chips (projects)
