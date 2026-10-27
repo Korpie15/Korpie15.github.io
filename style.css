@@ -66,7 +66,7 @@ body {
 
 .navbar.scrolled {
     padding: 0.5rem 2rem;
-    background: rgba(15, 23, 42, 0.95);
+    background: rgba(24, 24, 27, 0.95);
 }
 
 .navbar-container {
@@ -566,15 +566,15 @@ body:not(.classic-view-mode) .hero .scroll-indicator {
 }
 
 .professional-project-tile:hover {
-    border-color: rgba(59, 130, 246, 0.45);
+    border-color: rgba(245, 158, 11, 0.3);
     transform: translateY(-2px);
-    box-shadow: 0 12px 30px -4px rgba(37, 99, 235, 0.2), 0 4px 12px rgba(0, 0, 0, 0.4);
+    box-shadow: 0 12px 30px -4px rgba(0, 0, 0, 0.5);
 }
 
 .professional-project-tile.expanded {
-    border-color: rgba(59, 130, 246, 0.5);
-    box-shadow: 0 16px 40px -6px rgba(15, 23, 42, 0.6), 0 0 0 1px rgba(59, 130, 246, 0.25);
-    background: #172033;
+    border-color: rgba(245, 158, 11, 0.28);
+    box-shadow: 0 16px 40px -6px rgba(0, 0, 0, 0.55);
+    background: #1b1c21;
 }
 
 .tile-header {
@@ -629,9 +629,9 @@ body:not(.classic-view-mode) .hero .scroll-indicator {
     letter-spacing: 0.05em;
     padding: 0.2rem 0.65rem;
     border-radius: 9999px;
-    background: rgba(59, 130, 246, 0.15);
-    color: #93c5fd;
-    border: 1px solid rgba(59, 130, 246, 0.3);
+    background: rgba(245, 158, 11, 0.15);
+    color: #fcd34d;
+    border: 1px solid rgba(245, 158, 11, 0.3);
 }
 
 .tile-preview {
@@ -662,9 +662,9 @@ body:not(.classic-view-mode) .hero .scroll-indicator {
 }
 
 .professional-project-tile:hover .tile-tag {
-    background: rgba(59, 130, 246, 0.1);
-    border-color: rgba(59, 130, 246, 0.25);
-    color: #93c5fd;
+    background: rgba(255, 255, 255, 0.08);
+    border-color: rgba(255, 255, 255, 0.16);
+    color: #e5e7eb;
 }
 
 .tile-expand-action {
@@ -682,7 +682,7 @@ body:not(.classic-view-mode) .hero .scroll-indicator {
 }
 
 .professional-project-tile:hover .tile-expand-label {
-    color: #60a5fa;
+    color: #fbbf24;
 }
 
 .expand-icon-wrapper {
@@ -694,14 +694,14 @@ body:not(.classic-view-mode) .hero .scroll-indicator {
     display: flex;
     align-items: center;
     justify-content: center;
-    color: #93c5fd;
+    color: #fcd34d;
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .professional-project-tile:hover .expand-icon-wrapper {
-    background: rgba(37, 99, 235, 0.25);
-    border-color: rgba(59, 130, 246, 0.5);
-    color: #ffffff;
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(245, 158, 11, 0.45);
+    color: #fbbf24;
     transform: scale(1.06);
 }
 
@@ -718,13 +718,13 @@ body:not(.classic-view-mode) .hero .scroll-indicator {
 }
 
 .professional-project-tile.expanded .tile-expand-label {
-    color: #60a5fa;
+    color: #fbbf24;
 }
 
 .professional-project-tile.expanded .expand-icon-wrapper {
-    background: rgba(37, 99, 235, 0.3);
-    border-color: rgba(59, 130, 246, 0.6);
-    color: #ffffff;
+    background: rgba(255, 255, 255, 0.08);
+    border-color: rgba(245, 158, 11, 0.45);
+    color: #fbbf24;
 }
 
 .tile-content {
@@ -836,8 +836,8 @@ body:not(.classic-view-mode) .hero .scroll-indicator {
 .video-placeholder-card {
     min-height: 260px;
     border-radius: 10px;
-    border: 2px dashed rgba(59,130,246,0.7);
-    background: rgba(15, 23, 42, 0.8);
+    border: 2px dashed rgba(245, 158, 11,0.7);
+    background: rgba(24, 24, 27, 0.8);
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -863,7 +863,7 @@ body:not(.classic-view-mode) .hero .scroll-indicator {
     resize: vertical;
     border-radius: 10px;
     border: 1px solid rgba(255,255,255,0.2);
-    background: rgba(15, 23, 42, 0.75);
+    background: rgba(24, 24, 27, 0.75);
     color: var(--text-light);
     padding: 0.8rem 0.9rem;
     font-family: inherit;
@@ -878,7 +878,7 @@ body:not(.classic-view-mode) .hero .scroll-indicator {
 .video-description-input:focus {
     outline: none;
     border-color: var(--primary-color);
-    box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.2);
+    box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.2);
 }
 
 .video-description-text {
@@ -886,7 +886,7 @@ body:not(.classic-view-mode) .hero .scroll-indicator {
     color: var(--text-gray);
     font-size: 0.95rem;
     line-height: 1.7;
-    background: rgba(15, 23, 42, 0.45);
+    background: rgba(24, 24, 27, 0.45);
     border: 1px solid rgba(255,255,255,0.12);
     border-radius: 10px;
     padding: 0.8rem 0.9rem;
@@ -941,7 +941,7 @@ body:not(.classic-view-mode) .hero .scroll-indicator {
 .tag {
     display: inline-block;
     padding: 0.4rem 1rem;
-    background: rgba(37, 99, 235, 0.2);
+    background: rgba(245, 158, 11, 0.2);
     color: var(--primary-light);
     border-radius: 20px;
     font-size: 0.85rem;
@@ -1286,7 +1286,7 @@ body:not(.classic-view-mode) .hero .scroll-indicator {
     position: absolute;
     top: 50%;
     transform: translateY(-50%);
-    background: rgba(15, 23, 42, 0.75);
+    background: rgba(24, 24, 27, 0.75);
     color: var(--text-light);
     border: 1px solid rgba(255, 255, 255, 0.15);
     width: 44px;
@@ -1306,7 +1306,7 @@ body:not(.classic-view-mode) .hero .scroll-indicator {
     background: var(--primary-color);
     color: #fff;
     transform: translateY(-50%) scale(1.1);
-    box-shadow: 0 4px 15px rgba(37, 99, 235, 0.4);
+    box-shadow: 0 4px 15px rgba(245, 158, 11, 0.4);
 }
 
 .project-carousel-btn.prev {
@@ -1325,7 +1325,7 @@ body:not(.classic-view-mode) .hero .scroll-indicator {
     display: flex;
     gap: 0.5rem;
     z-index: 10;
-    background: rgba(15, 23, 42, 0.6);
+    background: rgba(24, 24, 27, 0.6);
     padding: 0.35rem 0.75rem;
     border-radius: 20px;
     backdrop-filter: blur(6px);
@@ -1420,13 +1420,13 @@ body:not(.classic-view-mode) .hero .scroll-indicator {
 }
 
 .tag {
-    background: rgba(37, 99, 235, 0.15);
+    background: rgba(245, 158, 11, 0.15);
     color: var(--primary-light);
     padding: 0.35rem 0.85rem;
     border-radius: 20px;
     font-size: 0.85rem;
     font-weight: 500;
-    border: 1px solid rgba(37, 99, 235, 0.3);
+    border: 1px solid rgba(245, 158, 11, 0.3);
     transition: var(--transition);
 }
 
@@ -1619,6 +1619,8 @@ body:not(.classic-view-mode) .hero .scroll-indicator {
 }
 
 .modal-close {
+    border: none;
+    padding: 0;
     position: absolute;
     top: 1rem;
     right: 1rem;
@@ -1669,6 +1671,9 @@ body:not(.classic-view-mode) .hero .scroll-indicator {
 }
 
 .lightbox-close {
+    background: none;
+    border: none;
+    line-height: 1;
     position: absolute;
     top: 20px;
     right: 40px;
@@ -1809,7 +1814,7 @@ body:not(.classic-view-mode) .hero .scroll-indicator {
         left: auto;
         top: 70px;
         flex-direction: column;
-        background: rgba(15, 23, 42, 0.98);
+        background: rgba(24, 24, 27, 0.98);
         backdrop-filter: blur(16px);
         -webkit-backdrop-filter: blur(16px);
         width: min(320px, 85vw);
@@ -3351,7 +3356,7 @@ body.classic-view-mode #robot-front-stage .section {
     display: inline-flex;
     align-items: center;
     gap: 0.4rem;
-    background: #1e293b;
+    background: #24272e;
     border: 1px solid #f59e0b;
     color: #f59e0b;
     padding: 0.35rem 0.8rem;
@@ -3380,16 +3385,17 @@ body.classic-view-mode #robot-front-stage .section {
     display: block !important;
     position: fixed;
     top: 84px;
-    left: 28px;
+    left: 25px;
     right: auto;
     transform: none;
-    width: 275px;
+    width: calc(var(--tp-base-w, 325px) * var(--tp-scale, 1)); /* matches .teach-pendant */
     box-sizing: border-box;
     background: #ffffff;
     border: 2px solid #0052cc;
     border-radius: 10px;
     padding: 3px;
-    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.8), 0 0 16px rgba(0, 82, 204, 0.35);
+    /* No box-shadow: shadows on this layer render as a dark box over the WebGL canvas */
+    outline: 2px solid rgba(0, 82, 204, 0.35);
     z-index: 55;
     overflow: hidden;
     pointer-events: auto;
@@ -3516,11 +3522,14 @@ body.classic-view-mode .blue-mandatory-sign {
     bottom: 20px;
     left: 25px;
     right: auto;
-    width: 325px;
+    width: var(--tp-base-w, 325px);
+    transform-origin: left bottom;
+    transform: scale(var(--tp-scale, 1)); /* JS shrinks it to fit below the sign instead of scrolling */
     background: #18181b; /* Matte industrial graphite */
     border: 3px solid #f59e0b; /* Yellow shock bumper */
     border-radius: 16px;
-    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.7), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    /* Tight shadow: large blurs get clipped into a visible dark box over the WebGL canvas */
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.1);
     z-index: 10000;
     font-family: 'Segoe UI', system-ui, sans-serif;
     color: #f1f5f9;
@@ -3532,7 +3541,15 @@ body.classic-view-mode .blue-mandatory-sign {
     box-sizing: border-box;
 }
 
+/* Too short for both: the sign is only a hint, so give the pendant the room */
+@media (max-height: 759px) {
+    body:not(.classic-view-mode) .blue-mandatory-sign {
+        display: none !important;
+    }
+}
+
 .teach-pendant.minimized {
+    transform: none;
     height: 48px;
     border-radius: 12px;
     cursor: pointer;
@@ -3665,6 +3682,7 @@ body.classic-view-mode .blue-mandatory-sign {
     background: #18181b;
     max-height: calc(100vh - 90px);
     overflow-y: auto;
+    overscroll-behavior: contain;
 }
 
 .tp-body::-webkit-scrollbar {
@@ -3876,9 +3894,9 @@ body.classic-view-mode .blue-mandatory-sign {
 }
 
 .tp-grip-btn {
-    background: #1e293b;
-    border-color: #3b82f6;
-    color: #93c5fd;
+    background: #24272e;
+    border-color: #f59e0b;
+    color: #fcd34d;
 }
 
 .tp-safety-toggle-row {
@@ -3950,6 +3968,10 @@ body.classic-view-mode .blue-mandatory-sign {
 
 /* Responsive adjustments */
 @media (max-width: 900px) {
+    :root {
+        --tp-base-w: 290px;
+    }
+
     body:not(.classic-view-mode) #robot-front-stage {
         top: 65px;
         bottom: 16px;
@@ -3962,7 +3984,6 @@ body.classic-view-mode .blue-mandatory-sign {
     .teach-pendant {
         bottom: 12px;
         right: 12px;
-        width: 290px;
     }
 }
 
@@ -4108,7 +4129,7 @@ body.classic-view-mode .blue-mandatory-sign {
         min-width: 120px;
         height: 46px;
         padding: 0 12px;
-        background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%);
+        background: linear-gradient(180deg, #24272e 0%, #16181d 100%);
         border: 1px solid rgba(245, 158, 11, 0.6);
         border-radius: 8px;
         color: #f59e0b;
@@ -4440,10 +4461,43 @@ body.classic-view-mode .blue-mandatory-sign {
 }
 
 
+
+/* ============================================
+   ACCESSIBILITY
+   ============================================ */
+:focus-visible {
+    outline: 2px solid #f59e0b;
+    outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    html {
+        scroll-behavior: auto;
+    }
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}
+
+
+/* Robot Cell mode: the footer and mobile nav live in normal page flow at the top of the page,
+   behind the fixed canvas. Hide them so they can't show through around fixed overlays. */
+body:not(.classic-view-mode) .footer {
+    display: none;
+}
+
+.mobile-workcell-controls {
+    display: none;
+}
+
 /* Fabrication cell: highlight the project board the robot picked off the conveyor */
 .project-card.fab-picked {
-    outline: 2px solid #22d3ee;
+    outline: 2px solid #f59e0b;
     outline-offset: 4px;
-    box-shadow: 0 0 0 6px rgba(34, 211, 238, 0.15), 0 0 40px rgba(34, 211, 238, 0.35);
+    box-shadow: 0 0 0 6px rgba(245, 158, 11, 0.15), 0 0 40px rgba(245, 158, 11, 0.3);
     transition: outline-color 0.6s ease, box-shadow 0.6s ease;
 }

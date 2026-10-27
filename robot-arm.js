@@ -724,19 +724,6 @@ class RobotWorkcell {
         createBoundaryLine(8.2, 0.08, 0, -3.1); // Rear perimeter line
         createBoundaryLine(0.08, 6.2, -4.1, 0); // Left perimeter line
         createBoundaryLine(0.08, 6.2, 4.1, 0);  // Right perimeter line
-
-        // Robot Safety Hazard Ring (Industrial Caution Amber)
-        const hazardRingGeo = new THREE.RingGeometry(1.5, 1.78, 48);
-        const hazardRingMat = new THREE.MeshStandardMaterial({
-            color: 0xf59e0b,
-            roughness: 0.35,
-            metalness: 0.3,
-            side: THREE.DoubleSide
-        });
-        const hazardRing = new THREE.Mesh(hazardRingGeo, hazardRingMat);
-        hazardRing.rotation.x = -Math.PI / 2;
-        hazardRing.position.y = -1.793;
-        this.scene.add(hazardRing);
     }
 
     buildRobotArm() {
@@ -1150,14 +1137,6 @@ class RobotWorkcell {
                 basePlate.position.set(0, -postHeight + 0.03, 0);
                 rackGroup.add(basePlate);
             }
-
-            // Colored Docking Bay Ring on floor underneath pedestal
-            const dockRingGeo = new THREE.RingGeometry(0.55, 0.65, 32);
-            const dockRingMat = new THREE.MeshBasicMaterial({ color: cfg.color, side: THREE.DoubleSide });
-            const dockRing = new THREE.Mesh(dockRingGeo, dockRingMat);
-            dockRing.rotation.x = -Math.PI / 2;
-            dockRing.position.set(0, -postHeight + 0.005, 0);
-            rackGroup.add(dockRing);
 
             // Sleek shelf tailored to briefcase dimensions (clean flush surface)
             const shelf = new THREE.Mesh(new THREE.BoxGeometry(1.35, 0.08, 0.50), steelMat);

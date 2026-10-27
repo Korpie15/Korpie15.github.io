@@ -4,8 +4,24 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Aidan Korpar | Engineering ePortfolio</title>
+    <meta name="description" content="Engineering ePortfolio of Aidan Korpar, an automation and robotics engineer: projects, experience, leadership and skills, presented as an interactive 3D robot workcell.">
+    <meta name="author" content="Aidan Korpar">
+    <meta name="theme-color" content="#0e1014">
+    <link rel="canonical" href="https://korpie15.github.io/">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="Aidan Korpar | Engineering ePortfolio">
+    <meta property="og:description" content="Automation and robotics engineering projects, experience and leadership, in an interactive 3D robot workcell.">
+    <meta property="og:url" content="https://korpie15.github.io/">
+    <meta property="og:image" content="https://korpie15.github.io/images/portfolio_preview.png">
+    <meta name="twitter:card" content="summary_large_image">
     <link rel="stylesheet" href="style.css?v=5.0">
     <link rel="icon" href="favicon.png" type="image/png">
+    <noscript>
+        <style>
+            #industrial-loader, #robot-app-container, #viewModeToggle { display: none !important; }
+            .section, .hero { display: block !important; opacity: 1 !important; visibility: visible !important; }
+        </style>
+    </noscript>
 </head>
 <body>
     <!-- Industrial Automation Preloader & Kinematics Calibrator -->
@@ -102,7 +118,7 @@
 
     <!-- 3D Industrial Robotic Workcell Viewport Layer -->
     <div id="robot-app-container">
-        <div id="robot-canvas-container"></div>
+        <div id="robot-canvas-container" role="img" aria-label="Interactive 3D robot workcell. Use the left and right arrow keys to open each section, or switch to Classic View for a standard page."></div>
     </div>
 
     <!-- Center Workpiece Held by Robot Gripper in Middle of Page -->
@@ -144,7 +160,7 @@
                     <a href="pdfs/Aidan Korpar Resume.pdf" download class="btn btn-primary">Download Resume</a>
                 </div>
                 <div class="social-links">
-                    <a href="https://www.linkedin.com/in/aidan-korpar" target="_blank" class="social-icon" aria-label="LinkedIn">
+                    <a href="https://www.linkedin.com/in/aidan-korpar" target="_blank" rel="noopener" class="social-icon" aria-label="LinkedIn">
                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 16 16">
                             <path d="M0 1.146C0 .513.526 0 1.175 0h13.65C15.474 0 16 .513 16 1.146v13.708c0 .633-.526 1.146-1.175 1.146H1.175C.526 16 0 15.487 0 14.854zm4.943 12.248V6.169H2.542v7.225zm-1.2-8.212c.837 0 1.358-.554 1.358-1.248-.015-.709-.52-1.248-1.342-1.248S2.4 3.226 2.4 3.934c0 .694.521 1.248 1.327 1.248zm4.908 8.212V9.359c0-.216.016-.432.08-.586.173-.431.568-.878 1.232-.878.869 0 1.216.662 1.216 1.634v3.865h2.401V9.25c0-2.22-1.184-3.252-2.764-3.252-1.274 0-1.845.7-2.165 1.193v.025h-.016l.016-.025V6.169h-2.4c.03.678 0 7.225 0 7.225z"/>
                         </svg>
@@ -207,7 +223,7 @@
                 </div>
                 <div class="about-card" data-animate="fade-right">
                     <div class="about-image-container">
-                        <img src="images/Headshot.jpeg" alt="Aidan Korpar" class="about-image">
+                        <img loading="lazy" decoding="async" src="images/Headshot.jpeg" alt="Aidan Korpar" class="about-image">
                         <div class="about-overlay">
                             <div class="about-stats">
                                 <div class="stat-item">
@@ -670,7 +686,7 @@
                     </p>
                 </div>
                 <div class="cadets-image-container">
-                    <img src="images/Cadets.jpeg" alt="Army Cadets activity" class="cadets-image">
+                    <img loading="lazy" decoding="async" src="images/Cadets.jpeg" alt="Army Cadets activity" class="cadets-image">
                 </div>
             </div>
             
@@ -724,32 +740,32 @@
                 <!-- Print-only images (shown in print, hidden on screen) -->
                 <div class="print-only-images">
                     <div class="print-image-item">
-                        <img src="images/bae-mechsoc3.jpg" alt="BAE MechSoc Visit" style="width: 100%; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.3);">
+                        <img loading="lazy" decoding="async" src="images/bae-mechsoc3.jpg" alt="BAE MechSoc Visit" style="width: 100%; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.3);">
                     </div>
                     <div class="print-image-item">
-                        <img src="images/mechsoc_group_photo.JPG" alt="MechSoc Group Photo" style="width: 100%; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.3);">
+                        <img loading="lazy" decoding="async" src="images/mechsoc_group_photo.JPG" alt="MechSoc Group Photo" style="width: 100%; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.3);">
                     </div>
                     <div class="print-image-item">
-                        <img src="images/industry_night.JPG" alt="Industry Night" style="width: 100%; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.3);">
+                        <img loading="lazy" decoding="async" src="images/industry_night.JPG" alt="Industry Night" style="width: 100%; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.3);">
                     </div>
                 </div>
 
                 <!-- Image Slideshow -->
                 <div class="slideshow-container">
                     <div class="slide fade">
-                        <img src="images/Mechsoc_award.jpg" alt="MechSoc Award">
+                        <img loading="lazy" decoding="async" src="images/Mechsoc_award.jpg" alt="MechSoc Award">
                     </div>
                     <div class="slide fade">
-                        <img src="images/Aidan_Speach.jpg" alt="Aidan Speech">
+                        <img loading="lazy" decoding="async" src="images/Aidan_Speach.jpg" alt="Aidan Speech">
                     </div>
                     <div class="slide fade">
-                        <img src="images/bae-mechsoc3.jpg" alt="BAE MechSoc Visit">
+                        <img loading="lazy" decoding="async" src="images/bae-mechsoc3.jpg" alt="BAE MechSoc Visit">
                     </div>
                     <div class="slide fade">
-                        <img src="images/mechsoc_group_photo.JPG" alt="MechSoc Group Photo">
+                        <img loading="lazy" decoding="async" src="images/mechsoc_group_photo.JPG" alt="MechSoc Group Photo">
                     </div>
                     <div class="slide fade">
-                        <img src="images/industry_night.JPG" alt="Industry Night">
+                        <img loading="lazy" decoding="async" src="images/industry_night.JPG" alt="Industry Night">
                     </div>
                     
                     <!-- Navigation arrows -->
@@ -779,16 +795,16 @@
                 <div class="project-card expandable-card" data-animate="fade-up">
                     <div class="project-image project-carousel" data-carousel-index="0" onclick="toggleProject(this.closest('.project-card'), event)">
                         <div class="project-slide active">
-                            <img src="images/chicken_safehouse_active.png" alt="In-game Chicken safehouse active view with radar and zone status">
+                            <img loading="lazy" decoding="async" src="images/chicken_safehouse_active.png" alt="In-game Chicken safehouse active view with radar and zone status">
                         </div>
                         <div class="project-slide">
-                            <img src="images/chicken_home_screen.png" alt="Chase the Chicken landing screen with signature yellow and crimson identity">
+                            <img loading="lazy" decoding="async" src="images/chicken_home_screen.png" alt="Chase the Chicken landing screen with signature yellow and crimson identity">
                         </div>
                         <div class="project-slide">
-                            <img src="images/chicken_view.png" alt="In-game Chicken perspective and tactical HUD">
+                            <img loading="lazy" decoding="async" src="images/chicken_view.png" alt="In-game Chicken perspective and tactical HUD">
                         </div>
                         <div class="project-slide">
-                            <img src="images/chicken_zone_settings.png" alt="Interactive tactical zone configuration and boundary tuning">
+                            <img loading="lazy" decoding="async" src="images/chicken_zone_settings.png" alt="Interactive tactical zone configuration and boundary tuning">
                         </div>
 
                         <button class="project-carousel-btn prev" onclick="moveProjectCarousel(this, -1); event.stopPropagation();" aria-label="Previous photo">❮</button>
@@ -815,7 +831,7 @@
                     </div>
                     <div class="project-expanded-content">
                         <div class="project-expanded-inner">
-                            <p><strong>App Link:</strong> <a href="https://chasethechicken.pages.dev" target="_blank">chasethechicken.pages.dev</a></p>
+                            <p><strong>App Link:</strong> <a href="https://chasethechicken.pages.dev" target="_blank" rel="noopener">chasethechicken.pages.dev</a></p>
 
                             <p><strong>About the Project: What It Is &amp; How It Works</strong><br>
                             Chase the Chicken is a real-world urban hide-and-seek web application that fuses high-stakes tag mechanics with battle-royale shrinking zones and nightlife precinct discovery. Players gather in an urban precinct, scan a room QR code to enter a synchronized multiplayer lobby, and divide into competing squads: the elusive Chickens and the pursuing Hunters.</p>
@@ -834,13 +850,13 @@
                 <div class="project-card expandable-card" data-animate="fade-up">
                     <div class="project-image project-carousel" data-carousel-index="0" onclick="toggleProject(this.closest('.project-card'), event)">
                         <div class="project-slide active">
-                            <img src="images/FozPrints.png" alt="Foz Prints installed in vehicle dashboard">
+                            <img loading="lazy" decoding="async" src="images/FozPrints.png" alt="Foz Prints installed in vehicle dashboard">
                         </div>
                         <div class="project-slide">
-                            <img src="images/FozPrintsHomePage.png" alt="Foz Prints eCommerce website homepage">
+                            <img loading="lazy" decoding="async" src="images/FozPrintsHomePage.png" alt="Foz Prints eCommerce website homepage">
                         </div>
                         <div class="project-slide">
-                            <img src="images/FozPrintsKit.jpg" alt="Foz Prints 3D printed kit and components">
+                            <img loading="lazy" decoding="async" src="images/FozPrintsKit.jpg" alt="Foz Prints 3D printed kit and components">
                         </div>
 
                         <button class="project-carousel-btn prev" onclick="moveProjectCarousel(this, -1); event.stopPropagation();" aria-label="Previous photo">❮</button>
@@ -864,7 +880,7 @@
                     </div>
                     <div class="project-expanded-content">
                         <div class="project-expanded-inner">
-                            <p><strong>Live Website:</strong> <a href="https://fozprints.com.au" target="_blank">fozprints.com.au</a></p>
+                            <p><strong>Live Website:</strong> <a href="https://fozprints.com.au" target="_blank" rel="noopener">fozprints.com.au</a></p>
 
                             <p><strong>The Background</strong><br>
                             I started Foz Prints to solve a problem I had with my own Subaru Forester SG. The factory interior plastics become brittle over time. Original replacements are either discontinued or ridiculously expensive, and most aftermarket options look terrible. I decided to design, model, and manufacture my own 3d printed replacement parts in Sydney, printing them in heat resistant ASA plastic so they can actually survive an Australian summer.</p>
@@ -893,7 +909,7 @@
                 <!-- Personal Server & Self Hosted Ecosystem -->
                 <div class="project-card expandable-card" data-animate="fade-up">
                     <div class="project-image" onclick="toggleProject(this.closest('.project-card'), event)">
-                        <img src="images/MediaServer.png" alt="Personal server infrastructure dashboard">
+                        <img loading="lazy" decoding="async" src="images/MediaServer.png" alt="Personal server infrastructure dashboard">
                     </div>
                     <div class="project-info" onclick="toggleProject(this.closest('.project-card'), event)">
                         <h3>Personal Server &amp; Custom Dashboards</h3>
@@ -964,7 +980,7 @@
                 <!-- Portfolio Website -->
                 <div class="project-card expandable-card" data-animate="fade-up">
                     <div class="project-image" onclick="toggleProject(this.closest('.project-card'), event)">
-                        <img src="images/portfolio_preview.png" alt="Professional ePortfolio Website">
+                        <img loading="lazy" decoding="async" src="images/portfolio_preview.png" alt="Professional ePortfolio Website">
                     </div>
                     <div class="project-info" onclick="toggleProject(this.closest('.project-card'), event)">
                         <h3>Professional ePortfolio Website</h3>
@@ -997,8 +1013,8 @@
                             
                             <p>For users who prefer a paper copy, the site's Print controls (the Print link in the top navigation and the print friendly banner) automatically expand all project tiles and ensure photos are included when printing. This provides an easy way to produce a complete, print optimised version of the portfolio that preserves expanded content and images for offline review.</p>
                             
-                            <p><strong>Live Site:</strong> <a href="https://korpie15.github.io/" target="_blank">korpie15.github.io</a><br>
-                            <strong>GitHub:</strong> <a href="https://github.com/Korpie15/Korpie15.github.io" target="_blank">View Repository</a></p>
+                            <p><strong>Live Site:</strong> <a href="https://korpie15.github.io/" target="_blank" rel="noopener">korpie15.github.io</a><br>
+                            <strong>GitHub:</strong> <a href="https://github.com/Korpie15/Korpie15.github.io" target="_blank" rel="noopener">View Repository</a></p>
                         </div>
                     </div>
                 </div>
@@ -1006,7 +1022,7 @@
                 <!-- Turtle Bot -->
                 <div class="project-card expandable-card" data-animate="fade-up">
                     <div class="project-image" onclick="toggleProject(this.closest('.project-card'), event)">
-                        <img src="https://img.youtube.com/vi/PykMOBxtqDs/maxresdefault.jpg" alt="Turtle Bot Warehousing System">
+                        <img loading="lazy" decoding="async" src="https://img.youtube.com/vi/PykMOBxtqDs/maxresdefault.jpg" alt="Turtle Bot Warehousing System">
                     </div>
                     <div class="project-info" onclick="toggleProject(this.closest('.project-card'), event)">
                         <h3>Turtle Bot Warehousing System</h3>
@@ -1033,7 +1049,7 @@
                                 </iframe>
                             </div>
                             
-                            <p><strong>GitHub:</strong> <a href="https://github.com/imJohly/warehouse_tasker/tree/Payload" target="_blank">View Repository</a></p>
+                            <p><strong>GitHub:</strong> <a href="https://github.com/imJohly/warehouse_tasker/tree/Payload" target="_blank" rel="noopener">View Repository</a></p>
                         </div>
                     </div>
                 </div>
@@ -1041,7 +1057,7 @@
                 <!-- Robotics Control -->
                 <div class="project-card expandable-card" data-animate="fade-up">
                     <div class="project-image" onclick="toggleProject(this.closest('.project-card'), event)">
-                        <img src="https://img.youtube.com/vi/mtV6qu-1_xM/maxresdefault.jpg" alt="Robotics Control Project">
+                        <img loading="lazy" decoding="async" src="https://img.youtube.com/vi/mtV6qu-1_xM/maxresdefault.jpg" alt="Robotics Control Project">
                     </div>
                     <div class="project-info" onclick="toggleProject(this.closest('.project-card'), event)">
                         <h3>Robotics Control Project</h3>
@@ -1074,7 +1090,7 @@
                 <!-- AI Tetris -->
                 <div class="project-card expandable-card" data-animate="fade-up">
                     <div class="project-image" onclick="toggleProject(this.closest('.project-card'), event)">
-                        <img src="https://img.youtube.com/vi/jo5F_d3a7GM/maxresdefault.jpg" alt="AI Tetris">
+                        <img loading="lazy" decoding="async" src="https://img.youtube.com/vi/jo5F_d3a7GM/maxresdefault.jpg" alt="AI Tetris">
                     </div>
                     <div class="project-info" onclick="toggleProject(this.closest('.project-card'), event)">
                         <h3>AI Tetris</h3>
@@ -1101,8 +1117,8 @@
                                 </iframe>
                             </div>
                             
-                            <p><strong>Live Demo:</strong> <a href="https://topey2x.github.io/TetrisAI/" target="_blank">Play Tetris AI</a><br>
-                            <strong>GitHub:</strong> <a href="https://github.com/Topey2X/TetrisAI" target="_blank">View Repository</a></p>
+                            <p><strong>Live Demo:</strong> <a href="https://topey2x.github.io/TetrisAI/" target="_blank" rel="noopener">Play Tetris AI</a><br>
+                            <strong>GitHub:</strong> <a href="https://github.com/Topey2X/TetrisAI" target="_blank" rel="noopener">View Repository</a></p>
                         </div>
                     </div>
                 </div>
@@ -1110,7 +1126,7 @@
                 <!-- SPOT Robot -->
                 <div class="project-card expandable-card" data-animate="fade-up">
                     <div class="project-image" onclick="toggleProject(this.closest('.project-card'), event)">
-                        <img src="images/SPOT_Pathplanning.png" alt="SPOT Search and Rescue">
+                        <img loading="lazy" decoding="async" src="images/SPOT_Pathplanning.png" alt="SPOT Search and Rescue">
                     </div>
                     <div class="project-info" onclick="toggleProject(this.closest('.project-card'), event)">
                         <h3>SPOT Search and Rescue</h3>
@@ -1135,7 +1151,7 @@
                 <!-- THOR Robot -->
                 <div class="project-card expandable-card" data-animate="fade-up">
                     <div class="project-image" onclick="toggleProject(this.closest('.project-card'), event)">
-                        <img src="images/Thor_Robot1.jpeg" alt="THOR Robot">
+                        <img loading="lazy" decoding="async" src="images/Thor_Robot1.jpeg" alt="THOR Robot">
                     </div>
                     <div class="project-info" onclick="toggleProject(this.closest('.project-card'), event)">
                         <h3>THOR Robotic Build</h3>
@@ -1153,7 +1169,7 @@
                             <p>The THOR robot project was undertaken as a society initiative to provide hands on learning opportunities for members while creating an impressive display piece for university events. This open source build allowed students to gain practical experience in mechanical assembly, electrical systems, and robotics integration.</p>
                             
                             <div style="margin-top: 20px; text-align: center;">
-                                <img src="images/Thor_Robot1.jpeg" alt="THOR Robot" style="max-width: 100%; border-radius: 10px;">
+                                <img loading="lazy" decoding="async" src="images/Thor_Robot1.jpeg" alt="THOR Robot" style="max-width: 100%; border-radius: 10px;">
                             </div>
                         </div>
                     </div>
@@ -1231,7 +1247,7 @@
                         </svg>
                         <span>+61 403 736 341</span>
                     </a>
-                    <a href="https://www.linkedin.com/in/aidan-korpar" target="_blank" class="contact-card">
+                    <a href="https://www.linkedin.com/in/aidan-korpar" target="_blank" rel="noopener" class="contact-card">
                         <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="currentColor" viewBox="0 0 16 16">
                             <path d="M0 1.146C0 .513.526 0 1.175 0h13.65C15.474 0 16 .513 16 1.146v13.708c0 .633-.526 1.146-1.175 1.146H1.175C.526 16 0 15.487 0 14.854zm4.943 12.248V6.169H2.542v7.225zm-1.2-8.212c.837 0 1.358-.554 1.358-1.248-.015-.709-.52-1.248-1.342-1.248S2.4 3.226 2.4 3.934c0 .694.521 1.248 1.327 1.248zm4.908 8.212V9.359c0-.216.016-.432.08-.586.173-.431.568-.878 1.232-.878.869 0 1.216.662 1.216 1.634v3.865h2.401V9.25c0-2.22-1.184-3.252-2.764-3.252-1.274 0-1.845.7-2.165 1.193v.025h-.016l.016-.025V6.169h-2.4c.03.678 0 7.225 0 7.225z"/>
                         </svg>
@@ -1239,6 +1255,7 @@
                     </a>
                 </div>
                 <a href="pdfs/Aidan Korpar Resume.pdf" download class="btn btn-primary">Download Resume</a>
+                <a href="pdfs/Robo1 Portfolio.pdf" target="_blank" rel="noopener" class="btn btn-secondary">Robotics Portfolio (PDF)</a>
             </div>
         </div>
     </section>
@@ -1249,24 +1266,24 @@
     <!-- Footer -->
     <footer class="footer">
         <div class="container">
-            <p>&copy; 2024 Aidan Korpar | Automation Engineer</p>
+            <p>&copy; 2026 Aidan Korpar | Automation Engineer</p>
         </div>
     </footer>
 
     <!-- Lightbox Modal -->
-    <div id="lightbox" class="lightbox">
-        <span class="lightbox-close" onclick="closeLightbox()">&times;</span>
+    <div id="lightbox" class="lightbox" role="dialog" aria-modal="true" aria-label="Image viewer">
+        <button type="button" class="lightbox-close" onclick="closeLightbox()" aria-label="Close image viewer">&times;</button>
         <div class="lightbox-content">
             <img id="lightbox-image" src="" alt="">
-            <button class="lightbox-prev" onclick="navigateLightbox(-1)">❮</button>
-            <button class="lightbox-next" onclick="navigateLightbox(1)">❯</button>
+            <button class="lightbox-prev" aria-label="Previous image" onclick="navigateLightbox(-1)">❮</button>
+            <button class="lightbox-next" aria-label="Next image" onclick="navigateLightbox(1)">❯</button>
         </div>
     </div>
 
     <!-- Video Modal -->
     <div id="videoModal" class="modal">
         <div class="modal-content video-modal">
-            <span class="modal-close" onclick="closeModal()">&times;</span>
+            <button type="button" class="modal-close" onclick="closeModal()" aria-label="Close dialog">&times;</button>
             <div id="modal-video-container"></div>
         </div>
     </div>
@@ -1274,21 +1291,21 @@
     <!-- Project Modal -->
     <div id="projectModal" class="modal">
         <div class="modal-content project-modal">
-            <span class="modal-close" onclick="closeProjectModal()">&times;</span>
+            <button type="button" class="modal-close" onclick="closeProjectModal()" aria-label="Close dialog">&times;</button>
             <div id="project-modal-content"></div>
         </div>
     </div>
 
-    <script src="three.min.js"></script>
-    <script src="gsap.min.js"></script>
-    <script src="script.js?v=5.0"></script>
+    <script src="three.min.js" defer></script>
+    <script src="gsap.min.js" defer></script>
+    <script src="script.js?v=5.0" defer></script>
     <script>
         // Fabrication cell is the default; ?cell=briefcase loads the original briefcase workcell for comparison
         (function () {
             var legacy = /[?&]cell=briefcase\b/.test(window.location.search);
-            document.write('<script src="' + (legacy ? 'robot-arm.js?v=5.0' : 'robot-factory.js?v=6.0') + '"><\/script>');
+            document.write('<script src="' + (legacy ? 'robot-arm.js?v=5.0' : 'robot-factory.js?v=6.0') + '" defer><\/script>');
         })();
     </script>
-    <script src="robot-controller.js?v=5.0"></script>
+    <script src="robot-controller.js?v=5.0" defer></script>
 </body>
 </html>

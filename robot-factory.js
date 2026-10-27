@@ -396,26 +396,6 @@ class RobotWorkcell {
         const walk = paint(10.4, 1.3, 0.4, 4.3, 0x064e3b);
         walk.material.color.setHex(0x0b3b2e);
 
-        // Hazard ring around the robot
-        const ring = new THREE.Mesh(
-            new THREE.RingGeometry(1.42, 1.62, 64),
-            new THREE.MeshBasicMaterial({ color: 0xf59e0b, side: THREE.DoubleSide })
-        );
-        ring.rotation.x = -Math.PI / 2;
-        ring.position.y = -1.793;
-        this.scene.add(ring);
-
-        // Hazard chevrons inside the ring
-        const chevMat = new THREE.MeshBasicMaterial({ color: 0x111111, side: THREE.DoubleSide });
-        for (let i = 0; i < 24; i++) {
-            const a = (i / 24) * Math.PI * 2;
-            const c = new THREE.Mesh(new THREE.PlaneGeometry(0.08, 0.22), chevMat);
-            c.rotation.x = -Math.PI / 2;
-            c.rotation.z = -a + 0.5;
-            c.position.set(Math.sin(a) * 1.52, -1.792, Math.cos(a) * 1.52);
-            this.scene.add(c);
-        }
-
         // Flow arrows painted along the conveyor
         const cv = this.conveyor;
         const arrowShape = new THREE.Shape();
