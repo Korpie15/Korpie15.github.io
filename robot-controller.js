@@ -614,10 +614,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
         bar.querySelector('#fabNextProject').addEventListener('click', (e) => {
             e.stopPropagation();
-            if (workcell.isEStopped) return;
-            if (typeof workcell.nextProject === 'function') {
+            if (workcell.isEStopped || workcell.directTransfer) return;
+            if (typeof workcell.nextProject === 'function' && workcell.nextProject() !== false) {
                 hideFrontStageSection(false);
-                workcell.nextProject();
             }
         });
         bar.querySelector('#fabAllProjects').addEventListener('click', (e) => {
@@ -797,6 +796,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const stageCard = document.getElementById('robot-front-stage');
         if (stageCard && stageCard.contains(e.target)) return;
+        if (e.target && e.target.closest && e.target.closest('#teach-pendant, #mobile-workcell-controls, #mobile-safety-sign, nav, button, a')) return;
 
         const dt = performance.now() - touchStartTime;
         if (!touchMoved && dt < 350) {
@@ -804,6 +804,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (workcell && typeof workcell.getIntersectedBay === 'function') {
                 const hitIndex = workcell.getIntersectedBay(touchStartX, touchStartY);
                 if (hitIndex !== null) {
+                    window.__lastCellTap = performance.now();
                     currentSectionIndex = hitIndex;
                     if (workcell) workcell.targetSectionIndex = hitIndex;
                     highlightActivePendantButton(hitIndex);
@@ -824,6 +825,10 @@ document.addEventListener('DOMContentLoaded', () => {
             if (viewMode === 'robot') {
                 e.preventDefault();
                 e.stopPropagation();
+                if (workcell.isEStopped) {
+                    alert('Robot is halted by EMERGENCY STOP! Click the E-STOP button to reset safety circuit.');
+                    return;
+                }
                 const targetId = link.getAttribute('href').substring(1);
                 const targetIdx = sectionIds.indexOf(targetId);
                 if (targetIdx !== -1) {
@@ -1064,6 +1069,10 @@ document.addEventListener('DOMContentLoaded', () => {
         if (e && typeof e.stopPropagation === 'function') {
             e.stopPropagation();
         }
+        if (workcell && workcell.isEStopped) {
+            alert('Robot is halted by EMERGENCY STOP! Click the E-STOP button to reset safety circuit.');
+            return;
+        }
         hideFrontStageSection(false);
         if (workcell && typeof workcell.stowFrontBoxToRack === 'function') {
             workcell.stowFrontBoxToRack();
@@ -1291,6 +1300,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const stageHidden = !stage || stage.classList.contains('docked-hidden');
 
         if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
+            if (e.repeat) return;
             const step = e.key === 'ArrowRight' ? 1 : -1;
             const count = sectionIds.length;
             const target = stageHidden

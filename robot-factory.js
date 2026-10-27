@@ -24,6 +24,9 @@ const LIFT = 0.36;          // Vertical clearance used when lifting a board out 
 const CORRIDOR_R = 1.6;     // Safe swing radius around the robot base
 const CORRIDOR_Y = 1.5;     // Safe swing height (handle height)
 const PROJECTS_INDEX = 4;
+const BELT_SPEED = 0.42;    // Constant conveyor speed (m/s) - the belt never runs faster than this
+const BELT_ACCEL = 0.8;     // Gentle start/stop ramp (m/s^2)
+const BELT_CLEAR = 0.6;     // Free belt length needed either side of the pick station to put a board back
 
 const PROJECT_LIBRARY = [
     { name: 'Chase the Chicken', tag: 'Urban hide-and-seek web app with battle-royale zones', chips: ['React 18', 'Vite'], color: 0xf59e0b },
@@ -150,13 +153,16 @@ class RobotWorkcell {
         this.directTransfer = null;
 
         this.boards = [];       // Info boards by section index (projects slot null)
-        this.beltSlots = [];    // Conveyor project boards
-        this.claimedSlot = -1;  // Conveyor slot currently taken by the robot
-        this.excludeSlot = -1;  // Board just returned to the belt (skipped for the next pick)
-        this.pendingExclude = null;
+        this.beltItems = [];     // Project boards: { board, s, projectIndex, state: 'belt' | 'pool' | 'held' }
+        this.claimedItem = null; // Project board currently in the gripper or on the plinth
+        this.pickTarget = null;  // Board the robot is waiting for at the pick station
+        this.excludeItem = null; // Board just put back (skipped when choosing the next one)
         this.projectCursor = 0;
-        this.beltPos = 0;
+        this.beltPos = 0;        // Total belt travel (drives the belt texture and rollers)
         this.beltSpeed = 0;
+        this.beltDemand = null;  // null | 'board' | 'gap'
+        this.beltStaged = false;
+        this.lastPickHit = null; // Specific belt board chosen by the last click/tap
         this.dropAnim = null;
         this.hoverIndex = null;
 
@@ -1342,18 +1348,28 @@ class RobotWorkcell {
             this.boards.push(board);
         });
 
-        // Project boards riding the conveyor loop
+        // Project boards: some ride the belt, the rest wait inside the fabricator (pool)
+        const cv = this.conveyor;
         this.projectTextures = PROJECT_LIBRARY.map((p, pi) => this.createBoardTexture(this.projectBoardSpec(pi)));
-        for (let s = 0; s < this.conveyor.slotCount; s++) {
-            const pi = s % PROJECT_LIBRARY.length;
+        const total = cv.slotCount + 3;
+        for (let i = 0; i < total; i++) {
+            const pi = i % PROJECT_LIBRARY.length;
             const board = this.createBoard(this.projectBoardSpec(pi), PROJECT_LIBRARY[pi].color);
             board.userData.parts.faceMat.map = this.projectTextures[pi];
             board.userData.index = PROJECTS_INDEX;
-            board.userData.slot = s;
             this.scene.add(board);
-            this.beltSlots.push({ board, projectIndex: pi, lastS: null });
+            const onBelt = i < cv.slotCount;
+            const item = { board, projectIndex: pi, state: 'pool', s: 0, lastS: null };
+            board.userData.beltItem = item;
+            board.visible = false;
+            this.beltItems.push(item);
+            if (onBelt) {
+                this.assignProject(item);
+                item.state = 'belt';
+                item.s = cv.length + 0.2 - i * cv.spacing;
+                item.lastS = item.s;
+            }
         }
-        this.projectCursor = this.conveyor.slotCount;
     }
 
     buildDust() {
@@ -1429,11 +1445,17 @@ class RobotWorkcell {
                 prog.cursorPlaces[item] = place;
                 return api;
             },
+            // Hover above the pick station until the conveyor has staged a board (or a gap)
+            waitForBelt(i) {
+                if (i !== PROJECTS_INDEX) return api;
+                push({ type: 'wait', a: { ...prog.cursorPt }, gap0: prog.cursorGap, gap1: prog.cursorGap, item: i, dur: 0.3 });
+                return api;
+            },
             // Higher level operations
             fetchToPlinth(i) {
                 const home = wc.bayConfigs[i].home;
                 const plinth = wc.plinthPlace();
-                return api.moveTo(wc.abovePt(home), 'transit').moveTo(wc.handlePt(home)).grip(i)
+                return api.moveTo(wc.abovePt(home), 'transit').waitForBelt(i).moveTo(wc.handlePt(home)).grip(i)
                     .moveTo(wc.abovePt(home)).moveTo(wc.abovePt(plinth), 'transit')
                     .moveTo(wc.handlePt(plinth)).release(i, 'easel')
                     .moveTo(wc.abovePt(plinth)).moveTo(wc.parkPt);
@@ -1442,12 +1464,12 @@ class RobotWorkcell {
                 const home = wc.bayConfigs[i].home;
                 const plinth = wc.plinthPlace();
                 return api.moveTo(wc.abovePt(plinth)).moveTo(wc.handlePt(plinth)).grip(i)
-                    .moveTo(wc.abovePt(plinth)).moveTo(wc.abovePt(home), 'transit')
+                    .moveTo(wc.abovePt(plinth)).moveTo(wc.abovePt(home), 'transit').waitForBelt(i)
                     .moveTo(wc.handlePt(home)).release(i, 'home').moveTo(wc.abovePt(home));
             },
             returnHeld(i) {
                 const home = wc.bayConfigs[i].home;
-                return api.moveTo(wc.abovePt(home), 'transit').moveTo(wc.handlePt(home)).release(i, 'home').moveTo(wc.abovePt(home));
+                return api.moveTo(wc.abovePt(home), 'transit').waitForBelt(i).moveTo(wc.handlePt(home)).release(i, 'home').moveTo(wc.abovePt(home));
             },
             placeHeld(i) {
                 const plinth = wc.plinthPlace();
@@ -1518,9 +1540,9 @@ class RobotWorkcell {
         for (let i = 0; i < prog.steps.length; i++) {
             const step = prog.steps[i];
             const end = step.t0 + step.dur;
-            if (step.type === 'release') places[step.item] = step.place;
             if (t >= end && i < prog.steps.length - 1) {
                 if (step.type === 'grip') places[step.item] = 'held';
+                if (step.type === 'release') places[step.item] = step.place;
                 pt = step.type === 'move' ? { ...step.b } : { ...step.a };
                 gap = step.gap1;
                 continue;
@@ -1531,6 +1553,7 @@ class RobotWorkcell {
             } else {
                 pt = { ...step.a };
                 if (step.type === 'grip' && u >= 1) places[step.item] = 'held';
+                if (step.type === 'release' && u >= 1) places[step.item] = step.place;
             }
             gap = step.gap0 + (step.gap1 - step.gap0) * smooth(u);
             activeStep = step;
@@ -1573,7 +1596,10 @@ class RobotWorkcell {
         const heldIndex = state.places.indexOf('held');
         const plinthHandleY = this.plinthPos.y + BOARD.HANDLE_Y;
         let docked = -1;
-        if (easelIndex >= 0 && heldIndex < 0 && state.gap > 0.15 && state.pt.y - plinthHandleY > LIFT * 0.6) {
+        const rise = state.pt.y - plinthHandleY;
+        // Hysteresis: open once the arm has backed away, close only once it comes back down
+        const threshold = this.dockedSectionIndex === easelIndex ? LIFT * 0.3 : LIFT * 0.6;
+        if (easelIndex >= 0 && heldIndex < 0 && state.gap > 0.15 && rise > threshold) {
             docked = easelIndex;
         }
         if (docked !== this.dockedSectionIndex) {
@@ -1614,7 +1640,7 @@ class RobotWorkcell {
 
     applyScrollDelta(delta) {
         // Auto-dispatch in progress: let it finish rather than teleporting boards mid-carry
-        if (this.isEStopped || this.directTransfer) return;
+        if (this.isEStopped || this.directTransfer || this.dropAnim) return;
         this.resetManualOverrides();
         this.lastScrollTimestamp = performance.now();
 
@@ -1626,7 +1652,7 @@ class RobotWorkcell {
     }
 
     runHoldJog(direction, dt = 0.016) {
-        if (this.isEStopped || this.directTransfer) return;
+        if (this.isEStopped || this.directTransfer || this.dropAnim) return;
         this.resetManualOverrides();
         this.lastScrollTimestamp = performance.now();
 
@@ -1642,27 +1668,47 @@ class RobotWorkcell {
         this.targetProgress = this.currentProgress;
     }
 
+    /**
+     * Plays a program on the cell's own clock. Time stops while the arm waits on the
+     * conveyor (a 'wait' step whose board/gap is not staged yet) and during E-stop.
+     */
     runProgram(prog, label, onDone) {
-        this.directTransfer = { prog, t: 0 };
-        const state = { t: 0 };
+        this.activeTween = null;
+        this.directTransfer = { prog, t: 0, label, onDone };
         this.statusText = label;
-        this.activeTween = gsap.to(state, {
-            t: prog.total,
-            duration: prog.total,
-            ease: 'none',
-            onUpdate: () => {
-                if (!this.directTransfer) return;
-                this.directTransfer.t = state.t;
-                this.activeProgram = prog;
-                this.activeProgramT = state.t;
-                this.applyProgramState(this.evalProgram(prog, state.t));
-            },
-            onComplete: () => {
-                this.activeTween = null;
-                this.directTransfer = null;
-                onDone();
-            }
-        });
+        this.activeProgram = prog;
+        this.activeProgramT = 0;
+    }
+
+    tickProgram(dt) {
+        const run = this.directTransfer;
+        if (!run) return;
+        const state = this.evalProgram(run.prog, run.t);
+        const waiting = state.step && state.step.type === 'wait' && !this.beltStaged;
+        if (waiting) {
+            this.statusText = this.beltDemand === 'gap'
+                ? 'WAITING FOR A GAP ON CONVEYOR C1'
+                : 'WAITING FOR PROJECT BOARD // CONVEYOR C1';
+        } else {
+            if (this.statusText.startsWith('WAITING')) this.statusText = run.label;
+            run.t = Math.min(run.prog.total, run.t + dt);
+        }
+        this.activeProgram = run.prog;
+        this.activeProgramT = run.t;
+        this.applyProgramState(this.evalProgram(run.prog, run.t));
+        if (run.t >= run.prog.total && this.directTransfer === run) {
+            this.directTransfer = null;
+            run.onDone();
+        }
+    }
+
+    /** Clears any in-flight command before a new one starts. */
+    beginCommand() {
+        this.activeTween = null;
+        this.directTransfer = null;
+        this.excludeItem = null;
+        this.pickTarget = null;
+        this.resetManualOverrides();
     }
 
     currentGap() {
@@ -1670,34 +1716,34 @@ class RobotWorkcell {
     }
 
     /**
-     * Swap the presented project for the next one off the conveyor:
-     * the current board goes back on the belt and the robot waits for the next to index in.
+     * Swap the presented project for the next one off the conveyor: the current board goes
+     * back on the belt and the robot waits for the next board to arrive at the pick station.
      */
     nextProject() {
-        if (this.isEStopped || this.directTransfer) return;
+        if (this.isEStopped || this.directTransfer || this.dropAnim) return false;
         if (this.places[PROJECTS_INDEX] !== 'easel') {
             this.goToSection(PROJECTS_INDEX);
-            return;
+            return true;
         }
-        this.resetManualOverrides();
+        const returning = this.claimedItem;
+        this.beginCommand();
+        this.excludeItem = returning;
+        this.pickTarget = null;
         const api = this.createProgram(this.toolPt, this.places.slice(), this.joints.gripper.gap);
-        api.returnFromPlinth(PROJECTS_INDEX).hold(1.6).fetchToPlinth(PROJECTS_INDEX);
-        const returningSlot = this.claimedSlot;
-        const prog = api.build();
-        // Exclude the returned board once it is released back onto the belt
-        const releaseStep = prog.steps.find(st => st.type === 'release' && st.item === PROJECTS_INDEX);
-        this.pendingExclude = { slot: returningSlot, at: releaseStep ? releaseStep.t0 : 0 };
-        this.runProgram(prog, 'SWAPPING PROJECT // NEXT UNIT FROM FAB-01', () => {
-            this.pendingExclude = null;
+        api.returnFromPlinth(PROJECTS_INDEX).fetchToPlinth(PROJECTS_INDEX);
+        this.runProgram(api.build(), 'SWAPPING PROJECT // NEXT UNIT FROM FAB-01', () => {
             this.currentProgress = PROJECTS_INDEX + 1.0;
             this.targetProgress = PROJECTS_INDEX + 1.0;
             this.evaluateProgress(this.currentProgress);
             this.statusText = `PRESENTING // PROJECT: ${(this.activeProjectName || '').toUpperCase()}`;
         });
+        return true;
     }
 
     goToSection(sectionIndex) {
-        if (this.isEStopped) return;
+        if (this.isEStopped || this.dropAnim) return;
+        // A click/tap on a specific conveyor board asks for that board
+        const requested = sectionIndex === PROJECTS_INDEX ? this.consumePickHit() : null;
         if (sectionIndex === -1 || sectionIndex === null || sectionIndex === undefined) {
             return this.stowFrontBoxToRack();
         }
@@ -1705,16 +1751,47 @@ class RobotWorkcell {
         this.targetSectionIndex = sectionIndex;
 
         const places = this.places.slice();
-        if (this.activeTween) {
-            this.activeTween.kill();
-            this.activeTween = null;
-        }
-        this.directTransfer = null;
-        this.resetManualOverrides();
+        const previous = this.claimedItem;
+        this.beginCommand();
 
         const held = places.indexOf('held');
         const onPlinth = places.indexOf('easel');
         const api = this.createProgram(this.toolPt, places, this.joints.gripper.gap);
+
+        if (sectionIndex === PROJECTS_INDEX) {
+            this.pickTarget = null;
+            if (requested && requested.state === 'belt') {
+                if (requested.s <= this.conveyor.pickS + 0.01) {
+                    this.pickTarget = requested;
+                } else {
+                    this.statusText = 'UNIT ALREADY PAST PICK STATION // TAKING NEXT';
+                }
+            }
+            // Clicking another belt board while a project is presented swaps them
+            if (onPlinth === PROJECTS_INDEX && held < 0 && this.pickTarget) {
+                this.excludeItem = previous;
+                api.returnFromPlinth(PROJECTS_INDEX).fetchToPlinth(PROJECTS_INDEX);
+                const name = PROJECT_LIBRARY[this.pickTarget.projectIndex].name.toUpperCase();
+                this.runProgram(api.build(), `FETCHING PROJECT // ${name}`, () => {
+                    this.currentProgress = PROJECTS_INDEX + 1.0;
+                    this.targetProgress = PROJECTS_INDEX + 1.0;
+                    this.evaluateProgress(this.currentProgress);
+                    this.statusText = `PRESENTING // PROJECT: ${(this.activeProjectName || '').toUpperCase()}`;
+                });
+                return;
+            }
+            if (held === PROJECTS_INDEX && this.pickTarget) {
+                // Already carrying a project board: swap it for the requested one
+                this.excludeItem = previous;
+                api.returnHeld(PROJECTS_INDEX).fetchToPlinth(PROJECTS_INDEX);
+                this.runProgram(api.build(), 'SWAPPING PROJECT BOARD', () => {
+                    this.currentProgress = PROJECTS_INDEX + 1.0;
+                    this.targetProgress = PROJECTS_INDEX + 1.0;
+                    this.evaluateProgress(this.currentProgress);
+                });
+                return;
+            }
+        }
 
         if (held >= 0) {
             if (held === sectionIndex) {
@@ -1744,19 +1821,17 @@ class RobotWorkcell {
             finish();
             return;
         }
-        const source = sectionIndex === PROJECTS_INDEX ? 'CONVEYOR C1' : `RACK A BAY ${cfg.bayNum}`;
+        let source = sectionIndex === PROJECTS_INDEX ? 'CONVEYOR C1' : `RACK A BAY ${cfg.bayNum}`;
+        if (sectionIndex === PROJECTS_INDEX && this.pickTarget) {
+            source = `C1: ${PROJECT_LIBRARY[this.pickTarget.projectIndex].name.toUpperCase()}`;
+        }
         this.runProgram(prog, `DISPATCHING // ${source} -> PLINTH`, finish);
     }
 
     teleportToSection(sectionIndex) {
-        if (this.isEStopped) return;
+        if (this.isEStopped || this.dropAnim) return;
         if (sectionIndex < 0 || sectionIndex >= this.bayConfigs.length) return;
-        if (this.activeTween) {
-            this.activeTween.kill();
-            this.activeTween = null;
-        }
-        this.directTransfer = null;
-        this.resetManualOverrides();
+        this.beginCommand();
         this.targetSectionIndex = sectionIndex;
         this.currentProgress = sectionIndex + 1.0;
         this.targetProgress = sectionIndex + 1.0;
@@ -1768,14 +1843,9 @@ class RobotWorkcell {
     }
 
     stowFrontBoxToRack() {
-        if (this.isEStopped) return;
+        if (this.isEStopped || this.dropAnim) return;
         const places = this.places.slice();
-        if (this.activeTween) {
-            this.activeTween.kill();
-            this.activeTween = null;
-        }
-        this.directTransfer = null;
-        this.resetManualOverrides();
+        this.beginCommand();
         this.targetSectionIndex = -1;
 
         const held = places.indexOf('held');
@@ -1804,7 +1874,7 @@ class RobotWorkcell {
     /* ------------------------------------------------------------------ */
 
     jogJoint(jointKey, delta) {
-        if (this.isEStopped) return;
+        if (this.isEStopped || this.directTransfer || this.dropAnim) return;
         const limits = {
             j2: [-1.3, 1.5],
             j3: [-0.4, 2.7],
@@ -1858,11 +1928,8 @@ class RobotWorkcell {
     dropHeldBoard(index) {
         const board = this.boardForIndex(index);
         if (!board) return;
-        if (this.activeTween) {
-            this.activeTween.kill();
-            this.activeTween = null;
-        }
-        this.directTransfer = null;
+        this.beginCommand();
+        this.manualGripperGap = GRIP_OPEN;
         this.dropAnim = {
             index,
             board,
@@ -1871,8 +1938,11 @@ class RobotWorkcell {
             tip: 0,
             t: 0
         };
-        // Release the board from the program before the drop
-        if (index === PROJECTS_INDEX) this.claimedSlot = -1;
+        // A dropped project board is scrapped; the fabricator issues a new one
+        if (index === PROJECTS_INDEX && this.claimedItem) {
+            this.claimedItem.state = 'scrap';
+            this.claimedItem = null;
+        }
         this.statusText = 'WORKPIECE DROPPED! // RECOVERING CELL';
         Object.keys(this.jogOffsets).forEach(k => { this.jogOffsets[k] = 0; });
         this.currentProgress = 0;
@@ -1904,6 +1974,11 @@ class RobotWorkcell {
         if (d.t > 2.15) {
             b.scale.setScalar(1);
             b.rotation.x = 0;
+            const item = b.userData.beltItem;
+            if (item) {
+                item.state = 'pool';
+                b.visible = false;
+            }
             this.dropAnim = null;
             this.manualGripperGap = null;
             this.statusText = 'CELL RECOVERED // BOARD RE-ISSUED';
@@ -1928,197 +2003,247 @@ class RobotWorkcell {
 
     boardForIndex(index) {
         if (index === PROJECTS_INDEX) {
-            return this.claimedSlot >= 0 ? this.beltSlots[this.claimedSlot].board : null;
+            return this.claimedItem ? this.claimedItem.board : null;
         }
         return this.boards[index];
     }
 
-    slotS(slotIndex) {
-        const cv = this.conveyor;
-        let s = (this.beltPos + slotIndex * cv.spacing) % cv.loop;
-        if (s < 0) s += cv.loop;
-        return s - cv.hiddenIn;
-    }
-
-    /** Distance the belt must still travel for a slot to reach the pick station */
-    slotRemaining(slotIndex) {
-        const cv = this.conveyor;
-        let r = (cv.pickS - this.slotS(slotIndex)) % cv.loop;
-        if (r < 0) r += cv.loop;
-        if (r > cv.loop - 0.01) r = 0;
-        return r;
-    }
-
-    nextSlotToPick() {
-        let best = 0;
-        let bestR = Infinity;
-        for (let i = 0; i < this.beltSlots.length; i++) {
-            // Skip the board that was just put back so the next one off the line gets picked
-            if (i === this.excludeSlot) continue;
-            const r = this.slotRemaining(i);
-            if (r < bestR) {
-                bestR = r;
-                best = i;
-            }
+    /** Next project in the library that is not already out on the belt or presented. */
+    assignProject(item) {
+        const inUse = new Set(this.beltItems.filter(it => it !== item && (it.state === 'belt' || it.state === 'held')).map(it => it.projectIndex));
+        let pi = this.projectCursor % PROJECT_LIBRARY.length;
+        for (let k = 0; k < PROJECT_LIBRARY.length && inUse.has(pi); k++) {
+            pi = (pi + 1) % PROJECT_LIBRARY.length;
         }
+        this.projectCursor = pi + 1;
+        item.projectIndex = pi;
+        const parts = item.board.userData.parts;
+        parts.faceMat.map = this.projectTextures[pi];
+        parts.edgeMat.color.setHex(PROJECT_LIBRARY[pi].color);
+        parts.edgeMat.emissive.setHex(PROJECT_LIBRARY[pi].color);
+    }
+
+    consumePickHit() {
+        const hit = this.lastPickHit;
+        this.lastPickHit = null;
+        if (!hit || performance.now() - hit.time > 1500) return null;
+        return hit.item;
+    }
+
+    /** Board due at the pick station next (or the requested one). */
+    nextArrivingItem() {
+        const pickS = this.conveyor.pickS;
+        if (this.pickTarget && this.pickTarget.state === 'belt' && this.pickTarget.s <= pickS + 0.01) {
+            return this.pickTarget;
+        }
+        let best = null;
+        this.beltItems.forEach(it => {
+            if (it.state !== 'belt' || it === this.excludeItem) return;
+            if (it.s > pickS + 0.01) return;
+            if (!best || it.s > best.s) best = it;
+        });
         return best;
     }
 
-    alignSlotToPick(slotIndex) {
-        this.beltPos += this.slotRemaining(slotIndex) > this.conveyor.loop / 2
-            ? this.slotRemaining(slotIndex) - this.conveyor.loop
-            : this.slotRemaining(slotIndex);
+    /** Belt travel needed before the pick station has BELT_CLEAR of free belt either side. */
+    gapRemaining() {
+        const pickS = this.conveyor.pickS;
+        const positions = this.beltItems.filter(it => it.state === 'belt').map(it => it.s);
+        const valid = (d) => positions.every(sp => Math.abs(sp + d - pickS) >= BELT_CLEAR - 1e-4);
+        const candidates = [0, ...positions.map(sp => pickS + BELT_CLEAR - sp).filter(d => d > 0)].sort((a, b) => a - b);
+        for (const d of candidates) {
+            if (valid(d)) return d;
+        }
+        return candidates[candidates.length - 1] || 0;
     }
 
     /**
-     * Does the active program need a project board at the pick station soon?
+     * Does the active program have the arm working at the conveyor soon?
+     * Returns the window state so scrolling can be gated on it.
      */
-    projectsPickPending() {
-        const prog = this.activeProgram;
+    beltWindow(prog, t) {
         if (!prog) return false;
-        const t = this.activeProgramT || 0;
-        const isScroll = !this.directTransfer;
-        for (const step of prog.steps) {
-            if (step.item !== PROJECTS_INDEX) continue;
-            if (step.type !== 'grip' && step.type !== 'release') continue;
-            if (step.type === 'release' && step.place !== 'home') continue;
-            const end = step.t0 + step.dur;
-            // Scroll mode can run backwards, so keep the station staged on both sides of the event
-            if (isScroll) {
-                const lead = step.type === 'grip' ? 6 : 3.5;
-            if (t > step.t0 - lead && t < end + 3) return true;
-            } else if (t < end) {
-                return true;
-            }
-        }
-        // Look ahead into the next scroll segment
-        if (isScroll && this.currentProgress % 1 > 0.6) {
-            const next = this.segmentPrograms[Math.floor(this.currentProgress) + 1];
-            if (next && next.steps.some(s => s.item === PROJECTS_INDEX && s.type === 'grip')) return true;
+        const steps = prog.steps;
+        for (let i = 0; i < steps.length; i++) {
+            const st = steps[i];
+            if (st.type !== 'wait' || st.item !== PROJECTS_INDEX) continue;
+            // Window runs from shortly before the wait until the arm has lifted clear again
+            let j = i + 1;
+            while (j < steps.length && steps[j].type !== 'grip' && steps[j].type !== 'release') j++;
+            const lift = steps[Math.min(steps.length - 1, j + 1)];
+            const endT = lift.t0 + lift.dur;
+            // Includes a margin after the lift so scrolling back onto the conveyor stages the belt too
+            if (t > st.t0 - 4.0 && t < endT + 2.5) return true;
         }
         return false;
+    }
+
+    /** Scroll gates (global progress values) around each conveyor visit. */
+    beltGates() {
+        if (this._beltGates) return this._beltGates;
+        const gates = [];
+        this.segmentPrograms.forEach((prog, k) => {
+            prog.steps.forEach((st, i) => {
+                if (st.type !== 'wait' || st.item !== PROJECTS_INDEX) return;
+                let j = i + 1;
+                while (j < prog.steps.length && prog.steps[j].type !== 'grip' && prog.steps[j].type !== 'release') j++;
+                const lift = prog.steps[Math.min(prog.steps.length - 1, j + 1)];
+                gates.push({
+                    forward: k + (st.t0 + st.dur) / prog.total,
+                    backward: k + (lift.t0 + lift.dur) / prog.total
+                });
+            });
+        });
+        this._beltGates = gates;
+        return gates;
     }
 
     updateConveyor(dt) {
         const cv = this.conveyor;
         const projectsPlace = this.places[PROJECTS_INDEX];
+        const dropping = this.dropAnim && this.dropAnim.index === PROJECTS_INDEX;
 
-        // Claim / unclaim the board at the pick station as the program dictates
-        if (projectsPlace !== 'home' && this.claimedSlot < 0 && !(this.dropAnim && this.dropAnim.index === PROJECTS_INDEX)) {
-            const slot = this.nextSlotToPick();
-            this.alignSlotToPick(slot);
-            this.claimedSlot = slot;
-            this.excludeSlot = -1;
-            this.beltSpeed = 0;
-            this.activeProjectName = PROJECT_LIBRARY[this.beltSlots[slot].projectIndex].name;
-        } else if (projectsPlace === 'home' && this.claimedSlot >= 0) {
-            if (this.pendingExclude && this.pendingExclude.slot === this.claimedSlot) {
-                this.excludeSlot = this.claimedSlot;
-                this.pendingExclude = null;
+        // Claim / release the board at the pick station as the program dictates
+        if (projectsPlace !== 'home' && projectsPlace !== 'dropped' && !this.claimedItem && !dropping) {
+            let item = this.nextArrivingItem();
+            const nearest = this.beltItems
+                .filter(it => it.state === 'belt')
+                .sort((a, b) => Math.abs(a.s - cv.pickS) - Math.abs(b.s - cv.pickS))[0];
+            if (!item || Math.abs(item.s - cv.pickS) > 0.05) item = nearest || item;
+            if (!item) {
+                item = this.beltItems.find(it => it.state === 'pool');
+                if (item) this.assignProject(item);
             }
-            this.alignSlotToPick(this.claimedSlot);
-            this.beltSlots[this.claimedSlot].lastS = this.slotS(this.claimedSlot);
-            this.claimedSlot = -1;
+            if (item) {
+                item.state = 'held';
+                item.s = cv.pickS;
+                this.claimedItem = item;
+                this.pickTarget = null;
+                this.excludeItem = this.excludeItem === item ? null : this.excludeItem;
+                this.activeProjectName = PROJECT_LIBRARY[item.projectIndex].name;
+            }
+        } else if (projectsPlace === 'home' && this.claimedItem) {
+            this.claimedItem.state = 'belt';
+            this.claimedItem.s = cv.pickS;
+            this.claimedItem.lastS = cv.pickS;
+            this.claimedItem = null;
+        }
+
+        // Belt demand: stage a board (or a gap) at the pick station while the arm works there
+        const prog = this.activeProgram;
+        let inWindow = this.beltWindow(prog, this.activeProgramT || 0);
+        if (!inWindow && !this.directTransfer && this.segmentPrograms) {
+            // Look ahead into the next scroll segment
+            const k = Math.floor(this.currentProgress);
+            const next = this.segmentPrograms[k + 1];
+            if (next && prog) inWindow = this.beltWindow(next, (this.activeProgramT || 0) - prog.total);
+        }
+        // A specifically requested board is brought to the station and held there until the arm arrives
+        if (this.pickTarget && this.pickTarget.state === 'belt' && this.pickTarget.s <= cv.pickS + 0.01 && !this.claimedItem) {
+            inWindow = true;
+        }
+        this.beltDemand = inWindow ? (this.claimedItem ? 'gap' : 'board') : null;
+
+        let remaining = Infinity;
+        if (this.beltDemand === 'board') {
+            const item = this.nextArrivingItem();
+            remaining = item ? Math.max(0, cv.pickS - item.s) : Infinity;
+        } else if (this.beltDemand === 'gap') {
+            remaining = this.gapRemaining();
+        }
+
+        // Never move the belt while the gripper is down at the pick station
+        const home = this.bayConfigs[PROJECTS_INDEX].home;
+        const tp = this.toolPt;
+        const armDown = Math.hypot(tp.x - home.pos.x, tp.z - home.pos.z) < 0.25 && tp.y < home.pos.y + BOARD.HANDLE_Y + LIFT - 0.03;
+        if (armDown) remaining = 0;
+
+        // Constant-speed drive with a gentle ramp; it only ever slows down to stop on target
+        let vMax = this.isEStopped ? 0 : BELT_SPEED;
+        if (remaining !== Infinity) vMax = Math.min(vMax, Math.sqrt(2 * BELT_ACCEL * remaining));
+        if (this.beltSpeed < vMax) this.beltSpeed = Math.min(vMax, this.beltSpeed + BELT_ACCEL * dt);
+        else this.beltSpeed = Math.max(vMax, this.beltSpeed - BELT_ACCEL * 2 * dt);
+        let ds = this.beltSpeed * dt;
+        if (ds > remaining) ds = remaining;
+        this.beltStaged = (this.beltDemand !== null || armDown) && remaining < 0.003;
+        if (this.beltStaged) {
+            ds = remaining;
             this.beltSpeed = 0;
         }
 
-        // Belt drive: free run, or index a board into the pick station and hold it
-        let targetSpeed = 0.42;
-        let staged = false;
-        if (this.isEStopped) {
-            targetSpeed = 0;
-        } else if (this.projectsPickPending()) {
-            const slot = this.claimedSlot >= 0 ? this.claimedSlot : this.nextSlotToPick();
-            const remaining = this.slotRemaining(slot);
-            if (remaining < 0.003) {
-                targetSpeed = 0;
-                staged = true;
-                if (remaining > 0) this.beltPos += remaining;
+        // Advance every board on the belt together
+        this.beltPos += ds;
+        const emitS = -cv.hiddenIn;
+        let minS = Infinity;
+        this.beltItems.forEach(it => {
+            if (it.state !== 'belt') return;
+            it.s += ds;
+            if (it.s > cv.length + cv.tail) {
+                it.state = 'pool';
+                it.board.visible = false;
             } else {
-                targetSpeed = Math.min(2.4, Math.sqrt(2 * 3.0 * remaining) + 0.05);
-                const step = Math.min(remaining, targetSpeed * dt);
-                this.beltSpeed = targetSpeed;
-                this.beltPos += step;
-                targetSpeed = null;
+                minS = Math.min(minS, it.s);
+            }
+        });
+        // The fabricator issues the next board once there is room behind the last one
+        if (minS - emitS >= cv.spacing) {
+            const fresh = this.beltItems.find(it => it.state === 'pool');
+            if (fresh) {
+                this.assignProject(fresh);
+                fresh.state = 'belt';
+                fresh.s = minS === Infinity ? emitS : Math.max(emitS, minS - cv.spacing);
+                fresh.lastS = fresh.s;
             }
         }
-        if (targetSpeed !== null) {
-            this.beltSpeed += (targetSpeed - this.beltSpeed) * Math.min(1, dt * 4);
-            if (Math.abs(this.beltSpeed) < 0.002) this.beltSpeed = 0;
-            this.beltPos += this.beltSpeed * dt;
-        }
-        this.beltStaged = staged;
 
         // Belt texture + rollers
         if (this.beltTex) this.beltTex.offset.y = -this.beltPos / 0.5;
         this.rollers.forEach(r => { r.rotation.x = this.beltPos / 0.08; });
         if (this.popStop) {
-            const targetY = cv.beltY + (staged || this.claimedSlot >= 0 ? 0.05 : -0.05);
+            const up = this.beltDemand !== null;
+            const targetY = cv.beltY + (up ? 0.05 : -0.05);
             this.popStop.position.y += (targetY - this.popStop.position.y) * Math.min(1, dt * 10);
         }
         if (this.lightCurtainMat) {
-            this.lightCurtainMat.opacity = staged ? 0.12 + 0.08 * Math.sin(this.elapsed * 10) : 0.32;
-            this.lightCurtainMat.color.setHex(staged ? 0xf59e0b : 0x22d3ee);
+            this.lightCurtainMat.opacity = this.beltStaged ? 0.12 + 0.08 * Math.sin(this.elapsed * 10) : 0.32;
+            this.lightCurtainMat.color.setHex(this.beltStaged ? 0xf59e0b : 0x22d3ee);
         }
 
         // Position the boards riding the belt
-        const exitWindow = [];
-        this.beltSlots.forEach((slot, i) => {
-            if (i === this.claimedSlot) return;
-            if (this.dropAnim && this.dropAnim.board === slot.board) return;
-            const s = this.slotS(i);
-            const b = slot.board;
+        let sparks = 0;
+        let near = 0;
+        this.beltItems.forEach(it => {
+            if (it.state !== 'belt') return;
+            const b = it.board;
+            const sNow = it.s;
+            if (it.lastS !== null && it.lastS < -0.02 && sNow >= -0.02) sparks += 18;
+            it.lastS = sNow;
+            if (sNow > -0.6 && sNow < 0.6) near = Math.max(near, 1 - Math.abs(sNow) / 0.6);
 
-            // Re-skin boards while they are hidden inside the fabricator
-            if (slot.lastS !== null && s < slot.lastS - 1.0) {
-                slot.projectIndex = this.projectCursor % PROJECT_LIBRARY.length;
-                this.projectCursor++;
-                b.userData.parts.faceMat.map = this.projectTextures[slot.projectIndex];
-                b.userData.parts.edgeMat.color.setHex(PROJECT_LIBRARY[slot.projectIndex].color);
-                b.userData.parts.edgeMat.emissive.setHex(PROJECT_LIBRARY[slot.projectIndex].color);
-            }
-            if (slot.lastS !== null && slot.lastS < -0.05 && s >= -0.05 && s < 0.5 && this.beltSpeed > 0.05) {
-                exitWindow.push(i);
-            }
-            slot.lastS = s;
-
-            const p = this.beltPoint(Math.min(s, cv.length));
+            const p = this.beltPoint(Math.min(sNow, cv.length));
             b.rotation.set(0, cv.rotY, 0);
             b.scale.setScalar(1);
-            b.visible = true;
-            if (s < -0.02) {
-                // Inside the machine
-                b.visible = s > -0.75;
-                p.copy(this.beltPoint(s));
-            }
-            if (s > cv.length) {
+            b.visible = sNow > -0.75;
+            if (sNow < 0) p.copy(this.beltPoint(sNow));
+            if (sNow > cv.length) {
                 // Tipping into the recycle chute
-                const over = s - cv.length;
+                const over = sNow - cv.length;
                 const k = Math.min(1, over / cv.tail);
                 p.addScaledVector(cv.dir, over * 0.6);
                 p.y -= k * k * 1.4;
                 b.rotation.x = k * 1.1;
                 b.scale.setScalar(Math.max(0.001, 1 - k * 0.6));
                 b.visible = k < 0.98;
-            } else {
-                b.rotation.x = 0;
             }
             b.position.copy(p);
         });
 
         // Strip curtain sways when a board passes through the exit
-        let near = 0;
-        this.beltSlots.forEach((slot, i) => {
-            if (i === this.claimedSlot) return;
-            const s = this.slotS(i);
-            if (s > -0.6 && s < 0.6) near = Math.max(near, 1 - Math.abs(s) / 0.6);
-        });
         this.curtainStrips.forEach((strip, i) => {
             const target = -near * 0.9 * (1 - Math.abs(i - 3) * 0.08);
             strip.rotation.x += (target + Math.sin(this.elapsed * 3 + i) * 0.02 - strip.rotation.x) * Math.min(1, dt * 8);
         });
-
-        exitWindow.forEach(() => this.emitSparks(18));
+        if (sparks) this.emitSparks(sparks);
     }
 
     emitSparks(n) {
@@ -2206,13 +2331,14 @@ class RobotWorkcell {
         const hoverBoards = new Set();
         if (this.hoverIndex !== null && this.hoverIndex !== undefined) {
             if (this.hoverIndex === PROJECTS_INDEX) {
-                this.beltSlots.forEach(s => hoverBoards.add(s.board));
+                if (this.hoverItem) hoverBoards.add(this.hoverItem.board);
+                else this.beltItems.forEach(it => { if (it.state === 'belt') hoverBoards.add(it.board); });
             } else if (this.boards[this.hoverIndex]) {
                 hoverBoards.add(this.boards[this.hoverIndex]);
             }
         }
         const pulse = 0.55 + 0.35 * Math.sin(this.elapsed * 6);
-        [...this.boards, ...this.beltSlots.map(s => s.board)].forEach(b => {
+        [...this.boards, ...this.beltItems.map(it => it.board)].forEach(b => {
             if (!b) return;
             b.userData.parts.edgeMat.emissiveIntensity = hoverBoards.has(b) ? pulse : 0.0;
         });
@@ -2222,7 +2348,13 @@ class RobotWorkcell {
     /* Interaction & camera                                                */
     /* ------------------------------------------------------------------ */
 
+    /**
+     * Raycast pick: returns the section index under the pointer. A hit on a specific
+     * conveyor board is remembered so goToSection(4) fetches that exact board.
+     */
     getIntersectedBay(clientX, clientY) {
+        this.lastPickHit = null;
+        this.hoverItem = null;
         if (!this.camera || !this.renderer) return null;
         const rect = this.renderer.domElement.getBoundingClientRect();
         if (clientX < rect.left || clientX > rect.right || clientY < rect.top || clientY > rect.bottom) return null;
@@ -2230,19 +2362,31 @@ class RobotWorkcell {
         if (!this.raycaster) this.raycaster = new THREE.Raycaster();
         this.raycaster.setFromCamera(ndc, this.camera);
 
-        const targets = [];
-        const tag = (obj, index) => obj.traverse(c => { if (c.isMesh) { c.userData.pickIndex = index; targets.push(c); } });
-        this.boards.forEach((b, i) => { if (b && b.visible) tag(b, i); });
-        this.beltSlots.forEach(s => { if (s.board.visible) tag(s.board, PROJECTS_INDEX); });
-        if (this.fabricatorGroup) tag(this.fabricatorGroup, PROJECTS_INDEX);
-        if (this.conveyorGroup) tag(this.conveyorGroup, PROJECTS_INDEX);
-
-        const hits = this.raycaster.intersectObjects(targets, false);
-        if (hits.length > 0) {
-            const idx = hits[0].object.userData.pickIndex;
-            if (idx !== undefined) return idx;
+        if (!this._pickTargets) {
+            // Static meshes are tagged once; board meshes are re-checked for visibility per call
+            this._pickTargets = [];
+            const tag = (obj, index) => obj.traverse(c => {
+                if (c.isMesh) {
+                    c.userData.pickIndex = index;
+                    c.userData.pickRoot = obj;
+                    this._pickTargets.push(c);
+                }
+            });
+            this.boards.forEach((b, i) => { if (b) tag(b, i); });
+            this.beltItems.forEach(it => tag(it.board, PROJECTS_INDEX));
+            if (this.fabricatorGroup) tag(this.fabricatorGroup, PROJECTS_INDEX);
+            if (this.conveyorGroup) tag(this.conveyorGroup, PROJECTS_INDEX);
         }
-        return null;
+        const targets = this._pickTargets.filter(m => m.userData.pickRoot.visible);
+        const hits = this.raycaster.intersectObjects(targets, false);
+        if (hits.length === 0) return null;
+        const mesh = hits[0].object;
+        const item = mesh.userData.pickRoot.userData.beltItem;
+        if (item && item.state === 'belt') {
+            this.hoverItem = item;
+            this.lastPickHit = { item, time: performance.now() };
+        }
+        return mesh.userData.pickIndex !== undefined ? mesh.userData.pickIndex : null;
     }
 
     updateCameraAspect() {
@@ -2339,6 +2483,7 @@ class RobotWorkcell {
             const canvas = this.renderer.domElement;
             canvas.addEventListener('mousemove', (e) => {
                 const hit = this.getIntersectedBay(e.clientX, e.clientY);
+                this.lastPickHit = null; // Hover only; clicks and taps set the requested board
                 this.hoverIndex = hit;
                 canvas.style.cursor = hit !== null ? 'pointer' : 'default';
                 if (this.hoverTag) {
@@ -2347,9 +2492,17 @@ class RobotWorkcell {
                         const hex = '#' + cfg.color.toString(16).padStart(6, '0');
                         const isPresented = this.dockedSectionIndex === hit;
                         const verb = isPresented ? 'ON PLINTH' : 'CLICK TO FETCH';
-                        this.hoverTag.textContent = hit === PROJECTS_INDEX
-                            ? `${cfg.bayNum} // PROJECTS - ${isPresented ? 'ON PLINTH' : 'CLICK TO PICK OFF CONVEYOR'}`
-                            : `${cfg.bayNum} // ${cfg.short} - ${verb}`;
+                        let label = `${cfg.bayNum} // ${cfg.short} - ${verb}`;
+                        if (hit === PROJECTS_INDEX) {
+                            if (this.hoverItem) {
+                                const proj = PROJECT_LIBRARY[this.hoverItem.projectIndex].name.toUpperCase();
+                                const past = this.hoverItem.s > this.conveyor.pickS + 0.01;
+                                label = `PROJECT // ${proj} - ${past ? 'PAST PICK STATION' : 'CLICK TO FETCH THIS ONE'}`;
+                            } else {
+                                label = `${cfg.bayNum} // PROJECTS - ${isPresented ? 'ON PLINTH' : 'CLICK TO PICK OFF CONVEYOR'}`;
+                            }
+                        }
+                        this.hoverTag.textContent = label;
                         this.hoverTag.style.background = hex;
                         this.hoverTag.style.left = `${e.clientX}px`;
                         this.hoverTag.style.top = `${e.clientY}px`;
@@ -2361,9 +2514,12 @@ class RobotWorkcell {
             });
             canvas.addEventListener('mouseleave', () => {
                 this.hoverIndex = null;
+                this.hoverItem = null;
                 if (this.hoverTag) this.hoverTag.style.opacity = '0';
             });
             canvas.addEventListener('click', (e) => {
+                // Taps are dispatched by the touch handler; ignore the synthesized click that follows
+                if (window.__lastCellTap && performance.now() - window.__lastCellTap < 700) return;
                 const hit = this.getIntersectedBay(e.clientX, e.clientY);
                 if (hit !== null) this.goToSection(hit);
             });
@@ -2415,7 +2571,7 @@ class RobotWorkcell {
         const sl = this.stackLights;
         const flash = Math.sin(t * 10) > 0;
         sl.green.emissiveIntensity = !this.isEStopped && !this.beltStaged ? 1.4 : 0.05;
-        sl.amber.emissiveIntensity = !this.isEStopped && (this.beltStaged || this.claimedSlot >= 0) ? (flash ? 1.6 : 0.3) : 0.05;
+        sl.amber.emissiveIntensity = !this.isEStopped && this.beltDemand !== null ? (flash ? 1.6 : 0.3) : 0.05;
         sl.red.emissiveIntensity = this.isEStopped ? (flash ? 2.0 : 0.4) : 0.05;
 
         // Robot status LEDs
@@ -2438,15 +2594,34 @@ class RobotWorkcell {
         this.elapsed += dt;
 
         if (!this.isEStopped) {
-            if (!this.directTransfer && !this.dropAnim) {
+            if (this.directTransfer && !this.dropAnim) {
+                this.tickProgram(dt);
+            } else if (!this.dropAnim) {
+                const prev = this.currentProgress;
                 const diff = this.targetProgress - this.currentProgress;
+                let next = this.targetProgress;
                 if (Math.abs(diff) > 0.0003) {
-                    this.currentProgress += Math.sign(diff) * Math.min(Math.abs(diff), Math.max(0.003, Math.abs(diff) * 0.32));
-                } else {
-                    this.currentProgress = this.targetProgress;
+                    next = prev + Math.sign(diff) * Math.min(Math.abs(diff), Math.max(0.003, Math.abs(diff) * 0.32));
                 }
+                // Scroll cannot carry the arm onto the conveyor until a board (or gap) is staged there
+                this.waitingOnBelt = false;
+                if (!this.beltStaged) {
+                    for (const gate of this.beltGates()) {
+                        if (prev <= gate.forward && next > gate.forward) {
+                            next = gate.forward;
+                            this.waitingOnBelt = true;
+                        } else if (prev >= gate.backward && next < gate.backward) {
+                            next = gate.backward;
+                            this.waitingOnBelt = true;
+                        }
+                    }
+                }
+                if (this.waitingOnBelt) {
+                    this.statusText = this.claimedItem ? 'WAITING FOR A GAP ON CONVEYOR C1' : 'WAITING FOR PROJECT BOARD // CONVEYOR C1';
+                }
+                this.currentProgress = next;
                 this.evaluateProgress(this.currentProgress);
-            } else if (this.dropAnim) {
+            } else {
                 this.evaluateProgress(0);
                 this.places = this.places.map((p, i) => (i === this.dropAnim.index ? 'dropped' : p));
             }
@@ -2472,7 +2647,7 @@ class RobotWorkcell {
             this.isMoving = Math.abs(this.targetProgress - this.currentProgress) > 0.004 || jointsMoving || !!this.directTransfer;
         }
 
-        this.updateDrop(dt);
+        if (!this.isEStopped) this.updateDrop(dt);
         this.updateConveyor(this.isEStopped ? 0 : dt);
         this.updateBoards();
         this.updateSparks(dt);

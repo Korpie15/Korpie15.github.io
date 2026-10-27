@@ -3410,6 +3410,15 @@ body:has(#robot-front-stage.expanded:not(.minimized-dock):not(.docked-hidden):no
     transform: translateY(-10px);
 }
 
+/* Teach pendant also steps aside while a section popup is open, so the popup stands alone.
+   Opacity/visibility only: the pendant's transform is reserved for its fit-to-screen scaling. */
+body:has(#robot-front-stage.expanded:not(.minimized-dock):not(.docked-hidden):not(.retracting)) .teach-pendant {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), height 0.3s ease, opacity 0.3s ease, visibility 0s linear 0.3s;
+}
+
 body.classic-view-mode .blue-mandatory-sign {
     display: none !important;
 }
@@ -3536,7 +3545,7 @@ body.classic-view-mode .blue-mandatory-sign {
     display: flex;
     flex-direction: column;
     overflow: hidden;
-    transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), height 0.3s ease;
+    transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), height 0.3s ease, opacity 0.3s ease, visibility 0s linear 0s;
     user-select: none;
     box-sizing: border-box;
 }
