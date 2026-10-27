@@ -4494,10 +4494,82 @@ body:not(.classic-view-mode) .footer {
     display: none;
 }
 
-/* Fabrication cell: highlight the project board the robot picked off the conveyor */
-.project-card.fab-picked {
-    outline: 2px solid #f59e0b;
-    outline-offset: 4px;
-    box-shadow: 0 0 0 6px rgba(245, 158, 11, 0.15), 0 0 40px rgba(245, 158, 11, 0.3);
-    transition: outline-color 0.6s ease, box-shadow 0.6s ease;
+/* Fabrication cell: single-project dossier (one project board presented at a time) */
+.fab-solo-bar {
+    display: none;
+}
+
+#projects.fab-solo-mode .fab-solo-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    flex-wrap: wrap;
+    margin-bottom: 1.5rem;
+    padding: 0.85rem 1rem;
+    border: 1px solid rgba(245, 158, 11, 0.35);
+    border-left: 4px solid var(--primary-color);
+    border-radius: 8px;
+    background: rgba(245, 158, 11, 0.06);
+}
+
+.fab-solo-meta {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+    font-family: Consolas, "Courier New", monospace;
+    letter-spacing: 0.08em;
+}
+
+.fab-solo-kicker {
+    color: var(--primary-color);
+    font-weight: 700;
+    font-size: 0.85rem;
+}
+
+.fab-solo-count {
+    color: var(--text-secondary, #94a3b8);
+    font-size: 0.75rem;
+}
+
+.fab-solo-actions {
+    display: flex;
+    gap: 0.6rem;
+    flex-wrap: wrap;
+}
+
+.fab-solo-btn {
+    padding: 0.55rem 1rem;
+    border-radius: 6px;
+    border: 1px solid rgba(245, 158, 11, 0.5);
+    background: transparent;
+    color: var(--primary-color);
+    font: 600 0.85rem/1.2 inherit;
+    cursor: pointer;
+    transition: background 0.2s ease, color 0.2s ease;
+}
+
+.fab-solo-btn:hover {
+    background: rgba(245, 158, 11, 0.15);
+}
+
+.fab-solo-btn.primary {
+    background: var(--primary-color);
+    color: #0b0f19;
+}
+
+.fab-solo-btn.primary:hover {
+    background: #fbbf24;
+}
+
+#projects.fab-solo-mode .section-title {
+    display: none;
+}
+
+#projects.fab-solo-mode .project-card:not(.fab-solo) {
+    display: none;
+}
+
+#projects.fab-solo-mode .project-card.fab-solo:hover {
+    transform: none;
 }

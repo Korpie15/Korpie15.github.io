@@ -152,6 +152,8 @@ class RobotWorkcell {
         this.boards = [];       // Info boards by section index (projects slot null)
         this.beltSlots = [];    // Conveyor project boards
         this.claimedSlot = -1;  // Conveyor slot currently taken by the robot
+        this.excludeSlot = -1;  // Board just returned to the belt (skipped for the next pick)
+        this.pendingExclude = null;
         this.projectCursor = 0;
         this.beltPos = 0;
         this.beltSpeed = 0;
@@ -1452,6 +1454,10 @@ class RobotWorkcell {
                 return api.moveTo(wc.abovePt(plinth), 'transit').moveTo(wc.handlePt(plinth)).release(i, 'easel')
                     .moveTo(wc.abovePt(plinth)).moveTo(wc.parkPt);
             },
+            hold(dur) {
+                push({ type: 'move', kind: 'line', a: { ...prog.cursorPt }, b: { ...prog.cursorPt }, gap0: prog.cursorGap, gap1: prog.cursorGap, dur });
+                return api;
+            },
             park() {
                 return api.moveTo(wc.parkPt, 'transit');
             },
@@ -1661,6 +1667,33 @@ class RobotWorkcell {
 
     currentGap() {
         return this.manualGripperGap !== null ? this.manualGripperGap : this.joints.gripper.gap;
+    }
+
+    /**
+     * Swap the presented project for the next one off the conveyor:
+     * the current board goes back on the belt and the robot waits for the next to index in.
+     */
+    nextProject() {
+        if (this.isEStopped || this.directTransfer) return;
+        if (this.places[PROJECTS_INDEX] !== 'easel') {
+            this.goToSection(PROJECTS_INDEX);
+            return;
+        }
+        this.resetManualOverrides();
+        const api = this.createProgram(this.toolPt, this.places.slice(), this.joints.gripper.gap);
+        api.returnFromPlinth(PROJECTS_INDEX).hold(1.6).fetchToPlinth(PROJECTS_INDEX);
+        const returningSlot = this.claimedSlot;
+        const prog = api.build();
+        // Exclude the returned board once it is released back onto the belt
+        const releaseStep = prog.steps.find(st => st.type === 'release' && st.item === PROJECTS_INDEX);
+        this.pendingExclude = { slot: returningSlot, at: releaseStep ? releaseStep.t0 : 0 };
+        this.runProgram(prog, 'SWAPPING PROJECT // NEXT UNIT FROM FAB-01', () => {
+            this.pendingExclude = null;
+            this.currentProgress = PROJECTS_INDEX + 1.0;
+            this.targetProgress = PROJECTS_INDEX + 1.0;
+            this.evaluateProgress(this.currentProgress);
+            this.statusText = `PRESENTING // PROJECT: ${(this.activeProjectName || '').toUpperCase()}`;
+        });
     }
 
     goToSection(sectionIndex) {
@@ -1920,6 +1953,8 @@ class RobotWorkcell {
         let best = 0;
         let bestR = Infinity;
         for (let i = 0; i < this.beltSlots.length; i++) {
+            // Skip the board that was just put back so the next one off the line gets picked
+            if (i === this.excludeSlot) continue;
             const r = this.slotRemaining(i);
             if (r < bestR) {
                 bestR = r;
@@ -1973,9 +2008,14 @@ class RobotWorkcell {
             const slot = this.nextSlotToPick();
             this.alignSlotToPick(slot);
             this.claimedSlot = slot;
+            this.excludeSlot = -1;
             this.beltSpeed = 0;
             this.activeProjectName = PROJECT_LIBRARY[this.beltSlots[slot].projectIndex].name;
         } else if (projectsPlace === 'home' && this.claimedSlot >= 0) {
+            if (this.pendingExclude && this.pendingExclude.slot === this.claimedSlot) {
+                this.excludeSlot = this.claimedSlot;
+                this.pendingExclude = null;
+            }
             this.alignSlotToPick(this.claimedSlot);
             this.beltSlots[this.claimedSlot].lastS = this.slotS(this.claimedSlot);
             this.claimedSlot = -1;

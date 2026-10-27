@@ -562,22 +562,10 @@ document.addEventListener('DOMContentLoaded', () => {
             // Scroll front stage card to top for newly opened dossier
             stageCard.scrollTop = 0;
 
-            // Fabrication cell: jump to the project board the robot picked off the conveyor
+            // Fabrication cell: a presented project board shows only that project
+            clearSoloProject();
             if (sectionId === 'projects' && workcell && workcell.activeProjectName && targetSection) {
-                const wanted = workcell.activeProjectName.toLowerCase().replace(/[^a-z0-9]/g, '');
-                const card = Array.from(targetSection.querySelectorAll('.project-card')).find(c => {
-                    const h3 = c.querySelector('h3');
-                    const name = h3 ? h3.textContent.toLowerCase().replace(/[^a-z0-9]/g, '') : '';
-                    return name && (name.includes(wanted) || wanted.includes(name.slice(0, 10)));
-                });
-                if (card) {
-                    card.classList.add('fab-picked');
-                    setTimeout(() => {
-                        const top = card.getBoundingClientRect().top - stageCard.getBoundingClientRect().top + stageCard.scrollTop - 90;
-                        stageCard.scrollTo({ top: Math.max(0, top), behavior: 'smooth' });
-                    }, 350);
-                    setTimeout(() => card.classList.remove('fab-picked'), 3200);
-                }
+                showSoloProject(targetSection, workcell.activeProjectName, dockTitle);
             }
 
             if (targetSection) {
@@ -592,6 +580,87 @@ document.addEventListener('DOMContentLoaded', () => {
             console.error('Error decorating front stage card:', err);
         }
     }
+
+    /**
+     * Single-project dossier: when the robot presents one project board,
+     * the Projects card shows only that project, opened to its full details.
+     */
+    function findProjectCard(section, projectName) {
+        const wanted = projectName.toLowerCase().replace(/[^a-z0-9]/g, '');
+        return Array.from(section.querySelectorAll('.project-card')).find(c => {
+            const h3 = c.querySelector('h3');
+            const name = h3 ? h3.textContent.toLowerCase().replace(/[^a-z0-9]/g, '') : '';
+            return name && (name.includes(wanted) || wanted.includes(name.slice(0, 10)));
+        });
+    }
+
+    function ensureSoloBar(section) {
+        let bar = section.querySelector('.fab-solo-bar');
+        if (bar) return bar;
+        bar = document.createElement('div');
+        bar.className = 'fab-solo-bar';
+        bar.innerHTML = `
+            <div class="fab-solo-meta">
+                <span class="fab-solo-kicker">PROJECT UNIT // FAB-01</span>
+                <span class="fab-solo-count" id="fabSoloCount"></span>
+            </div>
+            <div class="fab-solo-actions">
+                <button type="button" class="fab-solo-btn" id="fabAllProjects">View all projects</button>
+                <button type="button" class="fab-solo-btn primary" id="fabNextProject">Next project off the line &#9654;</button>
+            </div>
+        `;
+        const grid = section.querySelector('.projects-grid');
+        grid.parentNode.insertBefore(bar, grid);
+
+        bar.querySelector('#fabNextProject').addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (workcell.isEStopped) return;
+            if (typeof workcell.nextProject === 'function') {
+                hideFrontStageSection(false);
+                workcell.nextProject();
+            }
+        });
+        bar.querySelector('#fabAllProjects').addEventListener('click', (e) => {
+            e.stopPropagation();
+            clearSoloProject();
+            const stageCard = document.getElementById('robot-front-stage');
+            if (stageCard) stageCard.scrollTop = 0;
+        });
+        return bar;
+    }
+
+    function showSoloProject(section, projectName, dockTitle) {
+        const card = findProjectCard(section, projectName);
+        if (!card) return;
+        const cards = Array.from(section.querySelectorAll('.project-card'));
+        const bar = ensureSoloBar(section);
+        const count = bar.querySelector('#fabSoloCount');
+        if (count) count.textContent = `${cards.indexOf(card) + 1} OF ${cards.length}`;
+
+        section.classList.add('fab-solo-mode');
+        card.classList.add('fab-solo');
+        if (!card.classList.contains('expanded')) {
+            card.classList.add('expanded');
+            card.dataset.fabAutoExpanded = 'true';
+        }
+        if (dockTitle) {
+            dockTitle.textContent = `ACTIVE TOPIC: [04] PROJECT // ${projectName.toUpperCase()}`;
+        }
+    }
+
+    function clearSoloProject() {
+        const section = document.getElementById('projects');
+        if (!section) return;
+        section.classList.remove('fab-solo-mode');
+        section.querySelectorAll('.project-card.fab-solo').forEach(card => {
+            card.classList.remove('fab-solo');
+            if (card.dataset.fabAutoExpanded) {
+                card.classList.remove('expanded');
+                delete card.dataset.fabAutoExpanded;
+            }
+        });
+    }
+    window.clearSoloProject = clearSoloProject;
 
     function updateNavMenuHighlight(sectionId) {
         document.querySelectorAll('.nav-link').forEach(link => {
@@ -850,6 +919,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             }
 
+            clearSoloProject();
             document.body.classList.add('classic-view-mode');
             if (appContainer) appContainer.style.display = 'none';
             if (pendant) pendant.style.display = 'none';
