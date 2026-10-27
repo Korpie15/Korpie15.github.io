@@ -1151,14 +1151,6 @@ class RobotWorkcell {
                 rackGroup.add(basePlate);
             }
 
-            // Colored Docking Bay Ring on floor underneath pedestal
-            const dockRingGeo = new THREE.RingGeometry(0.55, 0.65, 32);
-            const dockRingMat = new THREE.MeshBasicMaterial({ color: cfg.color, side: THREE.DoubleSide });
-            const dockRing = new THREE.Mesh(dockRingGeo, dockRingMat);
-            dockRing.rotation.x = -Math.PI / 2;
-            dockRing.position.set(0, -postHeight + 0.005, 0);
-            rackGroup.add(dockRing);
-
             // Sleek shelf tailored to briefcase dimensions (clean flush surface)
             const shelf = new THREE.Mesh(new THREE.BoxGeometry(1.35, 0.08, 0.50), steelMat);
             shelf.castShadow = true;
