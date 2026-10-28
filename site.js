@@ -41,18 +41,25 @@
         if (!a) return;
         const go = a.dataset.go;
         setMenu(false);
+        const cell = window.CELL && root.classList.contains('cell-on') ? window.CELL : null;
+        if (go && cell) {
+            e.preventDefault();
+            cell.scrollToMark(go);
+            return;
+        }
         if (go === 'top') {
             e.preventDefault();
             window.scrollTo({ top: 0, behavior: 'smooth' });
             return;
         }
-        if (go && window.CELL && root.classList.contains('cell-on')) {
-            e.preventDefault();
-            window.CELL.scrollToMark(go);
-            return;
-        }
         const id = (a.getAttribute('href') || '').slice(1);
         const target = id && document.getElementById(id);
+        if (target && cell) {
+            // Sections after the robot cell: glide there so the robot still moves at a natural pace.
+            e.preventDefault();
+            cell.scrollToY(target.getBoundingClientRect().top + window.scrollY);
+            return;
+        }
         if (target) {
             e.preventDefault();
             target.scrollIntoView({ behavior: 'smooth', block: 'start' });

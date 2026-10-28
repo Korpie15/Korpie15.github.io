@@ -1234,14 +1234,39 @@
         return;
     }
 
+    // Navigation scrolls are animated here rather than by the browser: native smooth scrolling covers any
+    // distance in about half a second, which would cram the robot's whole move into a blur. The scroll's
+    // length follows how much of the timeline it crosses, so the robot moves at a natural pace.
+    let glide = 0;
+    const stopGlide = () => { glide = 0; };
+    ['wheel', 'touchstart', 'keydown', 'mousedown'].forEach(ev => window.addEventListener(ev, stopGlide, { passive: true }));
+    function glideTo(y) {
+        const from = window.scrollY;
+        const to = clamp(y, 0, document.documentElement.scrollHeight - innerHeight);
+        const beats = Math.abs(to - from) / beatPx;
+        if (beats < 0.01) return;
+        const dur = clamp(0.4 + beats * 0.33, 0.9, 4.8) * 1000;
+        const id = ++glide;
+        const t0 = performance.now();
+        const step = now => {
+            if (id !== glide) return;
+            const u = clamp((now - t0) / dur, 0, 1);
+            const e = u < 0.5 ? 4 * u * u * u : 1 - Math.pow(-2 * u + 2, 3) / 2;
+            window.scrollTo(0, from + (to - from) * e);
+            if (u < 1) requestAnimationFrame(step);
+        };
+        requestAnimationFrame(step);
+    }
+
     window.CELL = {
         mode,
         scrollToMark(name) {
+            if (name === 'top') return glideTo(0), true;
             if (!TL || TL.marks[name] === undefined) return false;
-            const y = track.offsetTop + TL.marks[name] * beatPx + 2;
-            window.scrollTo({ top: y, behavior: 'smooth' });
+            glideTo(track.offsetTop + TL.marks[name] * beatPx + 2);
             return true;
         },
+        scrollToY(y) { glideTo(y); },
         get marks() { return TL ? TL.marks : {}; },
         debugSet(t) { cur = t; forceT = t; dirty = true; }
     };
