@@ -868,10 +868,12 @@
     const _c = [new V3(), new V3(), new V3(), new V3()];
     const _cam = new V3();
     const _n = new V3(), _toCam = new V3(), _center = new V3(), _q = new THREE.Quaternion();
+    // Returns the opacity the card is actually shown at.
     function projectCard(el, board, side, opacity) {
         if (opacity <= 0.001) {
             if (el.style.opacity !== '0') { el.style.opacity = '0'; el.style.visibility = 'hidden'; }
-            return;
+            el._calm = 0;
+            return 0;
         }
         const { W, H } = B;
         const z = (side === 0 ? 1 : -1) * (BOARD_T / 2 + 0.002);
@@ -886,13 +888,27 @@
             if (_cam.copy(c).applyMatrix4(camera.matrixWorldInverse).z > -0.05) {
                 el.style.opacity = '0';
                 el.style.visibility = 'hidden';
-                return;
+                el._calm = 0;
+                return 0;
             }
             pts.push(toScreen(c));
         }
-        el.style.transform = homography(cardW, cardH, pts);
+        const tf = homography(cardW, cardH, pts);
+        // Frames mode: without a GPU, a tilted, fading card costs the compositor several ms every frame, so
+        // cards only show once their board has stopped moving, fading in over a few frames.
+        if (player) {
+            el._calm = tf === el._tf ? Math.min(1, (el._calm || 0) + 0.25) : 0;
+            opacity *= el._calm;
+        }
+        el._tf = tf;
+        if (opacity <= 0.001) {
+            if (el.style.opacity !== '0') { el.style.opacity = '0'; el.style.visibility = 'hidden'; }
+            return 0;
+        }
+        el.style.transform = tf;
         el.style.opacity = opacity.toFixed(3);
         el.style.visibility = 'visible';
+        return opacity;
     }
 
     // Maps the card rectangle (0,0)-(w,h) onto a screen-space quad.
@@ -1545,6 +1561,9 @@
 
     function frame(now) {
         requestAnimationFrame(frame);
+        // Frames mode runs at 30 fps: an even half rate looks smoother than a 60 fps target the CPU keeps
+        // missing, and it halves the compositing and decoding work.
+        if (player && now - lastFrame < 30) return;
         const dt = Math.min(0.1, (now - lastFrame) / 1000);
         lastFrame = now;
         resize(false);
@@ -1620,9 +1639,11 @@
             [0, 1].forEach(side => {
                 const el = cardEls[i][side];
                 if (!el) return;
-                const op = cardOps[i][side];
-                projectCard(el, bd.group, side, op);
+                const want = cardOps[i][side];
+                const op = projectCard(el, bd.group, side, want);
                 el.classList.toggle('live', op > 0.97 && settled);
+                // Keep drawing while a card is still fading in.
+                if (want > 0.001 && op < want) dirty = true;
             });
         });
     }
