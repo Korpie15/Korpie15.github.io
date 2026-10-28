@@ -284,6 +284,7 @@ p { margin: 0; }
 .about-photo:focus-visible { box-shadow: 0 0 0 0.22em #fff, 0 0 0 0.3em var(--yellow), 0 0 0 0.5em rgba(243, 181, 11, 0.35); }
 .about-years b { font-size: 1.35em; font-weight: 800; letter-spacing: -0.04em; line-height: 1; }
 .about-years span { font-size: 0.42em; font-weight: 600; letter-spacing: 0.02em; margin-top: 0.3em; }
+.yrs-short { display: none; }
 .landscape .card-about .card-in { padding-right: 34%; justify-content: center; }
 .landscape .card-about .about-photo {
     position: absolute; right: 6%; top: 50%;
@@ -302,6 +303,10 @@ p { margin: 0; }
     }
     .about-years b, .landscape .card-about .about-years b { font-size: 0.86em; letter-spacing: -0.02em; }
     .about-years span, .landscape .card-about .about-years span { font-size: 0.62em; margin: 0; }
+    /* Short label so the badge fits within the photo, and room below it so it never meets the text. */
+    .about-years .yrs-long { display: none; }
+    .about-years .yrs-short { display: inline; }
+    .portrait .about-head { margin-bottom: 0.6em; }
 }
 
 /* Experience */
