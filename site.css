@@ -383,6 +383,62 @@ p { margin: 0; }
 .landscape .lead { grid-template-columns: 1fr; }
 .landscape .lead img { width: 100%; height: 10em; }
 
+/* Clickable things on the boards look like cards and buttons: white and raised against the grey board,
+   with a yellow arrow and a call to action, so they invite a click before anyone hovers. */
+.links button:not(:first-child),
+.tiles button,
+.lead {
+    background: #fff;
+    border: 1px solid rgba(0, 0, 0, 0.07);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05), 0 4px 14px rgba(0, 0, 0, 0.06);
+    transition: transform .25s ease, box-shadow .25s ease, border-color .25s ease;
+}
+.links button:not(:first-child):hover,
+.tiles button:hover,
+.lead:hover {
+    background: #fff;
+    border-color: rgba(243, 181, 11, 0.6);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.06), 0 12px 28px rgba(0, 0, 0, 0.1);
+}
+.links button::after { content: "\2192"; display: inline-block; margin-left: 0.35em; color: var(--yellow-ink); transition: transform .25s ease; }
+.links button:first-child::after { color: var(--yellow); }
+.links button:hover::after { transform: translateX(0.18em); }
+
+/* Projects: a "View project" line on wide tiles, an arrow badge on the image of narrow ones. */
+.tiles button { position: relative; }
+.tiles button::after {
+    content: "\2192";
+    position: absolute; top: 0.4em; right: 0.4em;
+    width: 1.5em; height: 1.5em; border-radius: 50%;
+    display: grid; place-items: center;
+    background: rgba(255, 255, 255, 0.94); color: var(--ink);
+    font-size: 0.7em; font-weight: 700;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.18);
+    transition: transform .25s ease, background .25s ease;
+}
+.tiles button:hover::after { background: var(--yellow); transform: scale(1.08); }
+.landscape .tiles button { grid-template-rows: auto auto 1fr; }
+.landscape .tiles img { grid-row: 1 / 4; }
+.landscape .tiles button::after {
+    content: "View project \2192";
+    position: static; grid-column: 2; align-self: end;
+    width: auto; height: auto; border-radius: 0; display: block;
+    margin: 0 0.8em 0.75em; padding: 0;
+    background: none; box-shadow: none; color: var(--yellow-ink);
+    font-size: 0.68em; font-weight: 700; letter-spacing: 0.01em;
+}
+.landscape .tiles button:hover::after { background: none; transform: translateX(0.25em); }
+
+/* Leadership: a "Read more" line under each entry. */
+.lead-text strong::after { content: none; }
+.lead-text::after {
+    content: "Read more \2192";
+    margin-top: 0.35em;
+    font-size: 0.86em; font-weight: 700; color: var(--yellow-ink);
+    transition: transform .25s ease;
+}
+.lead:hover .lead-text::after { transform: translateX(0.25em); }
+
 /* ---------- After the cell ---------- */
 
 .end {
