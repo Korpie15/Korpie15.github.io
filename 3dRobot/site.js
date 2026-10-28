@@ -70,14 +70,64 @@
         if (!tpl) return;
         body.replaceChildren(tpl.content.cloneNode(true));
         fillDurations(body);
-        panel.scrollTop = 0;
+        body.querySelectorAll('.gallery:not(.gallery-1)').forEach(makeCarousel);
         if (sheet.hidden) {
             lastFocus = document.activeElement;
             sheet.hidden = false;
             root.classList.add('sheet-lock');
             requestAnimationFrame(() => requestAnimationFrame(() => sheet.classList.add('open')));
         }
+        // Reset after un-hiding: scrollTop on a display:none panel is ignored.
+        panel.scrollTop = 0;
         sheet.querySelector('.sheet-close').focus({ preventScroll: true });
+    }
+
+    /* Photo carousel: swipe or use the arrows and dots. */
+    const arrow = d => `<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="${d}" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+    function makeCarousel(gallery) {
+        const imgs = [...gallery.querySelectorAll('img')];
+        if (imgs.length < 2) return;
+        gallery.classList.add('carousel-wrap');
+        const frame = document.createElement('div');
+        frame.className = 'carousel';
+        const track = document.createElement('div');
+        track.className = 'carousel-track';
+        imgs.forEach(img => track.appendChild(img));
+        const prev = document.createElement('button');
+        prev.type = 'button';
+        prev.className = 'carousel-btn prev';
+        prev.setAttribute('aria-label', 'Previous photo');
+        prev.innerHTML = arrow('M15 5l-7 7 7 7');
+        const next = document.createElement('button');
+        next.type = 'button';
+        next.className = 'carousel-btn next';
+        next.setAttribute('aria-label', 'Next photo');
+        next.innerHTML = arrow('M9 5l7 7-7 7');
+        frame.append(track, prev, next);
+        const dots = document.createElement('div');
+        dots.className = 'carousel-dots';
+        imgs.forEach((_, i) => {
+            const d = document.createElement('button');
+            d.type = 'button';
+            d.setAttribute('aria-label', `Photo ${i + 1} of ${imgs.length}`);
+            d.addEventListener('click', () => go(i));
+            dots.appendChild(d);
+        });
+        gallery.replaceChildren(frame, dots);
+
+        const index = () => Math.round(track.scrollLeft / Math.max(1, track.clientWidth));
+        const go = i => track.scrollTo({ left: clampIdx(i) * track.clientWidth });
+        const clampIdx = i => Math.max(0, Math.min(imgs.length - 1, i));
+        function update() {
+            const i = index();
+            [...dots.children].forEach((d, j) => d.setAttribute('aria-current', String(i === j)));
+            prev.disabled = i === 0;
+            next.disabled = i === imgs.length - 1;
+        }
+        prev.addEventListener('click', () => go(index() - 1));
+        next.addEventListener('click', () => go(index() + 1));
+        track.addEventListener('scroll', () => requestAnimationFrame(update), { passive: true });
+        update();
     }
     function closeSheet() {
         if (sheet.hidden) return;
