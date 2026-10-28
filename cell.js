@@ -741,7 +741,10 @@
             tower: { x: tw.x, z: tw.z, top: tTop, out, psi: -90 }
         };
 
-        return { keys, jaws, status, marks, total, boards: boardsTL, cams, pTop, spots, views, HOME_Q };
+        // When each board is held still in front of the camera (frames mode shows cards only then).
+        const stills = [[[marks.about, flip1], [marks.experience, leave1]], [[marks.projects, flip2], [marks.leadership, leave2]]];
+
+        return { keys, jaws, status, marks, total, boards: boardsTL, cams, pTop, spots, views, HOME_Q, stills };
     }
 
     /* ------------------------------------------------------------------ */
@@ -872,7 +875,6 @@
     function projectCard(el, board, side, opacity) {
         if (opacity <= 0.001) {
             if (el.style.opacity !== '0') { el.style.opacity = '0'; el.style.visibility = 'hidden'; }
-            el._calm = 0;
             return 0;
         }
         const { W, H } = B;
@@ -888,24 +890,11 @@
             if (_cam.copy(c).applyMatrix4(camera.matrixWorldInverse).z > -0.05) {
                 el.style.opacity = '0';
                 el.style.visibility = 'hidden';
-                el._calm = 0;
                 return 0;
             }
             pts.push(toScreen(c));
         }
-        const tf = homography(cardW, cardH, pts);
-        // Frames mode: without a GPU, a tilted, fading card costs the compositor several ms every frame, so
-        // cards only show once their board has stopped moving, fading in over a few frames.
-        if (player) {
-            el._calm = tf === el._tf ? Math.min(1, (el._calm || 0) + 0.25) : 0;
-            opacity *= el._calm;
-        }
-        el._tf = tf;
-        if (opacity <= 0.001) {
-            if (el.style.opacity !== '0') { el.style.opacity = '0'; el.style.visibility = 'hidden'; }
-            return 0;
-        }
-        el.style.transform = tf;
+        el.style.transform = homography(cardW, cardH, pts);
         el.style.opacity = opacity.toFixed(3);
         el.style.visibility = 'visible';
         return opacity;
@@ -1557,14 +1546,46 @@
     /* Frame loop                                                          */
     /* ------------------------------------------------------------------ */
 
-    let busyFrames = 0, avgFrame = 1 / 60;
+    let busyFrames = 0, avgFrame = 1 / 60, lastDt = 1 / 60;
+
+    // ?debug: a small readout of what the page is doing on this machine.
+    const debugEl = /[?&]debug\b/.test(location.search) ? document.createElement('pre') : null;
+    let dbgFrames = 0, dbgDraws = 0, dbgMiss = 0, dbgWork = 0, dbgT0 = performance.now();
+    if (debugEl) {
+        debugEl.style.cssText = 'position:fixed;left:8px;bottom:8px;z-index:99;margin:0;padding:8px 10px;' +
+            'font:11px/1.45 ui-monospace,Menlo,monospace;background:rgba(0,0,0,.78);color:#fff;border-radius:8px;pointer-events:none';
+        document.body.appendChild(debugEl);
+    }
+    const gpuName = (() => {
+        try {
+            const gl = document.createElement('canvas').getContext('webgl');
+            const info = gl && gl.getExtension('WEBGL_debug_renderer_info');
+            return gl ? String(info ? gl.getParameter(info.UNMASKED_RENDERER_WEBGL) : gl.getParameter(gl.RENDERER)) : 'no WebGL';
+        } catch (err) {
+            return 'unknown';
+        }
+    })();
+    function debugTick(now) {
+        dbgFrames++;
+        if (now - dbgT0 < 1000) return;
+        const secs = (now - dbgT0) / 1000;
+        debugEl.textContent = [
+            `mode     ${mode}`,
+            `webgl    ${gpuName.slice(0, 60)}`,
+            `screen   ${innerWidth}x${innerHeight} @${(window.devicePixelRatio || 1).toFixed(2)}x` + (renderer ? `  render ${dpr.toFixed(2)}x` : ''),
+            `loop     ${(dbgFrames / secs).toFixed(0)} fps   drawn ${(dbgDraws / secs).toFixed(0)} fps`,
+            `js       ${dbgDraws ? (dbgWork / dbgDraws).toFixed(1) : '0'} ms per drawn frame`,
+            player ? `frames   ${dbgDraws ? Math.round(100 * dbgMiss / dbgDraws) : 0}% shown before exact frame decoded` : ''
+        ].filter(Boolean).join('\n');
+        dbgFrames = dbgDraws = dbgMiss = dbgWork = 0;
+        dbgT0 = now;
+    }
 
     function frame(now) {
         requestAnimationFrame(frame);
-        // Frames mode runs at 30 fps: an even half rate looks smoother than a 60 fps target the CPU keeps
-        // missing, and it halves the compositing and decoding work.
-        if (player && now - lastFrame < 30) return;
         const dt = Math.min(0.1, (now - lastFrame) / 1000);
+        lastDt = dt;
+        if (debugEl) debugTick(now);
         lastFrame = now;
         resize(false);
         if (detour) {
@@ -1607,6 +1628,11 @@
     }
 
     function render(t, settled) {
+        const w0 = debugEl ? performance.now() : 0;
+        renderScene(t, settled);
+        if (debugEl) { dbgDraws++; dbgWork += performance.now() - w0; }
+    }
+    function renderScene(t, settled) {
         // In frames mode the cards follow the frame actually on screen, so they never drift off the board
         // while a nearer frame is still decoding.
         let tScene = t;
@@ -1614,13 +1640,16 @@
             const shown = player.draw(t);
             if (shown) {
                 tScene = shown.t;
-                if (!shown.exact) dirty = true;
+                if (!shown.exact) {
+                    dirty = true;
+                    dbgMiss++;
+                }
             } else {
                 dirty = true;
             }
         }
         poseAt(tScene);
-        drawCards(settled);
+        drawCards(settled, tScene, lastDt);
         drawOverlays(t, statusAt(t));
         if (renderer) renderer.render(scene, camera);
     }
@@ -1634,16 +1663,24 @@
         renderer.render(scene, camera);
     }
 
-    function drawCards(settled) {
+    // Frames mode: without a GPU, a tilted, fading card costs the compositor several ms on every frame, so
+    // cards only show while the story holds their board still in front of the camera. The fade runs on the
+    // clock (not on frame changes), so it happens once and can't flicker.
+    const still = [0, 0];
+    function drawCards(settled, t, dt) {
         boards.forEach((bd, i) => {
+            let gate = 1;
+            if (player && t !== undefined) {
+                const target = TL.stills[i].some(([a, z]) => t >= a - 0.02 && t <= z + 0.02) ? 1 : 0;
+                still[i] = target > still[i] ? Math.min(1, still[i] + dt / 0.25) : Math.max(0, still[i] - dt / 0.12);
+                if (still[i] !== target) dirty = true;
+                gate = ease(still[i]);
+            }
             [0, 1].forEach(side => {
                 const el = cardEls[i][side];
                 if (!el) return;
-                const want = cardOps[i][side];
-                const op = projectCard(el, bd.group, side, want);
+                const op = projectCard(el, bd.group, side, cardOps[i][side] * gate);
                 el.classList.toggle('live', op > 0.97 && settled);
-                // Keep drawing while a card is still fading in.
-                if (want > 0.001 && op < want) dirty = true;
             });
         });
     }
