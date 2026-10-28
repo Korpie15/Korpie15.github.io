@@ -1419,6 +1419,9 @@
         add(J[1], 0.3, 0.1, 0.3);
         fingers.forEach(f => add(f, 0.2, 0, 0));
         boards.forEach(b => [[-1, 1], [1, 1], [1, -1], [-1, -1]].forEach(([x, y]) => add(b.group, x * B.W / 2, y * B.H / 2, 0)));
+        // A grid across each board's face too: when a board spins right in front of the camera its corners
+        // are off screen, and only the face shows how fast it's turning.
+        boards.forEach(b => [-0.6, 0, 0.6].forEach(x => [-0.6, 0, 0.6].forEach(y => add(b.group, x * B.W / 2, y * B.H / 2, 0))));
         // Fixed points around the cell, so camera moves count as motion too.
         // Only visible features: points on the bare white floor would count motion nobody can see.
         [[-1.9, 0.1, -0.6], [-1.3, 0.45, 1.0], [-1.7, 0.6, -1.03], [1.7, 0.6, -1.03], [0, 0.6, -1.03],

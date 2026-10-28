@@ -47,7 +47,9 @@
                 const t = ts[ts.length - 1];
                 for (let k = 0; k < 4; k++) {
                     const m = motion(t, Math.min(tool.total, t + dt));
-                    dt = Math.min(0.6, Math.max(0.0015, dt * (m > 0.01 ? window.MOVE_PX / m : 2)));
+                    // Capped well below the length of a move: a long step out of a pause could otherwise leap
+                    // over most of a fast spin whose start and end happen to look alike.
+                    dt = Math.min(0.15, Math.max(0.0015, dt * (m > 0.01 ? window.MOVE_PX / m : 2)));
                 }
                 ts.push(Math.min(tool.total, t + dt));
             }
