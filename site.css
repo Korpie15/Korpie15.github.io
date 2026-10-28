@@ -140,12 +140,11 @@ p { margin: 0; }
 .cell-cut #cell, .cell-cut .cards { opacity: 0; }
 
 /* Without a GPU, backdrop blur is expensive to composite: use solid panels instead. */
-.is-lite .nav, .is-lite .menu-sheet, .is-lite .cell-status {
+.is-lite .nav, .is-lite .menu-sheet {
     -webkit-backdrop-filter: none;
     backdrop-filter: none;
 }
 .is-lite .nav { background: rgba(255, 255, 255, 0.97); }
-.is-lite .cell-status { background: #fff; }
 
 .hero-copy {
     position: relative;
@@ -177,31 +176,6 @@ p { margin: 0; }
 }
 @keyframes wheel { 0% { transform: translateY(0); opacity: 1; } 70% { transform: translateY(10px); opacity: 0; } 100% { opacity: 0; } }
 
-.cell-status { display: none; }
-.cell-on .cell-status {
-    position: absolute; z-index: 3;
-    left: 50%; bottom: max(18px, env(safe-area-inset-bottom));
-    transform: translateX(-50%);
-    display: inline-flex; align-items: center; gap: 8px;
-    padding: 7px 14px 7px 12px;
-    border-radius: 999px;
-    background: rgba(255, 255, 255, 0.8);
-    -webkit-backdrop-filter: blur(14px);
-    backdrop-filter: blur(14px);
-    border: 1px solid rgba(0, 0, 0, 0.07);
-    box-shadow: 0 4px 18px rgba(0, 0, 0, 0.06);
-    font: 600 11px/1 ui-monospace, "SF Mono", Menlo, Consolas, monospace;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-    color: var(--ink-2);
-    opacity: 0;
-    pointer-events: none;
-    white-space: nowrap;
-}
-@media (orientation: landscape) and (max-height: 520px) {
-    .cell-on .cell-status { display: none; }
-}
-.cell-status b { width: 7px; height: 7px; border-radius: 50%; background: #34c759; box-shadow: 0 0 0 3px rgba(52, 199, 89, 0.18); }
 
 /* ---------- Board cards ---------- */
 
