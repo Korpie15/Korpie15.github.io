@@ -16,7 +16,7 @@
         window.CELL_RENDER = { w: 2160, h: 1200, ss: Number(q.get('ss')) || 1.5 };
         window.MOVE_PX = Number(q.get('px')) || 9; // a new frame whenever anything moves this far on screen
     </script>
-    <script src="../../three.min.js"></script>
+    <script src="../three.min.js"></script>
     <script>
         (async () => {
             await Promise.all([document.fonts.load('700 40px Inter'), document.fonts.load('600 20px Inter')]).catch(() => {});

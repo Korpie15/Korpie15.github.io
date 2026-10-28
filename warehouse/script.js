@@ -299,9 +299,9 @@ function animateSkillBars() {
 // ============================================
 
 const galleryImages = [
-    'images/bae-mechsoc3.jpg',
-    'images/mechsoc_group_photo.JPG',
-    'images/industry_night.JPG'
+    '../images/bae-mechsoc3.jpg',
+    '../images/mechsoc_group_photo.JPG',
+    '../images/industry_night.JPG'
 ];
 
 let currentImageIndex = 0;
@@ -723,7 +723,7 @@ const projectData = {
             <p>The THOR robot project was undertaken as a society initiative to provide hands-on learning opportunities for members while creating an impressive display piece for university events. This open-source build allowed students to gain practical experience in mechanical assembly, electrical systems, and robotics integration.</p>
             
             <div style="margin-top: 20px; text-align: center;">
-                <img src="images/Thor_Robot1.jpeg" alt="THOR Robot" style="max-width: 100%; border-radius: 10px;">
+                <img src="../images/Thor_Robot1.jpeg" alt="THOR Robot" style="max-width: 100%; border-radius: 10px;">
             </div>
         `
     }

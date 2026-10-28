@@ -1,5 +1,5 @@
 # Cloudflare Pages response headers.
-# Pre-rendered frames for /3dRobot: each render goes into a new frames/<version>/ folder, so those never
-# change. frames/current.json (which version to use) is deliberately not cached long-term.
-/3dRobot/frames/:version/*
+# Pre-rendered frames: each render goes into a new frames/<version>/ folder, so those never change.
+# frames/current.json (which version to use) is deliberately not cached long-term.
+/frames/:version/*
   Cache-Control: public, max-age=31536000, immutable

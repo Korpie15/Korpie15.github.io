@@ -1,1 +1,4 @@
-/3d /3dRobot/ 301
+# Cloudflare Pages redirects. The scroll-driven robot site used to live at /3dRobot.
+/3dRobot /  301
+/3dRobot/* /:splat 301
+/3d /  301

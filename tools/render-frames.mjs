@@ -2,10 +2,10 @@
 // Re-run whenever the robot, the cell layout, the lighting or the timeline (cell.js) changes:
 //
 //   npm i -D playwright && npx playwright install chromium   (once)
-//   node 3dRobot/tools/render-frames.mjs [--quality 0.72] [--px 9] [--only 0,40,90]
+//   node tools/render-frames.mjs [--quality 0.72] [--px 9] [--only 0,40,90]
 //
-// It writes 3dRobot/frames/<version>/f0000.webp… plus manifest.json, and points
-// 3dRobot/frames/current.json at it. Each run makes a NEW version folder: frames are cached as
+// It writes frames/<version>/f0000.webp… plus manifest.json, and points
+// frames/current.json at it. Each run makes a NEW version folder: frames are cached as
 // immutable, so never overwrite one. Delete the old version folder once the new one is committed.
 import { chromium } from 'playwright';
 import http from 'node:http';
@@ -13,8 +13,8 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-const siteRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
-const framesDir = path.join(siteRoot, '3dRobot', 'frames');
+const siteRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
+const framesDir = path.join(siteRoot, 'frames');
 const args = process.argv.slice(2);
 const opt = (name, dflt) => {
     const i = args.indexOf(`--${name}`);
@@ -42,7 +42,7 @@ const browser = await chromium.launch({
 });
 const page = await (await browser.newContext({ ignoreHTTPSErrors: true })).newPage();
 page.on('pageerror', e => console.error('page error:', e.message));
-await page.goto(`http://127.0.0.1:${port}/3dRobot/tools/render-frames.html?px=${px}`);
+await page.goto(`http://127.0.0.1:${port}/tools/render-frames.html?px=${px}`);
 await page.waitForFunction(() => window.rendererReady, null, { timeout: 300000 });
 const info = await page.evaluate(() => window.frameInfo);
 console.log(`${info.frames.length} frames to render (signature ${info.signature})`);

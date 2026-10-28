@@ -9,13 +9,14 @@ This is a personal engineering portfolio website for Aidan Korpar, hosted on Git
 - **No build process**: Direct HTML/CSS/JS files served as-is
 
 ## Project Structure
-- `index.html` with `style.css` / `script.js` / `robot-*.js` - The robot workcell site (dark theme)
-- `3dRobot/` - The white, scroll-driven robot studio site (`/3dRobot/`): `cell.js` (Three.js scene, IK, scroll timeline), `site.js`, `site.css`; detail write-ups live in `<template>` elements in its `index.html`
-- `_redirects` - Cloudflare Pages short links (`/3d` → `/3dRobot/`)
-- `3dRobot/frames/` - Pre-rendered WebP frames used on desktops without GPU acceleration. Re-render with `node 3dRobot/tools/render-frames.mjs` whenever the robot, cell layout, lighting or timeline in `3dRobot/cell.js` changes (the page refuses stale frames and falls back to lite 3D). Each render goes in a new version folder; delete the old one.
-- `_headers` - Cloudflare Pages cache headers (frame folders are immutable)
-- `images/` - Portfolio images and assets
+- `index.html` - Main page: a white, scroll-driven 3D robot cell. Detail write-ups live in `<template>` elements
+- `cell.js` - Three.js scene: robot, inverse kinematics, scroll timeline and HTML cards mapped onto boards
+- `site.js` / `site.css` - Navigation, detail sheets and styling for the main page
+- `frames/` - Pre-rendered WebP frames used on desktops without GPU acceleration. Re-render with `node tools/render-frames.mjs` whenever the robot, cell layout, lighting or timeline in `cell.js` changes (the page refuses stale frames and falls back to lite 3D). Each render goes in a new version folder; delete the old one
+- `warehouse/` - The earlier robot fabrication cell site (secondary page, not linked from the main page). `?cell=briefcase` loads the first robot workcell; its Classic View toggle shows the original standard web page
+- `images/` - Portfolio images and assets (`images/thumbs/` holds small versions for the main page)
 - `pdfs/` - Resume and other downloadable documents
+- `_redirects` / `_headers` - Cloudflare Pages redirects (old `/3dRobot` links) and cache headers
 - `favicon.png` - Site favicon
 
 ## Coding Standards
