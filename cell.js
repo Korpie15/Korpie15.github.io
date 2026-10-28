@@ -734,7 +734,14 @@
             [marks.towerBack + 0.2, 'tower'], [marks.towerLeft, 'tower'], [marks.end, 'wide'], [total, 'wide']
         ].map(([ct, name]) => ({ t: ct, view: views[name] || 'present' }));
 
-        return { keys, jaws, status, marks, total, boards: boardsTL, cams, pTop };
+        // Where each board can be picked up or put down, for direct navigation (planDetour).
+        const spots = {
+            rack: { x: rk.x0, z: rk.z, top: rTop, psi: 90 },
+            shelf: { x: sh.x[0], z: sh.z, top: sTop, psi: 180 },
+            tower: { x: tw.x, z: tw.z, top: tTop, out, psi: -90 }
+        };
+
+        return { keys, jaws, status, marks, total, boards: boardsTL, cams, pTop, spots, views, HOME_Q };
     }
 
     /* ------------------------------------------------------------------ */
@@ -742,8 +749,8 @@
     /* ------------------------------------------------------------------ */
 
     const _P = new V3();
-    function robotAt(t) {
-        const ks = TL.keys;
+    const robotAt = t => robotAtKeys(TL.keys, t);
+    function robotAtKeys(ks, t) {
         if (t <= ks[0].t) return ks[0].Q;
         for (let i = 1; i < ks.length; i++) {
             const a = ks[i - 1], b = ks[i];
@@ -760,9 +767,10 @@
         return ks[ks.length - 1].Q;
     }
 
-    function jawAt(t) {
+    const jawAt = t => jawAtList(TL.jaws, t);
+    function jawAtList(list, t) {
         let open = 1;
-        for (const j of TL.jaws) {
+        for (const j of list) {
             if (t < j.t) break;
             const u = sstep(j.t, j.t + 0.18, t);
             open = lerp(open, j.open, u);
@@ -788,6 +796,7 @@
     }
 
     const _cp = new V3(), _ct = new V3(), _dir = new V3();
+    const camTgt = new V3(); // where the camera is looking, set with every camera pose
     function viewPose(view, outPos, outTgt) {
         if (view === 'present') {
             const p = L.present;
@@ -817,6 +826,7 @@
         }
         camera.position.copy(_cp);
         camera.lookAt(_ct);
+        camTgt.copy(_ct);
     }
 
     /* ------------------------------------------------------------------ */
@@ -906,6 +916,26 @@
     // Card opacity per board and side, filled by poseAt().
     const cardOps = [[0, 0], [0, 0]];
 
+    // Puts board i in the gripper, or at a resting pose { pos, yaw }.
+    function placeBoard(i, attached, rest) {
+        const b = boards[i];
+        if (attached !== b.attached || !b.placed) {
+            b.attached = attached;
+            b.placed = true;
+            if (attached) {
+                boardMount.add(b.group);
+                b.group.position.set(0, 0, 0);
+                b.group.rotation.set(0, 0, 0);
+            } else {
+                scene.add(b.group);
+            }
+        }
+        if (!attached) {
+            b.group.position.copy(rest.pos);
+            b.group.rotation.set(0, rest.yaw, 0);
+        }
+    }
+
     function poseAt(t) {
         applyJoints(robotAt(t));
         setJaw(jawAt(t));
@@ -913,24 +943,8 @@
         robot.updateMatrixWorld(true);
 
         TL.boards.forEach((bt, i) => {
-            const b = boards[i];
             const attached = t >= bt.attach && t < bt.release;
-            if (attached !== b.attached || !b.placed) {
-                b.attached = attached;
-                b.placed = true;
-                if (attached) {
-                    boardMount.add(b.group);
-                    b.group.position.set(0, 0, 0);
-                    b.group.rotation.set(0, 0, 0);
-                } else {
-                    scene.add(b.group);
-                }
-            }
-            if (!attached) {
-                const rest = t < bt.attach ? bt.rest[0] : bt.rest[1];
-                b.group.position.copy(rest.pos);
-                b.group.rotation.set(0, rest.yaw, 0);
-            }
+            placeBoard(i, attached, attached ? null : (t < bt.attach ? bt.rest[0] : bt.rest[1]));
         });
         scene.updateMatrixWorld(true);
         camera.updateMatrixWorld(true);
@@ -946,6 +960,210 @@
                 const [a, z] = bt.faces[side];
                 const win = sstep(a, a + 0.35, t) * (1 - sstep(z - 0.35, z, t));
                 const op = win * sstep(0.55, 0.9, facing);
+                cardOps[i][side] = sstep(0.4, 1, op);
+                b.userData.labels[side].material.opacity = 1 - sstep(0, 0.4, op);
+            });
+        });
+    }
+
+    /* ------------------------------------------------------------------ */
+    /* Direct navigation from the header                                   */
+    /* ------------------------------------------------------------------ */
+
+    // Clicking a section doesn't scrub through the story in between. The robot plans a direct route
+    // instead: put away the board it holds if the destination doesn't need it, move any other board that
+    // sits somewhere else at the destination, fetch the board the destination needs, then go straight to
+    // the destination pose. The route ends exactly on the timeline's pose, so the page then hands back to
+    // the scroll position without a jump.
+    const DETOUR_SEC_PER_BEAT = 0.75;
+
+    // Where each board is at timeline position t: 'held', 'rack', 'shelf' or 'tower'.
+    function boardSpots(t) {
+        return TL.boards.map((bt, i) => {
+            if (t >= bt.attach && t < bt.release) return 'held';
+            if (i === 0) return t < bt.attach ? 'rack' : 'shelf';
+            return 'tower';
+        });
+    }
+    function restAt(spot) {
+        const S = TL.spots[spot];
+        return { pos: new V3(S.x, S.top + GRIP - B.H / 2, S.z), yaw: S.psi * D2R };
+    }
+
+    const _tw = new V3(), _tz = new V3();
+    function planDetour(tA, tB) {
+        const S = TL.spots, V = TL.views;
+        const keys = [], cams = [], status = [];
+        const jaws = [{ t: -1, open: jawAt(tA) > 0.5 ? 1 : 0 }];
+        const boardEv = [[], []];
+        let t = 0;
+        const QA = robotAt(tA).slice();
+        keys.push({ t: 0, Q: QA, move: 'J' });
+
+        // Where the tool is now, and which way the gripped board faces.
+        applyJoints(QA);
+        robot.updateMatrixWorld(true);
+        J[6].localToWorld(_tw.set(R.tool, 0, 0));
+        _tz.set(0, 0, 1).transformDirection(J[6].matrixWorld);
+        const last = _tw.clone();
+        const psiNow = Math.atan2(_tz.x, _tz.z) / D2R;
+
+        const add = (dur, P, psiDeg, move = 'J') => {
+            t += dur;
+            keys.push({ t, P: new V3(P[0], P[1], P[2]), psi: psiDeg * D2R, move });
+            last.set(P[0], P[1], P[2]);
+        };
+        const hold = dur => {
+            const k = keys[keys.length - 1];
+            t += dur;
+            keys.push(Object.assign({}, k, { t, move: 'J', Q: k.P ? null : k.Q }));
+        };
+        const say = text => status.push({ t, text });
+        const look = view => cams.push({ t, view });
+
+        cameraAt(tA);
+        cams.push({ t: 0, pos: camera.position.clone(), tgt: camTgt.clone() });
+
+        const spotsA = boardSpots(tA), spotsB = boardSpots(tB);
+        const where = spotsA.slice();
+        const heldA = spotsA.indexOf('held'), heldB = spotsB.indexOf('held');
+        where.forEach((w, i) => boardEv[i].push(w === 'held' ? { t: -1, held: true } : { t: -1, rest: restAt(w) }));
+
+        // Caught mid-move inside the tower or low over a rack: back out first.
+        if (_tw.x > S.tower.out + 0.05 && Math.abs(_tw.z - S.tower.z) < B.W) {
+            add(0.5, [S.tower.out - 0.12, _tw.y, _tw.z], psiNow, 'L');
+        } else if (_tw.y < S.rack.top + 0.4) {
+            add(0.4, [_tw.x, _tw.y + 0.4, _tw.z], psiNow, 'L');
+        }
+
+        function pickFrom(spot, i) {
+            const P = S[spot];
+            say((spot === 'tower' ? 'Retrieve' : 'Pick') + ' · Board 0' + (i + 1));
+            if (spot === 'tower') {
+                add(1.05, [P.out, P.top + 0.14, P.z], P.psi);
+                look(V.tower);
+                add(0.45, [P.x, P.top + 0.14, P.z], P.psi, 'L');
+                add(0.3, [P.x, P.top, P.z], P.psi, 'L');
+            } else {
+                add(1.0, [P.x, P.top + (spot === 'rack' ? 0.42 : 0.3), P.z], P.psi);
+                look(V[spot]);
+                add(spot === 'rack' ? 0.5 : 0.45, [P.x, P.top, P.z], P.psi, 'L');
+            }
+            jaws.push({ t, open: 0 });
+            boardEv[i].push({ t: t + 0.13, held: true });
+            where[i] = 'held';
+            hold(0.25);
+            if (spot === 'tower') {
+                add(0.2, [P.x, P.top + 0.06, P.z], P.psi, 'L');
+                add(0.6, [P.out - 0.12, P.top + 0.06, P.z], P.psi, 'L');
+            } else {
+                add(spot === 'rack' ? 0.6 : 0.35, [P.x, P.top + (spot === 'rack' ? 0.52 : 0.3), P.z], P.psi, 'L');
+            }
+            look(V[spot]);
+        }
+        function placeAt(spot, i) {
+            const P = S[spot];
+            say(spot === 'shelf' ? 'Place · Shelf A' : 'Return · Board 0' + (i + 1));
+            if (spot === 'tower') {
+                add(1.15, [P.out - 0.12, P.top + 0.06, P.z], P.psi);
+                look(V.tower);
+                add(0.55, [P.x, P.top + 0.06, P.z], P.psi, 'L');
+                add(0.2, [P.x, P.top, P.z], P.psi, 'L');
+            } else {
+                // Coming from the front with a board: swing wide of the floor rack, as the story does.
+                if (spot === 'shelf' && last.z > 0.3) add(0.6, [-0.55, TL.pTop + 0.2, 0.55], P.psi);
+                add(1.0, [P.x, P.top + (spot === 'rack' ? 0.52 : 0.3), P.z], P.psi);
+                look(V[spot]);
+                add(spot === 'rack' ? 0.6 : 0.45, [P.x, P.top, P.z], P.psi, 'L');
+            }
+            jaws.push({ t, open: 1 });
+            boardEv[i].push({ t: t + 0.1, rest: restAt(spot) });
+            where[i] = spot;
+            hold(0.25);
+            if (spot === 'tower') {
+                add(0.3, [P.x, P.top + 0.14, P.z], P.psi, 'L');
+                add(0.45, [P.out, P.top + 0.14, P.z], P.psi, 'L');
+            } else {
+                add(spot === 'rack' ? 0.5 : 0.35, [P.x, P.top + (spot === 'rack' ? 0.42 : 0.3), P.z], P.psi, 'L');
+            }
+            look(V[spot]);
+        }
+
+        if (heldA >= 0 && heldA !== heldB) placeAt(spotsB[heldA], heldA);
+        where.forEach((w, i) => {
+            if (i !== heldB && w !== 'held' && w !== spotsB[i]) {
+                pickFrom(w, i);
+                placeAt(spotsB[i], i);
+            }
+        });
+        if (heldB >= 0 && where[heldB] !== 'held') pickFrom(where[heldB], heldB);
+
+        say(statusAt(tB));
+        t += heldB >= 0 ? 1.15 : 1.2;
+        keys.push({ t, Q: robotAt(tB).slice(), move: 'J', final: true });
+
+        // Solve in order so the wrist stays continuous. The destination pose is the timeline's own, taken
+        // the short way round (whole turns of J1, J4 and J6 look identical).
+        let prevQ = QA;
+        keys.forEach(k => {
+            if (k.final) k.Q = k.Q.map((q, j) => (j === 0 || j === 3 || j === 5 ? wrapNear(q, prevQ[j]) : q));
+            else if (!k.Q) k.Q = solveIK(k.P, k.psi, prevQ);
+            prevQ = k.Q;
+        });
+
+        cameraAt(tB);
+        cams.push({ t, pos: camera.position.clone(), tgt: camTgt.clone() });
+        return { keys, jaws, cams, status, boardEv, total: t, tA, tB, heldA, heldB };
+    }
+
+    function camKeyPose(k, outP, outT) {
+        if (k.pos) {
+            outP.copy(k.pos);
+            outT.copy(k.tgt);
+        } else {
+            viewPose(k.view, outP, outT);
+        }
+    }
+    function cameraAtList(cs, t) {
+        let i = 1;
+        while (i < cs.length - 1 && t > cs[i].t) i++;
+        const a = cs[i - 1], b = cs[i];
+        const u = ease(clamp((t - a.t) / Math.max(1e-6, b.t - a.t), 0, 1));
+        camKeyPose(a, _ap, _at);
+        camKeyPose(b, _bp, _bt);
+        _cp.lerpVectors(_ap, _bp, u);
+        _ct.lerpVectors(_at, _bt, u);
+        if (!(a.view && a.view === b.view)) _cp.y += Math.sin(u * PI) * 0.12 * _ap.distanceTo(_bp) * 0.35;
+        camera.position.copy(_cp);
+        camera.lookAt(_ct);
+        camTgt.copy(_ct);
+    }
+
+    function poseDetour(D, tt) {
+        applyJoints(robotAtKeys(D.keys, tt));
+        setJaw(jawAtList(D.jaws, tt));
+        cameraAtList(D.cams, tt);
+        robot.updateMatrixWorld(true);
+        D.boardEv.forEach((ev, i) => {
+            let st = ev[0];
+            for (const e of ev) if (tt >= e.t) st = e;
+            placeBoard(i, Boolean(st.held), st.rest || null);
+        });
+        scene.updateMatrixWorld(true);
+        camera.updateMatrixWorld(true);
+
+        // The card on screen fades out as the robot sets off; the destination's card fades in as its board
+        // swings round to face the camera at the end.
+        const leaving = 1 - sstep(0, 0.35, tt), arriving = sstep(D.total - 0.7, D.total - 0.1, tt);
+        boards.forEach((bd, i) => {
+            const b = bd.group;
+            b.getWorldPosition(_center);
+            b.getWorldQuaternion(_q);
+            _toCam.copy(camera.position).sub(_center).normalize();
+            const gate = Math.max(i === D.heldA ? leaving : 0, i === D.heldB ? arriving : 0);
+            [0, 1].forEach(side => {
+                _n.set(0, 0, side === 0 ? 1 : -1).applyQuaternion(_q);
+                const op = gate * sstep(0.55, 0.9, _n.dot(_toCam));
                 cardOps[i][side] = sstep(0.4, 1, op);
                 b.userData.labels[side].material.opacity = 1 - sstep(0, 0.4, op);
             });
@@ -1234,41 +1452,86 @@
         return;
     }
 
-    // Navigation scrolls are animated here rather than by the browser: native smooth scrolling covers any
-    // distance in about half a second, which would cram the robot's whole move into a blur. The scroll's
-    // length follows how much of the timeline it crosses, so the robot moves at a natural pace.
-    let glide = 0;
-    const stopGlide = () => { glide = 0; };
-    ['wheel', 'touchstart', 'keydown', 'mousedown'].forEach(ev => window.addEventListener(ev, stopGlide, { passive: true }));
-    function glideTo(y) {
-        const from = window.scrollY;
-        const to = clamp(y, 0, document.documentElement.scrollHeight - innerHeight);
-        const beats = Math.abs(to - from) / beatPx;
-        if (beats < 0.01) return;
-        const dur = clamp(0.4 + beats * 0.33, 0.9, 4.8) * 1000;
-        const id = ++glide;
-        const t0 = performance.now();
-        const step = now => {
-            if (id !== glide) return;
-            const u = clamp((now - t0) / dur, 0, 1);
-            const e = u < 0.5 ? 4 * u * u * u : 1 - Math.pow(-2 * u + 2, 3) / 2;
-            window.scrollTo(0, from + (to - from) * e);
-            if (u < 1) requestAnimationFrame(step);
+    // Header navigation. Live modes play a planned direct route (planDetour), then quietly move the scroll
+    // position to the destination. Frames mode can only show the pre-rendered story, so there (and with
+    // reduced motion) the scene fades through white instead. Scrolling is held while either plays.
+    let detour = null, cutting = false;
+    const busy = () => Boolean(detour) || cutting;
+    window.addEventListener('wheel', e => { if (busy()) e.preventDefault(); }, { passive: false });
+    window.addEventListener('touchmove', e => { if (busy()) e.preventDefault(); }, { passive: false });
+    window.addEventListener('keydown', e => {
+        if (busy() && ['ArrowDown', 'ArrowUp', 'PageDown', 'PageUp', ' ', 'Home', 'End'].includes(e.key)) e.preventDefault();
+    });
+
+    const markY = t => track.offsetTop + t * beatPx + 2;
+    function navigate(tB, yB, after) {
+        if (busy()) return;
+        const finish = () => { if (after) after(); };
+        const start = () => {
+            const tA = cur;
+            if (Math.abs(tA - tB) < 0.02) {
+                window.scrollTo(0, yB);
+                finish();
+                return;
+            }
+            if (player || reduce) {
+                cutting = true;
+                stage.classList.add('cell-cut');
+                setTimeout(() => {
+                    window.scrollTo(0, yB);
+                    cur = targetT();
+                    dirty = true;
+                    stage.classList.remove('cell-cut');
+                    setTimeout(() => { cutting = false; finish(); }, 380);
+                }, 320);
+                return;
+            }
+            detour = { plan: planDetour(tA, tB), tt: 0, y: yB, after: finish };
+            dirty = true;
         };
-        requestAnimationFrame(step);
+        // Below the cell (Capabilities, Contact): come back up to it first.
+        const endY = track.offsetTop + TL.total * beatPx;
+        if (window.scrollY > endY + 4) {
+            window.scrollTo({ top: endY, behavior: 'smooth' });
+            const t0 = performance.now();
+            const wait = () => {
+                if (Math.abs(window.scrollY - endY) < 3 || performance.now() - t0 > 1500) {
+                    window.scrollTo(0, endY);
+                    cur = targetT();
+                    start();
+                } else {
+                    requestAnimationFrame(wait);
+                }
+            };
+            requestAnimationFrame(wait);
+        } else {
+            start();
+        }
     }
 
     window.CELL = {
         mode,
         scrollToMark(name) {
-            if (name === 'top') return glideTo(0), true;
+            if (name === 'top') return navigate(0, 0), true;
             if (!TL || TL.marks[name] === undefined) return false;
-            glideTo(track.offsetTop + TL.marks[name] * beatPx + 2);
+            navigate(TL.marks[name], markY(TL.marks[name]));
             return true;
         },
-        scrollToY(y) { glideTo(y); },
+        // Sections after the cell: park the robot at the end of the story, then scroll on down.
+        scrollToY(y) {
+            const after = () => window.scrollTo({ top: y, behavior: 'smooth' });
+            if (window.scrollY > track.offsetTop + TL.total * beatPx + 4) after();
+            else navigate(TL.marks.end, markY(TL.marks.end), after);
+        },
         get marks() { return TL ? TL.marks : {}; },
-        debugSet(t) { cur = t; forceT = t; dirty = true; }
+        debugSet(t) { cur = t; forceT = t; dirty = true; },
+        // Renders the planned route from tA to tB at fraction u (for testing); returns its length in beats.
+        debugDetour(tA, tB, u) {
+            const D = planDetour(tA, tB);
+            cur = forceT = tB;
+            renderDetour(D, u * D.total);
+            return D.total;
+        }
     };
 
     /* ------------------------------------------------------------------ */
@@ -1282,6 +1545,21 @@
         const dt = Math.min(0.1, (now - lastFrame) / 1000);
         lastFrame = now;
         resize(false);
+        if (detour) {
+            const D = detour.plan;
+            detour.tt += dt / DETOUR_SEC_PER_BEAT;
+            if (detour.tt < D.total) {
+                renderDetour(D, detour.tt);
+                return;
+            }
+            // Arrived: the scene now matches the timeline at the destination, so jump the scroll there.
+            const { y, after } = detour;
+            detour = null;
+            window.scrollTo(0, y);
+            cur = targetT();
+            dirty = true;
+            after();
+        }
         const tgt = forceT !== null ? forceT : targetT();
         const k = reduce ? 1 : 1 - Math.exp(-dt * 5.5);
         const next = Math.abs(tgt - cur) < 0.0005 ? tgt : lerp(cur, tgt, k);
@@ -1320,30 +1598,44 @@
             }
         }
         poseAt(tScene);
-        TL.boards.forEach((bt, i) => {
+        drawCards(settled);
+        drawOverlays(t, statusAt(t));
+        if (renderer) renderer.render(scene, camera);
+    }
+
+    function renderDetour(D, tt) {
+        poseDetour(D, tt);
+        drawCards(false);
+        let s = D.status.length ? D.status[0].text : statusAt(D.tA);
+        for (const x of D.status) if (tt >= x.t - 0.05) s = x.text;
+        drawOverlays(lerp(D.tA, D.tB, ease(clamp(tt / D.total, 0, 1))), s);
+        renderer.render(scene, camera);
+    }
+
+    function drawCards(settled) {
+        boards.forEach((bd, i) => {
             [0, 1].forEach(side => {
                 const el = cardEls[i][side];
                 if (!el) return;
                 const op = cardOps[i][side];
-                projectCard(el, boards[i].group, side, op);
+                projectCard(el, bd.group, side, op);
                 el.classList.toggle('live', op > 0.97 && settled);
             });
         });
+    }
 
+    function drawOverlays(t, s) {
         const heroOp = 1 - sstep(0.05, 0.45, t);
         heroEl.style.opacity = heroOp.toFixed(3);
         heroEl.style.transform = `translate3d(0, ${(-t * 60).toFixed(1)}px, 0)`;
         heroEl.style.visibility = heroOp < 0.01 ? 'hidden' : 'visible';
         if (hintEl) hintEl.style.opacity = (1 - sstep(0.02, 0.2, t)).toFixed(3);
         if (progressEl) progressEl.style.transform = `scaleX(${(t / TL.total).toFixed(4)})`;
-        const s = statusAt(t);
         if (statusEl && s !== lastStatus) {
             lastStatus = s;
             statusEl.querySelector('span').textContent = s;
         }
         if (statusEl) statusEl.style.opacity = (sstep(0.3, 0.6, t) * (1 - sstep(TL.total - 0.5, TL.total, t))).toFixed(3);
-
-        if (renderer) renderer.render(scene, camera);
     }
 
     // Jump straight to where the page already is (reload mid-scroll).

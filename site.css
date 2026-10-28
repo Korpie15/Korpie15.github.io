@@ -131,6 +131,10 @@ p { margin: 0; }
 }
 .cell-on #cell { display: block; position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
 
+/* Header navigation in frames mode fades the scene through white (cell.js navigate). */
+.cell-on #cell, .cell-on .cards { transition: opacity .3s ease; }
+.cell-cut #cell, .cell-cut .cards { opacity: 0; }
+
 /* Without a GPU, backdrop blur is expensive to composite: use solid panels instead. */
 .is-lite .nav, .is-lite .menu-sheet, .is-lite .cell-status {
     -webkit-backdrop-filter: none;
