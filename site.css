@@ -198,6 +198,9 @@ p { margin: 0; }
     pointer-events: none;
     white-space: nowrap;
 }
+@media (orientation: landscape) and (max-height: 520px) {
+    .cell-on .cell-status { display: none; }
+}
 .cell-status b { width: 7px; height: 7px; border-radius: 50%; background: #34c759; box-shadow: 0 0 0 3px rgba(52, 199, 89, 0.18); }
 
 /* ---------- Board cards ---------- */
@@ -265,14 +268,14 @@ p { margin: 0; }
 .about-head { display: flex; align-items: center; justify-content: space-between; gap: 1em; }
 .about-photo {
     position: relative; margin: 0; flex: none;
-    width: 4.6em; height: 4.6em; border-radius: 50%; overflow: hidden;
+    width: 6.6em; height: 6.6em; border-radius: 50%;
     box-shadow: 0 0 0 0.22em #fff, 0 0 0 0.3em var(--yellow);
     cursor: default; outline: none;
 }
-.about-photo img { width: 100%; height: 100%; object-fit: cover; }
+.about-photo img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
 /* Hover (or tap) the photo to see years in industry, as on the earlier design. */
 .about-years {
-    position: absolute; inset: 0;
+    position: absolute; inset: 0; border-radius: 50%;
     display: grid; place-content: center; text-align: center;
     background: rgba(29, 29, 31, 0.72); color: #fff;
     opacity: 0; transition: opacity .3s ease;
@@ -288,6 +291,18 @@ p { margin: 0; }
 }
 .landscape .card-about .about-years b { font-size: 3.4em; }
 .landscape .card-about .about-years span { font-size: 0.95em; margin-top: 0.4em; }
+/* Touch screens can't hover: show the years as a badge on the photo instead. */
+@media (hover: none) {
+    .about-years, .landscape .card-about .about-years {
+        inset: auto; left: 50%; bottom: -0.55em; transform: translateX(-50%);
+        display: flex; align-items: baseline; gap: 0.3em; white-space: nowrap;
+        padding: 0.32em 0.7em; border-radius: 999px;
+        background: var(--ink); color: #fff; opacity: 1;
+        box-shadow: 0 0 0 0.18em #fff;
+    }
+    .about-years b, .landscape .card-about .about-years b { font-size: 0.86em; letter-spacing: -0.02em; }
+    .about-years span, .landscape .card-about .about-years span { font-size: 0.62em; margin: 0; }
+}
 
 /* Experience */
 .roles { display: grid; gap: 1.1em; }

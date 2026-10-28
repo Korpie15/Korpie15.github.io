@@ -793,8 +793,12 @@
         const aspect = camera.aspect;
         return Math.max(fh / 2 / TAN, fw / 2 / (TAN * aspect));
     }
+    // A phone held sideways: the board gets nearly the whole (short) screen so its text stays readable.
+    // (Never in frames mode: the frames were rendered with the normal framing.)
+    const shortScreen = () => mode !== 'frames' && !TOOL && !B.portrait && fit.h * fit.s < 520;
     function presentDistance() {
-        const fw = B.portrait ? 0.9 : 0.9, fh = B.portrait ? 0.78 : 0.8;
+        const short = shortScreen();
+        const fw = short ? 0.97 : 0.9, fh = B.portrait ? 0.78 : short ? 0.92 : 0.8;
         return fitDistance(B.W / fw, B.H / fh);
     }
 
@@ -803,8 +807,11 @@
     function viewPose(view, outPos, outTgt) {
         if (view === 'present') {
             const p = L.present;
-            outTgt.set(p.x, p.cy, p.z);
-            outPos.set(p.x, p.cy, p.z + presentDistance());
+            const d = presentDistance();
+            // On short screens, centre the board in the space below the header bar instead of the window.
+            const lift = shortScreen() ? (26 / (fit.h * fit.s)) * 2 * d * TAN : 0;
+            outTgt.set(p.x, p.cy + lift, p.z);
+            outPos.set(p.x, p.cy + lift, p.z + d);
             return;
         }
         outTgt.set(view.tgt[0], view.tgt[1], view.tgt[2]);
@@ -850,7 +857,7 @@
         const d = presentDistance();
         cardH = B.H / (2 * d * TAN) * fit.h * fit.s;
         cardW = cardH * B.W / B.H;
-        const fs = cardH * (B.portrait ? 0.0262 : 0.0285);
+        const fs = cardH * (B.portrait ? 0.0262 : shortScreen() ? 0.031 : 0.0285);
         cardEls.flat().forEach(el => {
             if (!el) return;
             el.style.width = cardW + 'px';
