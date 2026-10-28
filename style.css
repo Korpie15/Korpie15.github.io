@@ -3369,6 +3369,17 @@ body.classic-view-mode #robot-front-stage .section {
     margin-right: 1.5rem;
 }
 
+.view-switch {
+    white-space: nowrap;
+    text-decoration: none;
+    background: #f59e0b;
+    color: #0f172a;
+}
+
+.view-switch.view-mode-toggle {
+    margin-left: -0.9rem;
+}
+
 .view-mode-toggle:hover {
     background: #f59e0b;
     color: #0f172a;
@@ -4035,6 +4046,10 @@ body.classic-view-mode .blue-mandatory-sign {
         font-size: 0.75rem;
         margin-left: auto;
         margin-right: 0.2rem;
+    }
+
+    .view-switch.view-mode-toggle {
+        margin-left: 0.2rem;
     }
 
     /* Prominent, touch-friendly minimized dock on mobile */

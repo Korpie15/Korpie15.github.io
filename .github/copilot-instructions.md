@@ -9,10 +9,9 @@ This is a personal engineering portfolio website for Aidan Korpar, hosted on Git
 - **No build process**: Direct HTML/CSS/JS files served as-is
 
 ## Project Structure
-- `index.html` - Main portfolio page: a scroll-driven 3D robot cell; detail write-ups live in `<template>` elements
-- `cell.js` - Three.js scene: robot, inverse kinematics, scroll timeline and HTML cards mapped onto boards
-- `site.js` / `site.css` - Navigation, detail sheets and styling for the new page
-- `classic.html` with `style.css` / `script.js` - The previous version of the site
+- `index.html` with `style.css` / `script.js` / `robot-*.js` - The robot workcell site (dark theme)
+- `3dRobot/` - The white, scroll-driven robot studio site (`/3dRobot/`): `cell.js` (Three.js scene, IK, scroll timeline), `site.js`, `site.css`; detail write-ups live in `<template>` elements in its `index.html`
+- `_redirects` - Cloudflare Pages short links (`/3d` → `/3dRobot/`)
 - `images/` - Portfolio images and assets
 - `pdfs/` - Resume and other downloadable documents
 - `favicon.png` - Site favicon
