@@ -9,21 +9,55 @@
  *
  * Everything is a pure function of the timeline position `t`, which follows
  * the scroll position, so scrubbing forwards and backwards always agrees.
+ *
+ * The scene is drawn in one of three modes, picked on load:
+ *   full   : live WebGL at full quality (any device with GPU acceleration)
+ *   frames : pre-rendered frames (tools/render-frames.mjs) played on a 2D
+ *            canvas, the way Apple's product pages work. Used on desktop-sized
+ *            screens without GPU acceleration, where live WebGL would crawl.
+ *   lite   : live WebGL without shadows or reflections at a low resolution
+ *            (no GPU and a phone-sized screen, or no usable frames)
+ * Add ?full, ?frames or ?lite to the URL to force a mode.
  */
-(() => {
+(async () => {
     'use strict';
 
     const root = document.documentElement;
     const canvas = document.getElementById('cell');
     const stage = document.getElementById('stage');
     const track = document.getElementById('track');
-    if (!window.THREE || !canvas || !stage || !track) return;
+    // tools/render-frames.html sets this to drive the scene off-screen.
+    const TOOL = window.CELL_RENDER || null;
+    if (!window.THREE || !canvas || (!TOOL && (!stage || !track))) return;
 
-    let renderer;
-    try {
-        renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: 'high-performance' });
-        if (!renderer.getContext()) throw new Error('no context');
-    } catch (err) {
+    // Frames are rendered at this size; the page scales them to cover the window.
+    const FRAME_W = 2160, FRAME_H = 1200;
+
+    // '' when WebGL runs on the GPU, the renderer's name when it's software, null without WebGL.
+    function softwareGL() {
+        try {
+            const gl = document.createElement('canvas').getContext('webgl');
+            if (!gl) return null;
+            const info = gl.getExtension('WEBGL_debug_renderer_info');
+            const name = String(info ? gl.getParameter(info.UNMASKED_RENDERER_WEBGL) : gl.getParameter(gl.RENDERER));
+            const lose = gl.getExtension('WEBGL_lose_context');
+            if (lose) lose.loseContext();
+            return /swiftshader|llvmpipe|softpipe|software|basic render/i.test(name) ? name : '';
+        } catch (err) {
+            return null;
+        }
+    }
+    const narrow = () => innerWidth < 700 || innerWidth / innerHeight < 1;
+    const forced = ['full', 'frames', 'lite'].find(m => new RegExp(`[?&]${m}\\b`).test(location.search));
+    let mode = 'full';
+    if (TOOL) mode = 'full';
+    else if (forced) mode = forced;
+    else {
+        const sw = softwareGL();
+        if (sw === null) mode = narrow() ? 'none' : 'frames';
+        else if (sw) mode = narrow() ? 'lite' : 'frames';
+    }
+    if (mode === 'none') {
         root.classList.add('no-webgl');
         return;
     }
@@ -40,14 +74,8 @@
     const col = hex => new THREE.Color(hex).convertSRGBToLinear();
 
     const coarse = matchMedia('(pointer: coarse)').matches;
-
-    renderer.setClearColor(0xffffff, 1);
-    renderer.outputEncoding = THREE.sRGBEncoding;
-    renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    renderer.toneMappingExposure = 1.05;
-    renderer.shadowMap.enabled = true;
-    renderer.shadowMap.type = THREE.PCFShadowMap;
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+    let renderer = null;   // live modes only
+    let player = null;     // frames mode only
 
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(30, 1, 0.05, 80);
@@ -87,9 +115,10 @@
         pmrem.dispose();
         return tex;
     }
-    scene.environment = studioEnvironment();
 
-    scene.add(new THREE.HemisphereLight(0xffffff, 0xe6e6ea, 0.35));
+    // Lite has no reflections, so a brighter sky/ground fill stands in for them.
+    const hemi = new THREE.HemisphereLight(0xffffff, 0xe6e6ea, 0.35);
+    scene.add(hemi);
     const sun = new THREE.DirectionalLight(0xffffff, 1.25);
     sun.position.set(-2.6, 7.5, 4.2);
     sun.castShadow = true;
@@ -403,7 +432,7 @@
         }
         const tex = new THREE.CanvasTexture(c);
         tex.encoding = THREE.sRGBEncoding;
-        tex.anisotropy = Math.min(8, renderer.capabilities.getMaxAnisotropy());
+        tex.anisotropy = 8; // three.js clamps this to what the GPU supports
         return tex;
     }
     function roundRect(g, x, y, w, h, r) {
@@ -450,9 +479,22 @@
         [{ num: '03', label: 'Projects', title: 'Things I’ve built.' }, { num: '04', label: 'Leadership', title: 'Leading people.' }]
     ];
 
+    // The size of the view the scene is drawn for. Frames are always drawn for the frame size and then
+    // scaled to cover the window, so everything projected on top goes through `fit` as well.
+    const fit = { w: 1, h: 1, s: 1, ox: 0, oy: 0 };
+    function updateFit() {
+        const sw = TOOL ? TOOL.w : stage.clientWidth, sh = TOOL ? TOOL.h : stage.clientHeight;
+        if (mode === 'frames') {
+            const s = Math.max(sw / FRAME_W, sh / FRAME_H);
+            Object.assign(fit, { w: FRAME_W, h: FRAME_H, s, ox: (sw - FRAME_W * s) / 2, oy: (sh - FRAME_H * s) / 2 });
+        } else {
+            Object.assign(fit, { w: sw, h: sh, s: 1, ox: 0, oy: 0 });
+        }
+    }
+
     function boardDims() {
-        const portrait = stage.clientWidth / stage.clientHeight < 1;
-        return portrait ? { W: 0.72, H: 1.12, portrait } : { W: 1.25, H: 0.82, portrait };
+        const portrait = fit.w / fit.h < 1;
+        return portrait ? { W: 0.72, H: 1.12, portrait } : { W: 1.42, H: 0.84, portrait };
     }
 
     function buildCell() {
@@ -741,7 +783,7 @@
         return Math.max(fh / 2 / TAN, fw / 2 / (TAN * aspect));
     }
     function presentDistance() {
-        const fw = B.portrait ? 0.9 : 0.86, fh = B.portrait ? 0.78 : 0.74;
+        const fw = B.portrait ? 0.9 : 0.9, fh = B.portrait ? 0.78 : 0.8;
         return fitDistance(B.W / fw, B.H / fh);
     }
 
@@ -793,10 +835,9 @@
 
     function sizeCards() {
         const d = presentDistance();
-        const vh = stage.clientHeight;
-        cardH = B.H / (2 * d * TAN) * vh;
+        cardH = B.H / (2 * d * TAN) * fit.h * fit.s;
         cardW = cardH * B.W / B.H;
-        const fs = cardH * (B.portrait ? 0.0262 : 0.0242);
+        const fs = cardH * (B.portrait ? 0.0262 : 0.0285);
         cardEls.flat().forEach(el => {
             if (!el) return;
             el.style.width = cardW + 'px';
@@ -807,7 +848,15 @@
         root.classList.toggle('landscape', !B.portrait);
     }
 
+    // World point → window pixels (through the frame fit in frames mode).
+    const _s = new V3();
+    function toScreen(v) {
+        _s.copy(v).project(camera);
+        return [((_s.x + 1) / 2 * fit.w) * fit.s + fit.ox, ((1 - _s.y) / 2 * fit.h) * fit.s + fit.oy];
+    }
+
     const _c = [new V3(), new V3(), new V3(), new V3()];
+    const _cam = new V3();
     const _n = new V3(), _toCam = new V3(), _center = new V3(), _q = new THREE.Quaternion();
     function projectCard(el, board, side, opacity) {
         if (opacity <= 0.001) {
@@ -821,14 +870,15 @@
         _c[1].set(W / 2 * sx, H / 2, z);
         _c[2].set(W / 2 * sx, -H / 2, z);
         _c[3].set(-W / 2 * sx, -H / 2, z);
-        const w = stage.clientWidth, h = stage.clientHeight;
         const pts = [];
         for (const c of _c) {
             c.applyMatrix4(board.matrixWorld);
-            const camSpace = c.clone().applyMatrix4(camera.matrixWorldInverse);
-            if (camSpace.z > -0.05) { el.style.opacity = '0'; el.style.visibility = 'hidden'; return; }
-            c.project(camera);
-            pts.push([(c.x + 1) / 2 * w, (1 - c.y) / 2 * h]);
+            if (_cam.copy(c).applyMatrix4(camera.matrixWorldInverse).z > -0.05) {
+                el.style.opacity = '0';
+                el.style.visibility = 'hidden';
+                return;
+            }
+            pts.push(toScreen(c));
         }
         el.style.transform = homography(cardW, cardH, pts);
         el.style.opacity = opacity.toFixed(3);
@@ -850,73 +900,13 @@
     }
 
     /* ------------------------------------------------------------------ */
-    /* Scroll                                                              */
+    /* Posing the whole cell at a point on the timeline                    */
     /* ------------------------------------------------------------------ */
 
-    let beatPx = 400;
-    function layoutTrack() {
-        const vh = stage.clientHeight;
-        beatPx = Math.round(vh * (B.portrait ? 0.62 : 0.55));
-        track.style.height = (TL.total * beatPx + vh) + 'px';
-    }
-    function targetT() {
-        const y = window.scrollY - track.offsetTop;
-        return clamp(y / beatPx, 0, TL.total);
-    }
+    // Card opacity per board and side, filled by poseAt().
+    const cardOps = [[0, 0], [0, 0]];
 
-    window.CELL = {
-        scrollToMark(name) {
-            if (!TL || TL.marks[name] === undefined) return false;
-            const y = track.offsetTop + TL.marks[name] * beatPx + 2;
-            window.scrollTo({ top: y, behavior: 'smooth' });
-            return true;
-        },
-        get marks() { return TL ? TL.marks : {}; },
-        debugSet(t) { cur = t; forceT = t; dirty = true; }
-    };
-
-    /* ------------------------------------------------------------------ */
-    /* Frame                                                               */
-    /* ------------------------------------------------------------------ */
-
-    let lastW = 0, lastH = 0;
-    function resize(force) {
-        const w = stage.clientWidth, h = stage.clientHeight;
-        if (!force && w === lastW && Math.abs(h - lastH) < 2) return;
-        lastW = w; lastH = h;
-        renderer.setSize(w, h, false);
-        camera.aspect = w / h;
-        camera.updateProjectionMatrix();
-        const dims = boardDims();
-        if (!B || dims.portrait !== B.portrait) {
-            const keep = TL ? cur / TL.total : 0;
-            B = dims;
-            buildCell();
-            cur = keep * TL.total;
-        }
-        layoutTrack();
-        sizeCards();
-        dirty = true;
-    }
-
-    let cur = 0, forceT = null, dirty = true, lastFrame = performance.now(), lastStatus = '';
-    const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
-
-    function frame(now) {
-        requestAnimationFrame(frame);
-        const dt = Math.min(0.1, (now - lastFrame) / 1000);
-        lastFrame = now;
-        resize(false);
-        const tgt = forceT !== null ? forceT : targetT();
-        const k = reduce ? 1 : 1 - Math.exp(-dt * 5.5);
-        const next = Math.abs(tgt - cur) < 0.0005 ? tgt : lerp(cur, tgt, k);
-        if (next === cur && !dirty) return;
-        cur = next;
-        dirty = false;
-        render(cur, Math.abs(tgt - cur) < 0.03);
-    }
-
-    function render(t, settled) {
+    function poseAt(t) {
         applyJoints(robotAt(t));
         setJaw(jawAt(t));
         cameraAt(t);
@@ -956,13 +946,362 @@
                 const [a, z] = bt.faces[side];
                 const win = sstep(a, a + 0.35, t) * (1 - sstep(z - 0.35, z, t));
                 const op = win * sstep(0.55, 0.9, facing);
-                const el = cardEls[i][side];
-                const cardOp = sstep(0.4, 1, op);
-                if (el) {
-                    projectCard(el, b, side, cardOp);
-                    el.classList.toggle('live', cardOp > 0.97 && settled);
-                }
+                cardOps[i][side] = sstep(0.4, 1, op);
                 b.userData.labels[side].material.opacity = 1 - sstep(0, 0.4, op);
+            });
+        });
+    }
+
+    // A short fingerprint of everything that decides what a frame looks like, so stale frames are refused.
+    function signature() {
+        const parts = [FRAME_W, FRAME_H, camera.fov, B.W, B.H, TL.total.toFixed(4)];
+        TL.keys.forEach(k => parts.push(k.t.toFixed(3), ...k.Q.map(q => q.toFixed(4))));
+        TL.cams.forEach(c => parts.push(c.t.toFixed(3), c.view === 'present' ? 'p' : c.view.tgt.join() + c.view.dir.join() + c.view.fit.join()));
+        TL.jaws.forEach(j => parts.push(j.t.toFixed(3), j.open));
+        let h = 5381;
+        const str = parts.join('|');
+        for (let i = 0; i < str.length; i++) h = ((h * 33) ^ str.charCodeAt(i)) >>> 0;
+        return 'c' + h.toString(16);
+    }
+
+    /* ------------------------------------------------------------------ */
+    /* Frames mode: pre-rendered frames on a 2D canvas                     */
+    /* ------------------------------------------------------------------ */
+
+    // Frames are dense (a new one every few pixels of on-screen motion), so each scroll position just shows
+    // its nearest frame. All frames stay compressed in memory; only a window around the current one is
+    // decoded (off the main thread), biased in the direction of travel.
+    async function createFramePlayer(sig) {
+        const AHEAD = 24, BEHIND = 8, KEEP = 48, CONCURRENCY = 4;
+        const { dir } = await (await fetch('frames/current.json', { cache: 'no-cache' })).json();
+        const manifest = await (await fetch(`${dir}manifest.json`)).json();
+        if (manifest.signature !== sig) throw new Error('Pre-rendered frames are out of date (the cell changed).');
+        if (manifest.width !== FRAME_W || manifest.height !== FRAME_H) throw new Error('Pre-rendered frames are the wrong size.');
+
+        const ts = manifest.frames;
+        const count = ts.length;
+        const url = i => dir + manifest.pattern.replace('{i}', String(i).padStart(manifest.pad, '0'));
+        const blobs = new Array(count).fill(null);
+        const bitmaps = new Map();
+        const decoding = new Set();
+        let onLoad = () => {};
+        let center = 0, heading = 1;
+
+        const decode = i => {
+            if (bitmaps.has(i) || decoding.has(i) || !blobs[i]) return;
+            decoding.add(i);
+            createImageBitmap(blobs[i]).then(bm => {
+                decoding.delete(i);
+                if (bitmaps.has(i) || Math.abs(i - center) > KEEP) return bm.close();
+                bitmaps.set(i, bm);
+                onLoad(i);
+            }).catch(() => decoding.delete(i));
+        };
+        const focus = i => {
+            if (i !== center) heading = i > center ? 1 : -1;
+            center = i;
+            const ahead = heading > 0 ? AHEAD : BEHIND, behind = heading > 0 ? BEHIND : AHEAD;
+            for (let k = 0; k <= Math.max(ahead, behind); k++) {
+                if (k <= ahead && i + k < count) decode(i + k);
+                if (k <= behind && i - k >= 0) decode(i - k);
+            }
+            for (const [j, bm] of bitmaps) {
+                if (Math.abs(j - i) > KEEP) { bm.close(); bitmaps.delete(j); }
+            }
+        };
+
+        // Download coarse-to-fine (every 16th frame, then every 8th…), starting near where the page is,
+        // so the whole route is usable within seconds and fills in as the rest arrive.
+        const order = [];
+        const seen = new Set();
+        for (let stride = 16; stride >= 1; stride /= 2) {
+            for (let i = 0; i < count; i += stride) if (!seen.has(i)) { seen.add(i); order.push(i); }
+        }
+        const fetchFrame = async i => {
+            try {
+                const res = await fetch(url(i));
+                if (!res.ok) return;
+                blobs[i] = await res.blob();
+                if (Math.abs(i - center) <= AHEAD) decode(i);
+                else onLoad(i);
+            } catch (err) { /* a missing frame is covered by its neighbours */ }
+        };
+
+        const ctx = canvas.getContext('2d', { alpha: false });
+        // The canvas keeps the frames' own size and frames are copied 1:1; CSS (object-fit: cover) scales
+        // it to the window, which is far cheaper than rescaling every frame on the CPU.
+        canvas.width = FRAME_W;
+        canvas.height = FRAME_H;
+
+        const indexAt = t => {
+            let lo = 0, hi = count - 1;
+            while (lo < hi) {
+                const mid = (lo + hi + 1) >> 1;
+                if (ts[mid] <= t) lo = mid; else hi = mid - 1;
+            }
+            if (lo + 1 < count && ts[lo + 1] - t < t - ts[lo]) lo++;
+            return lo;
+        };
+
+        const player = {
+            ready: null,
+            set onFrameLoaded(fn) { onLoad = fn; },
+            start(t) {
+                const near = indexAt(t);
+                center = near;
+                order.sort((a, b) => (a === near ? -1 : b === near ? 1 : 0));
+                player.ready = (async () => {
+                    await fetchFrame(order.shift());
+                    await new Promise(r => {
+                        if (bitmaps.has(near)) return r();
+                        createImageBitmap(blobs[near]).then(bm => { bitmaps.set(near, bm); r(); }).catch(r);
+                    });
+                })();
+                player.ready.then(() => {
+                    let next = 0;
+                    const worker = async () => { while (next < order.length) await fetchFrame(order[next++]); };
+                    for (let k = 0; k < CONCURRENCY; k++) worker();
+                });
+                return player.ready;
+            },
+            // Draws the nearest decoded frame to t. Returns its timeline position and whether it is the
+            // exact frame for t (false while that one is still decoding), or null if nothing is ready.
+            draw(t) {
+                const i = indexAt(t);
+                focus(i);
+                let best = -1;
+                for (let k = 0; k < count && best < 0; k++) {
+                    if (bitmaps.has(i - k)) best = i - k;
+                    else if (bitmaps.has(i + k)) best = i + k;
+                }
+                if (best < 0) return null;
+                ctx.drawImage(bitmaps.get(best), 0, 0);
+                return { t: ts[best], exact: best === i };
+            }
+        };
+        return player;
+    }
+
+    /* ------------------------------------------------------------------ */
+    /* Scroll                                                              */
+    /* ------------------------------------------------------------------ */
+
+    let beatPx = 400;
+    function layoutTrack() {
+        if (TOOL) return;
+        const vh = stage.clientHeight;
+        beatPx = Math.round(vh * (B.portrait ? 0.62 : 0.55));
+        track.style.height = (TL.total * beatPx + vh) + 'px';
+    }
+    function targetT() {
+        const y = window.scrollY - track.offsetTop;
+        return clamp(y / beatPx, 0, TL.total);
+    }
+
+    /* ------------------------------------------------------------------ */
+    /* Set-up                                                              */
+    /* ------------------------------------------------------------------ */
+
+    // Live renderers draw at most this many pixels (about a 1080p screen at 1.15x for full); the browser
+    // upscales the rest. The ratio drops further, at most three steps, if frames still run slow.
+    let dpr = 1, minDpr = 0.6, dprSteps = 0;
+    function basePixelRatio() {
+        const budget = mode === 'lite' ? 0.6e6 : 2.4e6;
+        const w = stage.clientWidth, h = stage.clientHeight;
+        return clamp(Math.sqrt(budget / Math.max(1, w * h)), minDpr, Math.min(window.devicePixelRatio || 1, 2));
+    }
+
+    let lastW = 0, lastH = 0;
+    function resize(force) {
+        const w = TOOL ? TOOL.w : stage.clientWidth, h = TOOL ? TOOL.h : stage.clientHeight;
+        if (!force && w === lastW && Math.abs(h - lastH) < 2) return;
+        lastW = w; lastH = h;
+        updateFit();
+        if (renderer) {
+            if (TOOL) {
+                renderer.setPixelRatio(1);
+                renderer.setSize(Math.round(w * TOOL.ss), Math.round(h * TOOL.ss), false);
+            } else {
+                dpr = Math.min(basePixelRatio(), dprSteps ? dpr : Infinity);
+                renderer.setPixelRatio(dpr);
+                renderer.setSize(w, h, false);
+            }
+        }
+        camera.aspect = fit.w / fit.h;
+        camera.updateProjectionMatrix();
+        const dims = boardDims();
+        if (!B || dims.portrait !== B.portrait) {
+            const keep = TL ? cur / TL.total : 0;
+            B = dims;
+            buildCell();
+            cur = keep * TL.total;
+        }
+        layoutTrack();
+        sizeCards();
+        dirty = true;
+    }
+
+    let cur = 0, forceT = null, dirty = true, lastFrame = performance.now(), lastStatus = '';
+    const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    resize(true);
+
+    if (mode === 'frames') {
+        try {
+            player = await createFramePlayer(signature());
+        } catch (err) {
+            console.info('Pre-rendered frames unavailable; using the lite 3D renderer.', err);
+            mode = 'lite';
+        }
+    }
+    if (mode !== 'frames') {
+        try {
+            renderer = new THREE.WebGLRenderer({
+                canvas,
+                // MSAA is skipped on high-density screens (their pixels are small enough) and in lite.
+                antialias: mode === 'full' && (Boolean(TOOL) || (window.devicePixelRatio || 1) < 1.5),
+                powerPreference: 'high-performance',
+                preserveDrawingBuffer: Boolean(TOOL)
+            });
+            if (!renderer.getContext()) throw new Error('no context');
+        } catch (err) {
+            root.classList.remove('cell-on');
+            root.classList.add('no-webgl');
+            return;
+        }
+        renderer.setClearColor(0xffffff, 1);
+        renderer.outputEncoding = THREE.sRGBEncoding;
+        renderer.toneMapping = THREE.ACESFilmicToneMapping;
+        renderer.toneMappingExposure = 1.05;
+        renderer.shadowMap.enabled = mode === 'full';
+        renderer.shadowMap.type = THREE.PCFShadowMap;
+        sun.castShadow = mode === 'full';
+        if (mode === 'full') {
+            scene.environment = studioEnvironment();
+        } else {
+            hemi.intensity = 1.15;
+            sun.intensity = 1.0;
+            minDpr = 0.35;
+        }
+    }
+    root.classList.toggle('is-lite', mode !== 'full');
+    root.classList.toggle('is-frames', mode === 'frames');
+    root.dataset.cell = mode;
+    resize(true);
+
+    /* Off-screen frame rendering (tools/render-frames.html) */
+    if (TOOL) {
+        const probes = [];
+        const add = (obj, x, y, z) => probes.push({ obj, v: new V3(x, y, z) });
+        for (let i = 1; i <= 6; i++) add(J[i], 0, 0, 0);
+        add(J[6], R.tool, 0, 0);
+        add(J[6], 0.12, 0, 0.15);
+        add(J[3], -0.5, 0.05, 0);
+        add(J[2], 0, R.L2 / 2, 0.33);
+        add(J[1], 0.3, 0.1, 0.3);
+        fingers.forEach(f => add(f, 0.2, 0, 0));
+        boards.forEach(b => [[-1, 1], [1, 1], [1, -1], [-1, -1]].forEach(([x, y]) => add(b.group, x * B.W / 2, y * B.H / 2, 0)));
+        // Fixed points around the cell, so camera moves count as motion too.
+        // Only visible features: points on the bare white floor would count motion nobody can see.
+        [[-1.9, 0.1, -0.6], [-1.3, 0.45, 1.0], [-1.7, 0.6, -1.03], [1.7, 0.6, -1.03], [0, 0.6, -1.03],
+            [1.2, 0.62, 0.85], [1.7, 2.2, -2.4], [1.2, 2.2, 0.85]]
+            .forEach(p => add(scene, p[0], p[1], p[2]));
+        const w = new V3();
+        window.CELL_TOOL = {
+            total: TL.total,
+            signature: signature(),
+            width: FRAME_W,
+            height: FRAME_H,
+            fov: camera.fov,
+            // Screen positions of the probe points at t, plus the printed-label opacities (they fade too).
+            probe(t) {
+                poseAt(t);
+                const pts = probes.map(p => {
+                    w.copy(p.v);
+                    if (p.obj !== scene) p.obj.localToWorld(w);
+                    if (_cam.copy(w).applyMatrix4(camera.matrixWorldInverse).z > -0.05) return null;
+                    return toScreen(w);
+                });
+                const labels = boards.flatMap(b => b.group.userData.labels.map(l => l.material.opacity));
+                return { pts, labels };
+            },
+            render(t) {
+                poseAt(t);
+                renderer.render(scene, camera);
+                return canvas;
+            }
+        };
+        return;
+    }
+
+    window.CELL = {
+        mode,
+        scrollToMark(name) {
+            if (!TL || TL.marks[name] === undefined) return false;
+            const y = track.offsetTop + TL.marks[name] * beatPx + 2;
+            window.scrollTo({ top: y, behavior: 'smooth' });
+            return true;
+        },
+        get marks() { return TL ? TL.marks : {}; },
+        debugSet(t) { cur = t; forceT = t; dirty = true; }
+    };
+
+    /* ------------------------------------------------------------------ */
+    /* Frame loop                                                          */
+    /* ------------------------------------------------------------------ */
+
+    let busyFrames = 0, avgFrame = 1 / 60;
+
+    function frame(now) {
+        requestAnimationFrame(frame);
+        const dt = Math.min(0.1, (now - lastFrame) / 1000);
+        lastFrame = now;
+        resize(false);
+        const tgt = forceT !== null ? forceT : targetT();
+        const k = reduce ? 1 : 1 - Math.exp(-dt * 5.5);
+        const next = Math.abs(tgt - cur) < 0.0005 ? tgt : lerp(cur, tgt, k);
+        if (next === cur && !dirty) {
+            busyFrames = 0;
+            return;
+        }
+        cur = next;
+        dirty = false;
+        render(cur, Math.abs(tgt - cur) < 0.03);
+
+        // Live modes: if frames keep running slow, render fewer pixels.
+        busyFrames++;
+        if (busyFrames > 3) avgFrame = avgFrame * 0.92 + dt * 0.08;
+        if (renderer && busyFrames > 30 && avgFrame > 0.022 && dpr > minDpr && dprSteps < 3) {
+            dprSteps++;
+            dpr = Math.max(minDpr, dpr * 0.75);
+            renderer.setPixelRatio(dpr);
+            renderer.setSize(stage.clientWidth, stage.clientHeight, false);
+            busyFrames = 0;
+            avgFrame = 1 / 60;
+        }
+    }
+
+    function render(t, settled) {
+        // In frames mode the cards follow the frame actually on screen, so they never drift off the board
+        // while a nearer frame is still decoding.
+        let tScene = t;
+        if (player) {
+            const shown = player.draw(t);
+            if (shown) {
+                tScene = shown.t;
+                if (!shown.exact) dirty = true;
+            } else {
+                dirty = true;
+            }
+        }
+        poseAt(tScene);
+        TL.boards.forEach((bt, i) => {
+            [0, 1].forEach(side => {
+                const el = cardEls[i][side];
+                if (!el) return;
+                const op = cardOps[i][side];
+                projectCard(el, boards[i].group, side, op);
+                el.classList.toggle('live', op > 0.97 && settled);
             });
         });
 
@@ -978,14 +1317,18 @@
             statusEl.querySelector('span').textContent = s;
         }
         if (statusEl) statusEl.style.opacity = (sstep(0.3, 0.6, t) * (1 - sstep(TL.total - 0.5, TL.total, t))).toFixed(3);
-        root.style.setProperty('--end-fade', sstep(TL.marks.end - 0.4, TL.marks.end + 0.4, t).toFixed(3));
 
-        renderer.render(scene, camera);
+        if (renderer) renderer.render(scene, camera);
     }
 
-    resize(true);
     // Jump straight to where the page already is (reload mid-scroll).
     cur = targetT();
+    if (player) {
+        player.onFrameLoaded = () => { dirty = true; };
+        await player.start(cur);
+    } else if (renderer.compile) {
+        renderer.compile(scene, camera);
+    }
     render(cur, true);
     requestAnimationFrame(frame);
     root.classList.add('cell-ready');

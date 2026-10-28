@@ -12,6 +12,8 @@ This is a personal engineering portfolio website for Aidan Korpar, hosted on Git
 - `index.html` with `style.css` / `script.js` / `robot-*.js` - The robot workcell site (dark theme)
 - `3dRobot/` - The white, scroll-driven robot studio site (`/3dRobot/`): `cell.js` (Three.js scene, IK, scroll timeline), `site.js`, `site.css`; detail write-ups live in `<template>` elements in its `index.html`
 - `_redirects` - Cloudflare Pages short links (`/3d` → `/3dRobot/`)
+- `3dRobot/frames/` - Pre-rendered WebP frames used on desktops without GPU acceleration. Re-render with `node 3dRobot/tools/render-frames.mjs` whenever the robot, cell layout, lighting or timeline in `3dRobot/cell.js` changes (the page refuses stale frames and falls back to lite 3D). Each render goes in a new version folder; delete the old one.
+- `_headers` - Cloudflare Pages cache headers (frame folders are immutable)
 - `images/` - Portfolio images and assets
 - `pdfs/` - Resume and other downloadable documents
 - `favicon.png` - Site favicon

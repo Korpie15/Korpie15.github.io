@@ -144,7 +144,15 @@ p { margin: 0; }
     overflow: hidden;
     background: var(--paper);
 }
-.cell-on #cell { display: block; position: absolute; inset: 0; width: 100%; height: 100%; }
+.cell-on #cell { display: block; position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+
+/* Without a GPU, backdrop blur is expensive to composite: use solid panels instead. */
+.is-lite .nav, .is-lite .menu-sheet, .is-lite .cell-status {
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+}
+.is-lite .nav { background: rgba(255, 255, 255, 0.97); }
+.is-lite .cell-status { background: #fff; }
 
 .hero-copy {
     position: relative;

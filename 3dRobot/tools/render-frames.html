@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="robots" content="noindex">
+    <title>Frame renderer</title>
+    <!-- Same font as the site, for the printed board faces. -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@600;700&display=swap" rel="stylesheet">
+</head>
+<body style="margin:0;background:#fff">
+    <canvas id="cell"></canvas>
+    <script>
+        // Renders the robot cell's timeline as still frames for browsers without GPU acceleration.
+        // Driven by tools/render-frames.mjs; see that file for usage.
+        const q = new URLSearchParams(location.search);
+        window.CELL_RENDER = { w: 2160, h: 1200, ss: Number(q.get('ss')) || 1.5 };
+        window.MOVE_PX = Number(q.get('px')) || 9; // a new frame whenever anything moves this far on screen
+    </script>
+    <script src="../../three.min.js"></script>
+    <script>
+        (async () => {
+            await Promise.all([document.fonts.load('700 40px Inter'), document.fonts.load('600 20px Inter')]).catch(() => {});
+            const s = document.createElement('script');
+            s.src = '../cell.js';
+            document.body.appendChild(s);
+            while (!window.CELL_TOOL) await new Promise(r => setTimeout(r, 50));
+            const tool = window.CELL_TOOL;
+            const { width: W, height: H } = tool;
+
+            // Frame spacing follows on-screen motion: from each frame, step along the timeline until some
+            // probe point (robot joints, board corners, fixed points around the cell) has moved MOVE_PX
+            // pixels, or a printed board face has faded noticeably. Holds collapse to a single frame.
+            const motion = (a, b) => {
+                const A = tool.probe(a), B = tool.probe(b);
+                let max = 0;
+                const on = p => p && p[0] > -W * 0.1 && p[0] < W * 1.1 && p[1] > -H * 0.1 && p[1] < H * 1.1;
+                A.pts.forEach((pa, i) => {
+                    const pb = B.pts[i];
+                    if (on(pa) && on(pb)) max = Math.max(max, Math.hypot(pa[0] - pb[0], pa[1] - pb[1]));
+                });
+                A.labels.forEach((la, i) => { max = Math.max(max, Math.abs(la - B.labels[i]) * 250); });
+                return max;
+            };
+            const ts = [0];
+            let dt = 0.02;
+            while (ts[ts.length - 1] < tool.total - 1e-6) {
+                const t = ts[ts.length - 1];
+                for (let k = 0; k < 4; k++) {
+                    const m = motion(t, Math.min(tool.total, t + dt));
+                    dt = Math.min(0.6, Math.max(0.0015, dt * (m > 0.01 ? window.MOVE_PX / m : 2)));
+                }
+                ts.push(Math.min(tool.total, t + dt));
+            }
+
+            const out = document.createElement('canvas');
+            out.width = W;
+            out.height = H;
+            const ctx = out.getContext('2d');
+            ctx.imageSmoothingQuality = 'high';
+            window.frameInfo = {
+                width: W,
+                height: H,
+                fov: tool.fov,
+                signature: tool.signature,
+                frames: ts.map(t => Number(t.toFixed(5)))
+            };
+            window.renderFrame = (i, quality = 0.72) => {
+                const gl = tool.render(ts[i]);
+                ctx.drawImage(gl, 0, 0, W, H);
+                return out.toDataURL('image/webp', quality);
+            };
+            window.rendererReady = true;
+        })();
+    </script>
+</body>
+</html>
