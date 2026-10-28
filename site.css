@@ -264,16 +264,30 @@ p { margin: 0; }
 /* About */
 .about-head { display: flex; align-items: center; justify-content: space-between; gap: 1em; }
 .about-photo {
-    width: 4.6em; height: 4.6em; border-radius: 50%; object-fit: cover; flex: none;
+    position: relative; margin: 0; flex: none;
+    width: 4.6em; height: 4.6em; border-radius: 50%; overflow: hidden;
     box-shadow: 0 0 0 0.22em #fff, 0 0 0 0.3em var(--yellow);
+    cursor: default; outline: none;
 }
-.landscape .card-about .card-in { padding-right: 34%; }
+.about-photo img { width: 100%; height: 100%; object-fit: cover; }
+/* Hover (or tap) the photo to see years in industry, as on the earlier design. */
+.about-years {
+    position: absolute; inset: 0;
+    display: grid; place-content: center; text-align: center;
+    background: rgba(29, 29, 31, 0.72); color: #fff;
+    opacity: 0; transition: opacity .3s ease;
+}
+.about-photo:hover .about-years, .about-photo:focus .about-years, .about-photo:focus-visible .about-years { opacity: 1; }
+.about-photo:focus-visible { box-shadow: 0 0 0 0.22em #fff, 0 0 0 0.3em var(--yellow), 0 0 0 0.5em rgba(243, 181, 11, 0.35); }
+.about-years b { font-size: 1.35em; font-weight: 800; letter-spacing: -0.04em; line-height: 1; }
+.about-years span { font-size: 0.42em; font-weight: 600; letter-spacing: 0.02em; margin-top: 0.3em; }
+.landscape .card-about .card-in { padding-right: 34%; justify-content: center; }
 .landscape .card-about .about-photo {
     position: absolute; right: 6%; top: 50%;
-    width: 24%; height: auto; aspect-ratio: 1; transform: translateY(-58%);
+    width: 24%; height: auto; aspect-ratio: 1; transform: translateY(-50%);
 }
-.landscape .card-about .card-in > .stats { position: absolute; left: 6%; right: 6%; bottom: 5%; }
-.landscape .card-about .chips { margin-bottom: 7.5em; }
+.landscape .card-about .about-years b { font-size: 3.4em; }
+.landscape .card-about .about-years span { font-size: 0.95em; margin-top: 0.4em; }
 
 /* Experience */
 .roles { display: grid; gap: 1.1em; }
