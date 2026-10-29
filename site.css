@@ -285,7 +285,12 @@ p { margin: 0; }
 
 /* Experience */
 .roles { display: grid; gap: 1.1em; }
-.landscape .roles { grid-template-columns: 1fr 1fr; gap: 2.4em; }
+.landscape .roles { grid-template-columns: repeat(3, 1fr); gap: 1.8em; }
+.portrait .roles { gap: 0.6em; }
+.portrait .role { padding-top: 0.5em; }
+.portrait .role h3 { font-size: 1.2em; }
+.portrait .role-sum { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; margin-top: 0.35em; }
+.portrait .links { margin-top: 0.5em; }
 .role { padding-top: 0.9em; border-top: 1px solid var(--line); }
 .role-top { display: flex; align-items: baseline; justify-content: space-between; gap: 0.5em; }
 .role h3 { font-size: 1.35em; font-weight: 700; }
